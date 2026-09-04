@@ -243,7 +243,9 @@
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  padding: 12px;
+  /* No left/right padding — sticker cells run flush to the panel's edges,
+     matching the message input bar above; only top/bottom keep breathing room. */
+  padding: 12px 0;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;

@@ -42,6 +42,7 @@ export function useChatSim() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const stickerInputRef = useRef<HTMLInputElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const textInputRef = useRef<HTMLDivElement>(null);
   const pendingTargetRef = useRef<PickTarget>("background");
   const autoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tripleTapRef = useRef({ count: 0, timer: null as ReturnType<typeof setTimeout> | null });
@@ -166,6 +167,17 @@ export function useChatSim() {
     setMode((m) => (m === "keyboard" ? "sticker" : "keyboard"));
   }, []);
 
+  // Re-focus the message box the moment we switch back from the sticker
+  // panel to keyboard mode, so the OS keyboard pops up ready to type
+  // instead of leaving the user to tap the field again.
+  const prevModeRef = useRef<Mode>(mode);
+  useEffect(() => {
+    if (prevModeRef.current === "sticker" && mode === "keyboard") {
+      textInputRef.current?.focus();
+    }
+    prevModeRef.current = mode;
+  }, [mode]);
+
   const startEditName = useCallback(() => setEditingName(true), []);
 
   // Focus + select the name field once it mounts, rather than chaining off
@@ -219,6 +231,7 @@ export function useChatSim() {
     text,
     setText,
     blockEnter,
+    textInputRef,
 
     stickers,
     onStickerTap,

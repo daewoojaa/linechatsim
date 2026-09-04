@@ -1,6 +1,5 @@
 "use client";
 
-import { useRef } from "react";
 import { useChatSim } from "@/hooks/useChatSim";
 import {
   BackArrowIcon,
@@ -40,6 +39,7 @@ export default function ChatSimulator() {
 
     setText,
     blockEnter,
+    textInputRef,
 
     stickers,
     onStickerTap,
@@ -51,12 +51,6 @@ export default function ChatSimulator() {
     handleFileChange,
     handleStickerFilesChange,
   } = useChatSim();
-
-  // Uncontrolled contentEditable node — text lives in the DOM, `setText`
-  // just mirrors it into state. If a future reset (e.g. switching rooms)
-  // needs to clear the draft, clear this ref's textContent directly rather
-  // than trying to drive a contentEditable div from state.
-  const textInputRef = useRef<HTMLDivElement>(null);
 
   return (
     <div className={styles.appShell}>
