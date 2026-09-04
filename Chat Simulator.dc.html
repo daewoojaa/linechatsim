@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;padding:0;height:100%;background:#0d0d0f;overscroll-behavior:none}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+a{color:#3a8f5f}a:hover{color:#2c6f49}
+input,button{font-family:inherit}
+*::-webkit-scrollbar{width:0;height:0;display:none}
+*{scrollbar-width:none;-ms-overflow-style:none}
+</style>
+</helmet>
+<div style="position:relative;width:100%;height:100dvh;min-height:520px;overflow:hidden;display:flex;flex-direction:column;font-family:'Noto Sans Thai',system-ui,sans-serif;background:#aab6d8;user-select:none">
+
+  <div style="position:absolute;left:0;right:0;top:0;bottom:0;overflow:hidden">
+    <div style="{{ bgStyle }}"></div>
+  </div>
+
+  <div style="position:relative;flex:none;height:56px;display:flex;align-items:center;gap:10px;padding:0 12px 0 6px;background:transparent;z-index:5">
+    <div onClick="{{ showFirst }}" title="กลับไปรูปแชทที่ 1" style="width:26px;height:34px;display:flex;align-items:center;justify-content:center;opacity:.85;cursor:pointer">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4 7 12l8 8"></path></svg>
+    </div>
+    <sc-if value="{{ editingName }}" hint-placeholder-val="{{ false }}">
+      <input value="{{ roomName }}" onChange="{{ onNameChange }}" onBlur="{{ stopEditName }}" onKeyDown="{{ onNameKey }}" ref="{{ nameRef }}" style="flex:1;min-width:0;font:700 20px system-ui,-apple-system,sans-serif;color:#111;background:rgba(255,255,255,.9);border:0;border-radius:8px;padding:6px 10px;outline:2px solid rgba(0,0,0,.25)">
+    </sc-if>
+    <sc-if value="{{ notEditingName }}" hint-placeholder-val="{{ true }}">
+      <div style="flex:1;min-width:0;font:700 21px/1.2 system-ui,-apple-system,sans-serif;color:#141414;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ roomName }}</div>
+    </sc-if>
+    <div style="display:flex;align-items:center;gap:14px">
+      <button onClick="{{ pickChat1 }}" title="ใส่รูปแชทที่ 1" style="width:32px;height:32px;padding:0;border:0;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer">
+        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4.5 4.5"></path></svg>
+      </button>
+      <button onClick="{{ pickChat2 }}" title="ใส่รูปแชทที่ 2" style="width:32px;height:32px;padding:0;border:0;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer">
+        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3.8c1 0 1.6.5 1.9 1.4l.8 2.2c.3.8.1 1.4-.6 1.9l-1 .7c.9 2 2.4 3.5 4.4 4.4l.7-1c.5-.7 1.1-.9 1.9-.6l2.2.8c.9.3 1.4.9 1.4 1.9v2c0 1.2-.8 2-2 2C9.7 19.5 4.5 14.3 4.5 5.8c0-1.2.8-2 2-2Z"></path></svg>
+      </button>
+      <button onClick="{{ pickBg }}" title="ใส่ภาพพื้นหลัง" style="width:32px;height:32px;padding:0;border:0;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+        <span style="position:absolute;top:2px;right:1px;width:6px;height:6px;border-radius:50%;background:#2fbf5e"></span>
+      </button>
+    </div>
+  </div>
+
+  <div style="position:relative;flex:1;min-height:0;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;pointer-events:none">
+    <div style="{{ chatStyle }}"></div>
+  </div>
+
+  <div style="position:relative;flex:none;background:#ffffff;padding:8px 10px;display:flex;align-items:center;gap:8px">
+    <div onClick="{{ pickChat3 }}" title="ใส่รูปแชทที่ 3" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;flex:none;cursor:pointer">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3a3a3c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 8 7-8 7"></path></svg>
+    </div>
+    <div style="flex:1;min-width:0;display:flex;align-items:center;gap:8px;background:#f1f1f3;border-radius:999px;padding:0 8px 0 16px;height:44px">
+      <input value="{{ text }}" onChange="{{ onTextChange }}" onKeyDown="{{ blockEnter }}" placeholder="" ref="{{ inputRef }}" type="text" name="chatmsg-{{ nonce }}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" inputmode="text" style="flex:1;min-width:0;border:0;background:transparent;outline:none;font:400 17px 'Noto Sans Thai',sans-serif;color:#111">
+      <button onClick="{{ toggleMode }}" title="สลับคีย์บอร์ด / สติ๊กเกอร์" style="flex:none;width:32px;height:32px;border:0;padding:0;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center">
+        <sc-if value="{{ isKeyboard }}" hint-placeholder-val="{{ true }}">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="1.7"><circle cx="12" cy="12" r="9"></circle><circle cx="9" cy="10" r="1.1" fill="#8e8e93" stroke="none"></circle><circle cx="15" cy="10" r="1.1" fill="#8e8e93" stroke="none"></circle><path d="M8.5 14.5c1 1.2 2.1 1.8 3.5 1.8s2.5-.6 3.5-1.8" stroke-linecap="round"></path></svg>
+        </sc-if>
+        <sc-if value="{{ isSticker }}" hint-placeholder-val="{{ false }}">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="1.6"><rect x="3" y="6.5" width="18" height="11" rx="2.4"></rect><path d="M7 10h.01M10.5 10h.01M14 10h.01M17 10h.01M8.5 13.6h7" stroke-linecap="round"></path></svg>
+        </sc-if>
+      </button>
+    </div>
+    <button onClick="{{ startEditName }}" title="แก้ไขชื่อห้องแชท" style="flex:none;width:38px;height:38px;border:0;padding:0;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3a3a3c" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11.5" rx="3"></rect><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3.2"></path></svg>
+    </button>
+  </div>
+
+  <sc-if value="{{ isSticker }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ onPanelTap }}" style="position:relative;flex:none;max-height:46vh;background:#ffffff;display:flex;flex-direction:column">
+      <div style="flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:12px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;align-content:start">
+        <sc-for list="{{ stickers }}" as="s" hint-placeholder-count="0">
+          <div onClick="{{ s.tap }}" style="{{ s.style }}"></div>
+        </sc-for>
+      </div>
+      <div style="flex:none;height:20px;background:#fff"></div>
+    </div>
+  </sc-if>
+
+  <input type="file" accept="image/*" ref="{{ fileRef }}" onChange="{{ onFile }}" style="display:none">
+  <input type="file" accept="image/*" multiple="{{ true }}" ref="{{ stickerFileRef }}" onChange="{{ onStickerFiles }}" style="display:none">
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+const KEY = 'chatsim:v1';
+
+class Component extends DCLogic {
+  constructor(p){
+    super(p);
+    this.state = { roomName:'PLERN', bg:null, img1:'uploads/LINE-Chat1.png', img2:'uploads/LINE-Chat2.png', img3:null, slot:0, mode:'kb', text:'', stickers:['uploads/LINE-Stickr.png'], editingName:false };
+    this.autoTimer = null;
+    this.fileRef = React.createRef();
+    this.stickerFileRef = React.createRef();
+    this.inputRef = React.createRef();
+    this.nameRef = React.createRef();
+    this.pending = 'bg';
+    this.taps = 0;
+    this.tapTimer = null;
+  }
+  componentDidMount(){
+    try { const raw = localStorage.getItem(KEY); if (raw) this.setState(JSON.parse(raw)); } catch(e){}
+  }
+  save(patch){
+    this.setState(patch, () => {
+      const s = this.state;
+      try { localStorage.setItem(KEY, JSON.stringify({roomName:s.roomName,bg:s.bg,img1:s.img1,img2:s.img2,img3:s.img3,slot:s.slot,stickers:s.stickers})); } catch(e){}
+      this.scheduleAuto();
+    });
+  }
+  scheduleAuto(){
+    clearTimeout(this.autoTimer);
+    const s = this.state;
+    if (s.slot === 1 && s.img3){
+      this.autoTimer = setTimeout(() => { if (this.state.slot === 1) this.save({slot:2}); }, 2000);
+    }
+  }
+  pick(target){ this.pending = target; const el = this.fileRef.current; if (el){ el.value=''; el.click(); } }
+  read(file){ return new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(file); }); }
+  async onFile(e){
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    const url = await this.read(f);
+    if (this.pending === 'bg') this.save({bg:url});
+    if (this.pending === 'img1') this.save({img1:url, slot:0});
+    if (this.pending === 'img2') this.save({img2:url});
+    if (this.pending === 'img3') this.save({img3:url});
+  }
+  async onStickerFiles(e){
+    const files = Array.from(e.target.files || []); if (!files.length) return;
+    const urls = await Promise.all(files.map(f => this.read(f)));
+    this.save({stickers: this.state.stickers.concat(urls)});
+  }
+  panelTap(){
+    this.taps++;
+    clearTimeout(this.tapTimer);
+    if (this.taps >= 3){
+      this.taps = 0;
+      const el = this.stickerFileRef.current; if (el){ el.value=''; el.click(); }
+      return;
+    }
+    this.tapTimer = setTimeout(() => { this.taps = 0; }, 650);
+  }
+  measure(src){
+    this.aspects = this.aspects || {};
+    if (this.aspects[src] === undefined){
+      this.aspects[src] = {r:1, w:0};
+      const im = new Image();
+      im.onload = () => { this.aspects[src] = {r: im.naturalWidth / im.naturalHeight, w: im.naturalWidth}; this.forceUpdate(); };
+      im.src = src;
+    }
+    return this.aspects[src];
+  }
+  renderVals(){
+    const s = this.state;
+    const src = s.slot === 2 ? (s.img3 || s.img2 || s.img1) : s.slot === 1 ? (s.img2 || s.img1) : (s.img1 || s.img2);
+    return {
+      roomName: s.roomName,
+      bgStyle: {position:'absolute', inset:0, backgroundImage: s.bg ? 'url("' + s.bg + '")' : 'none', backgroundSize:'cover', backgroundPosition:'center', backgroundRepeat:'no-repeat'},
+      chatStyle: {position:'absolute', inset:0, backgroundImage: src ? 'url("' + src + '")' : 'none', backgroundSize:'100% auto', backgroundPosition:'bottom center', backgroundRepeat:'no-repeat'},
+      showFirst: () => this.save({slot:0}),
+      noChat: !src,
+      slotBadge: s.img2 ? (s.slot === 1 ? 'รูปที่ 2' : 'รูปที่ 1') : '',
+      text: s.text,
+      nonce: this._nonce || (this._nonce = Math.random().toString(36).slice(2)),
+      isKeyboard: s.mode === 'kb',
+      isSticker: s.mode === 'sticker',
+      editingName: s.editingName,
+      notEditingName: !s.editingName,
+      noStickers: s.stickers.length === 0,
+      stickers: s.stickers.map((src, i) => { const m = this.measure(src); const sheet = m.w >= 400; return ({ src, style: {gridColumn: sheet ? '1 / -1' : 'auto', aspectRatio: sheet ? m.r : 1, borderRadius:10, backgroundColor:'rgba(0,0,0,.03)', backgroundImage:'url("' + src + '")', backgroundSize:'contain', backgroundPosition:'center', backgroundRepeat:'no-repeat', cursor:'pointer'}, tap: (e) => { e.stopPropagation(); this.save({slot:1}); } }); }),
+      fileRef: this.fileRef,
+      stickerFileRef: this.stickerFileRef,
+      inputRef: this.inputRef,
+      nameRef: this.nameRef,
+      pickBg: () => this.pick('bg'),
+      pickChat1: () => this.pick('img1'),
+      pickChat2: () => this.pick('img2'),
+      pickChat3: () => this.pick('img3'),
+      pickStickers: (e) => { e.stopPropagation(); const el = this.stickerFileRef.current; if (el){ el.value=''; el.click(); } },
+      onFile: (e) => this.onFile(e),
+      onStickerFiles: (e) => this.onStickerFiles(e),
+      onPanelTap: () => this.panelTap(),
+      onChatTap: () => { if (s.img2) this.save({slot: s.slot === 0 ? 1 : 0}); },
+      toggleMode: () => this.setState({mode: s.mode === 'kb' ? 'sticker' : 'kb'}),
+      onTextChange: (e) => this.setState({text: e.target.value}),
+      blockEnter: (e) => { if (e.key === 'Enter') e.preventDefault(); },
+      startEditName: () => this.setState({editingName:true}, () => { const el = this.nameRef.current; if (el){ el.focus(); el.select(); } }),
+      stopEditName: () => this.save({editingName:false}),
+      onNameChange: (e) => this.setState({roomName: e.target.value}),
+      onNameKey: (e) => { if (e.key === 'Enter'){ e.preventDefault(); this.save({editingName:false}); } }
+    };
+  }
+}
+</script>
+</body>
+</html>

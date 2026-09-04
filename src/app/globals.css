@@ -1,0 +1,35 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overscroll-behavior: none;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+
+input,
+button {
+  font-family: inherit;
+}
+
+/* Hide scrollbars everywhere by default; the sticker grid re-enables scrolling
+   but keeps the bar hidden (see ChatSimulator.module.css). */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+body {
+  background: #0d0d0f;
+  color: #141414;
+  font-family: var(--font-body);
+}
