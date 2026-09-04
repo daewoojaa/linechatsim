@@ -182,6 +182,14 @@
   outline: none;
   font: 400 17px var(--font-body), sans-serif;
   color: #111;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.textInput:empty:before {
+  content: attr(data-placeholder);
+  color: inherit;
+  pointer-events: none;
 }
 
 .modeButton {

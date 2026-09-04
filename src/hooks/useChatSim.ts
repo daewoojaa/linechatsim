@@ -192,7 +192,7 @@ export function useChatSim() {
     [commitName]
   );
 
-  const blockEnter = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+  const blockEnter = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Enter") e.preventDefault();
   }, []);
 

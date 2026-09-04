@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useRef } from "react";
 import { useChatSim } from "@/hooks/useChatSim";
 import {
   BackArrowIcon,
@@ -38,7 +38,6 @@ export default function ChatSimulator() {
     mode,
     toggleMode,
 
-    text,
     setText,
     blockEnter,
 
@@ -53,11 +52,11 @@ export default function ChatSimulator() {
     handleStickerFilesChange,
   } = useChatSim();
 
-  // Rotating `name` attribute + autofill-suppression props, so mobile
-  // keyboards / password managers don't treat the draft field as a real
-  // message box worth remembering. useId (not Math.random) keeps this stable
-  // and pure across renders while still varying per mounted instance.
-  const inputNonce = useId().replace(/[^a-zA-Z0-9]/g, "");
+  // Uncontrolled contentEditable node — text lives in the DOM, `setText`
+  // just mirrors it into state. If a future reset (e.g. switching rooms)
+  // needs to clear the draft, clear this ref's textContent directly rather
+  // than trying to drive a contentEditable div from state.
+  const textInputRef = useRef<HTMLDivElement>(null);
 
   return (
     <div className={styles.appShell}>
@@ -137,15 +136,19 @@ export default function ChatSimulator() {
           </button>
 
           <div className={styles.inputPill}>
-            <input
-              type="text"
+            {/* contentEditable instead of <input> — Chrome only shows its
+                key/card/location autofill accessory bar above the keyboard
+                for real form fields, so a div here keeps that bar off. */}
+            <div
+              ref={textInputRef}
+              contentEditable
+              suppressContentEditableWarning
               className={styles.textInput}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
+              role="textbox"
+              aria-multiline="false"
+              data-placeholder=""
+              onInput={(e) => setText(e.currentTarget.textContent ?? "")}
               onKeyDown={blockEnter}
-              placeholder=""
-              name={`chatmsg-${inputNonce}`}
-              autoComplete="off"
               autoCorrect="off"
               autoCapitalize="off"
               spellCheck={false}
