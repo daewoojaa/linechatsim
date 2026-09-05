@@ -164,18 +164,14 @@ export function useChatSim() {
   }, [requestAddStickers]);
 
   const toggleMode = useCallback(() => {
-    setMode((m) => (m === "keyboard" ? "sticker" : "keyboard"));
-  }, []);
-
-  // Re-focus the message box the moment we switch back from the sticker
-  // panel to keyboard mode, so the OS keyboard pops up ready to type
-  // instead of leaving the user to tap the field again.
-  const prevModeRef = useRef<Mode>(mode);
-  useEffect(() => {
-    if (prevModeRef.current === "sticker" && mode === "keyboard") {
+    const next = mode === "keyboard" ? "sticker" : "keyboard";
+    setMode(next);
+    // Focus right after setState (not in a useEffect) so this runs inside
+    // the same click/tap gesture — switching back to keyboard mode re-opens
+    // the OS keyboard immediately instead of requiring an extra tap.
+    if (next === "keyboard") {
       textInputRef.current?.focus();
     }
-    prevModeRef.current = mode;
   }, [mode]);
 
   const startEditName = useCallback(() => setEditingName(true), []);
