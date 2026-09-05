@@ -10,14 +10,28 @@ import {
   idbSetMeta,
   type ImageKey,
 } from "@/lib/idbStore";
-import type { ChatSlot, Mode, PickTarget, Sticker } from "@/lib/types";
+import type { ChatSet, ChatSlot, Mode, PickTarget, Sticker } from "@/lib/types";
 
 const DEFAULT_ROOM_NAME = "อ.ตวง";
 const DEFAULT_BACKGROUND = "/default-bg2.png";
 const DEFAULT_CHAT_IMAGE_1 = "/default-chat1.jpg";
-const DEFAULT_CHAT_IMAGE_2 = "/default-chat2.jpg";
-const DEFAULT_CHAT_IMAGE_3 = "/default-chat3.jpg";
-const DEFAULT_CHAT_IMAGE_4 = "/default-chat4.jpg";
+
+// chatImage1 has no alternate — only 2/3/4 come in two pre-made storylines
+// the user can flip between (see toggleChatSet). Whichever isn't active is
+// only ever used as a *default*: an image the user has actually uploaded
+// for a slot always wins over either set (see customImageRef).
+const CHAT_SET_DEFAULTS: Record<ChatSet, { chatImage2: string; chatImage3: string; chatImage4: string }> = {
+  A: {
+    chatImage2: "/default-chat2.jpg",
+    chatImage3: "/default-chat3.jpg",
+    chatImage4: "/default-chat4.jpg",
+  },
+  B: {
+    chatImage2: "/default-chatB2.jpg",
+    chatImage3: "/default-chatB3.jpg",
+    chatImage4: "/default-chatB4.jpg",
+  },
+};
 // Negative id marks this as a placeholder, not a real saved sticker —
 // idbAddStickers hands out non-negative autoIncrement ids, so this can
 // never collide, and it's how handleStickerFilesChange knows to drop the
@@ -39,12 +53,18 @@ export function useChatSim() {
   const [roomName, setRoomName] = useState(DEFAULT_ROOM_NAME);
   const [editingName, setEditingName] = useState(false);
 
+  const [chatSet, setChatSet] = useState<ChatSet>("A");
   const [background, setBackground] = useState<string | null>(DEFAULT_BACKGROUND);
   const [chatImage1, setChatImage1] = useState<string | null>(DEFAULT_CHAT_IMAGE_1);
-  const [chatImage2, setChatImage2] = useState<string | null>(DEFAULT_CHAT_IMAGE_2);
-  const [chatImage3, setChatImage3] = useState<string | null>(DEFAULT_CHAT_IMAGE_3);
-  const [chatImage4, setChatImage4] = useState<string | null>(DEFAULT_CHAT_IMAGE_4);
+  const [chatImage2, setChatImage2] = useState<string | null>(CHAT_SET_DEFAULTS.A.chatImage2);
+  const [chatImage3, setChatImage3] = useState<string | null>(CHAT_SET_DEFAULTS.A.chatImage3);
+  const [chatImage4, setChatImage4] = useState<string | null>(CHAT_SET_DEFAULTS.A.chatImage4);
   const [slot, setSlot] = useState<ChatSlot>(0);
+  // Tracks which of chatImage2/3/4 hold a real user upload rather than a
+  // set default — toggleChatSet must never clobber those. A ref (not
+  // state) because it's only ever read inside event handlers, never
+  // rendered.
+  const customImageRef = useRef({ chatImage2: false, chatImage3: false, chatImage4: false });
 
   const [mode, setMode] = useState<Mode>("keyboard");
   const [text, setText] = useState("");
@@ -64,25 +84,47 @@ export function useChatSim() {
     let cancelled = false;
 
     (async () => {
-      const [savedRoomName, savedSlot, bgBlob, img1Blob, img2Blob, img3Blob, img4Blob, stickerRows] = await Promise.all([
-        idbGetMeta<string>("roomName"),
-        idbGetMeta<ChatSlot>("slot"),
-        idbGetImage("background"),
-        idbGetImage("chatImage1"),
-        idbGetImage("chatImage2"),
-        idbGetImage("chatImage3"),
-        idbGetImage("chatImage4"),
-        idbGetAllStickers(),
-      ]);
+      const [savedRoomName, savedSlot, savedChatSet, bgBlob, img1Blob, img2Blob, img3Blob, img4Blob, stickerRows] =
+        await Promise.all([
+          idbGetMeta<string>("roomName"),
+          idbGetMeta<ChatSlot>("slot"),
+          idbGetMeta<ChatSet>("chatSet"),
+          idbGetImage("background"),
+          idbGetImage("chatImage1"),
+          idbGetImage("chatImage2"),
+          idbGetImage("chatImage3"),
+          idbGetImage("chatImage4"),
+          idbGetAllStickers(),
+        ]);
       if (cancelled) return;
 
       if (savedRoomName) setRoomName(savedRoomName);
       if (savedSlot !== undefined) setSlot(savedSlot);
       if (bgBlob) setBackground(URL.createObjectURL(bgBlob));
       if (img1Blob) setChatImage1(URL.createObjectURL(img1Blob));
-      if (img2Blob) setChatImage2(URL.createObjectURL(img2Blob));
-      if (img3Blob) setChatImage3(URL.createObjectURL(img3Blob));
-      if (img4Blob) setChatImage4(URL.createObjectURL(img4Blob));
+
+      const set = savedChatSet ?? "A";
+      if (savedChatSet) setChatSet(savedChatSet);
+
+      if (img2Blob) {
+        setChatImage2(URL.createObjectURL(img2Blob));
+        customImageRef.current.chatImage2 = true;
+      } else if (set === "B") {
+        setChatImage2(CHAT_SET_DEFAULTS.B.chatImage2);
+      }
+      if (img3Blob) {
+        setChatImage3(URL.createObjectURL(img3Blob));
+        customImageRef.current.chatImage3 = true;
+      } else if (set === "B") {
+        setChatImage3(CHAT_SET_DEFAULTS.B.chatImage3);
+      }
+      if (img4Blob) {
+        setChatImage4(URL.createObjectURL(img4Blob));
+        customImageRef.current.chatImage4 = true;
+      } else if (set === "B") {
+        setChatImage4(CHAT_SET_DEFAULTS.B.chatImage4);
+      }
+
       if (stickerRows.length) {
         setStickers(stickerRows.map((row) => ({ id: row.id, url: URL.createObjectURL(row.blob) })));
       }
@@ -137,9 +179,18 @@ export function useChatSim() {
       setChatImage1(url);
       setSlot(0);
     }
-    if (target === "chatImage2") setChatImage2(url);
-    if (target === "chatImage3") setChatImage3(url);
-    if (target === "chatImage4") setChatImage4(url);
+    if (target === "chatImage2") {
+      setChatImage2(url);
+      customImageRef.current.chatImage2 = true;
+    }
+    if (target === "chatImage3") {
+      setChatImage3(url);
+      customImageRef.current.chatImage3 = true;
+    }
+    if (target === "chatImage4") {
+      setChatImage4(url);
+      customImageRef.current.chatImage4 = true;
+    }
   }, []);
 
   const requestAddStickers = useCallback(() => {
@@ -199,6 +250,19 @@ export function useChatSim() {
     }
   }, [mode]);
 
+  /** Switches chatImage2/3/4 between the two pre-made storylines (Set A /
+   *  Set B), skipping any slot the user has already uploaded their own
+   *  image into. Persists so a reload comes back to the same set. */
+  const toggleChatSet = useCallback(() => {
+    const next: ChatSet = chatSet === "A" ? "B" : "A";
+    const defaults = CHAT_SET_DEFAULTS[next];
+    if (!customImageRef.current.chatImage2) setChatImage2(defaults.chatImage2);
+    if (!customImageRef.current.chatImage3) setChatImage3(defaults.chatImage3);
+    if (!customImageRef.current.chatImage4) setChatImage4(defaults.chatImage4);
+    setChatSet(next);
+    idbSetMeta("chatSet", next);
+  }, [chatSet]);
+
   const startEditName = useCallback(() => setEditingName(true), []);
 
   // Focus + select the name field once it mounts, rather than chaining off
@@ -251,6 +315,8 @@ export function useChatSim() {
     displayedChatSrc,
     slot,
     showFirst,
+    chatSet,
+    toggleChatSet,
 
     mode,
     toggleMode,

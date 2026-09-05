@@ -4,7 +4,6 @@ import { useChatSim } from "@/hooks/useChatSim";
 import {
   BackArrowIcon,
   ChevronRightIcon,
-  EditNameIcon,
   KeyboardGlyphIcon,
   MenuIcon,
   PhoneIcon,
@@ -33,6 +32,8 @@ export default function ChatSimulator() {
     background,
     displayedChatSrc,
     showFirst,
+    chatSet,
+    toggleChatSet,
 
     mode,
     toggleMode,
@@ -79,7 +80,9 @@ export default function ChatSimulator() {
               ref={nameInputRef}
             />
           ) : (
-            <div className={styles.roomNameText}>{roomName}</div>
+            <div className={styles.roomNameText} onClick={startEditName} title="แก้ไขชื่อห้องแชท">
+              {roomName}
+            </div>
           )}
 
           <div className={styles.headerIcons}>
@@ -163,8 +166,16 @@ export default function ChatSimulator() {
             </button>
           </div>
 
-          <button type="button" className={styles.editNameButton} onClick={startEditName} title="แก้ไขชื่อห้องแชท">
-            <EditNameIcon />
+          {/* Was the "edit room name" trigger — room name is now tappable
+              directly (see roomNameText above), so this button is free to
+              be the Set A/B switcher instead. */}
+          <button
+            type="button"
+            className={styles.setToggleButton}
+            onClick={toggleChatSet}
+            title="สลับชุดรูปข้อความ A/B"
+          >
+            {chatSet}
           </button>
         </div>
 
