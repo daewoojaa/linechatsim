@@ -195,7 +195,13 @@
   position: relative;
   flex: none;
   background: #ffffff;
-  padding: 8px 10px;
+  /* Less top/bottom padding than before — its bottom edge is already
+     pinned exactly to the top of --keyboard-reserve (measured directly
+     off real-keyboard screenshots, confirmed spot-on), so shrinking this
+     row doesn't move that boundary; it just lets .chatZone (flex:1)
+     absorb the difference and pulls the pill down closer to the
+     keyboard, cutting the dead space between them. */
+  padding: 4px 10px;
   display: flex;
   align-items: center;
   gap: 8px;
