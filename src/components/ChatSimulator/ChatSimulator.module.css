@@ -56,16 +56,23 @@
   /* Header is fixed (see below) and out of flow — reserve its height here
      instead so the chat zone / input bar start right below it. */
   padding-top: calc(56px + env(safe-area-inset-top));
-  /* No keyboard-mode-only bottom padding needed here anymore: the sticker
-     panel is now always mounted (see below) and always reserves the same
-     --keyboard-reserve footprint itself, in flow, below the input bar —
-     switching to keyboard mode just focuses the message box so the real
-     OS keyboard rises to overlay that same already-reserved area
-     (interactive-widget:overlays-content in layout.tsx is what makes the
-     keyboard draw on top instead of resizing/pushing anything). */
-  padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
+}
+
+/* In keyboard mode, reserve the fixed --keyboard-reserve footprint below
+   the input bar (see .appShell) — the viewport meta's
+   interactive-widget:overlays-content (layout.tsx) means the real OS
+   keyboard draws on top of the page instead of resizing it, so this is
+   the only thing lifting the input bar up to meet it. Sticker mode
+   reserves nothing here because .stickerPanel takes up that same space
+   itself, in flow, below the input bar — see .stickerPanel. */
+.contentColumn[data-mode="keyboard"] {
+  padding-bottom: calc(env(safe-area-inset-bottom) + var(--keyboard-reserve));
+}
+
+.contentColumn[data-mode="sticker"] {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* ---- 1. Header ---- */
