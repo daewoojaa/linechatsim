@@ -256,11 +256,8 @@
   width: 38px;
   height: 38px;
   border: 0;
-  border-radius: 999px;
   padding: 0;
-  background: #f1f1f3;
-  color: #3a3a3c;
-  font: 700 15px system-ui, -apple-system, sans-serif;
+  background: transparent;
   cursor: pointer;
   display: flex;
   align-items: center;

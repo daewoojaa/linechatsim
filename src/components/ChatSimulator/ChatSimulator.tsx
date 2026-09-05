@@ -4,6 +4,7 @@ import { useChatSim } from "@/hooks/useChatSim";
 import {
   BackArrowIcon,
   ChevronRightIcon,
+  EditNameIcon,
   KeyboardGlyphIcon,
   MenuIcon,
   PhoneIcon,
@@ -109,7 +110,8 @@ export default function ChatSimulator() {
               title="ใส่รูปแชทที่ 3"
             >
               <MenuIcon />
-              <span className={styles.badgeDot} />
+              {/* Doubles as the Set A/B indicator: visible on Set A, hidden on Set B. */}
+              {chatSet === "A" && <span className={styles.badgeDot} />}
             </button>
           </div>
         </div>
@@ -168,14 +170,16 @@ export default function ChatSimulator() {
 
           {/* Was the "edit room name" trigger — room name is now tappable
               directly (see roomNameText above), so this button is free to
-              be the Set A/B switcher instead. */}
+              be the Set A/B switcher instead. Icon stays the same mic
+              glyph; the green dot on the menu icon above shows which set
+              is active (on for A, off for B). */}
           <button
             type="button"
             className={styles.setToggleButton}
             onClick={toggleChatSet}
             title="สลับชุดรูปข้อความ A/B"
           >
-            {chatSet}
+            <EditNameIcon />
           </button>
         </div>
 
