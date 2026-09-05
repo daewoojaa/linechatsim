@@ -40,7 +40,13 @@
   /* Header is fixed (see below) and out of flow — reserve its height here
      instead so the chat zone / input bar start right below it. */
   padding-top: calc(56px + env(safe-area-inset-top));
-  padding-bottom: env(safe-area-inset-bottom);
+  /* The viewport meta's interactive-widget:overlays-content means the OS
+     keyboard draws on top of the page instead of resizing it (see
+     layout.tsx) — nothing reflows, so the header never moves. The
+     trade-off is we now have to lift the input bar/sticker panel above
+     the keyboard ourselves; env(keyboard-inset-height) is exactly the
+     keyboard's current height (0 when it's closed). */
+  padding-bottom: calc(env(safe-area-inset-bottom) + env(keyboard-inset-height, 0px));
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
 }

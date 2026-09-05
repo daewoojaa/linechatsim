@@ -34,6 +34,14 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  // Without this, the OS keyboard opening resizes the visual viewport,
+  // which is what was still dragging the fixed header along with it on
+  // real devices no matter how much CSS pinned things in place —
+  // position:fixed can't out-fight a viewport that's actually resizing
+  // underneath it. "overlays-content" tells the browser to draw the
+  // keyboard on top of the page instead of resizing anything, so the
+  // layout (header included) never has a reason to move at all.
+  interactiveWidget: "overlays-content",
   themeColor: "#aab6d8",
 };
 

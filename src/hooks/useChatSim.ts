@@ -12,7 +12,7 @@ import {
 } from "@/lib/idbStore";
 import type { ChatSlot, Mode, PickTarget, Sticker } from "@/lib/types";
 
-const DEFAULT_ROOM_NAME = "PLERN";
+const DEFAULT_ROOM_NAME = "อ.ตวง";
 const DEFAULT_BACKGROUND = "/default-bg.png";
 const DEFAULT_CHAT_IMAGE_1 = "/default-chat1.png";
 const DEFAULT_CHAT_IMAGE_2 = "/default-chat2.png";
