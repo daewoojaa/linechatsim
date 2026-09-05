@@ -14,6 +14,14 @@ import type { ChatSlot, Mode, PickTarget, Sticker } from "@/lib/types";
 
 const DEFAULT_ROOM_NAME = "PLERN";
 const DEFAULT_BACKGROUND = "/default-bg.png";
+const DEFAULT_CHAT_IMAGE_1 = "/default-chat1.png";
+const DEFAULT_CHAT_IMAGE_2 = "/default-chat2.png";
+const DEFAULT_CHAT_IMAGE_3 = "/default-chat3.png";
+// Negative id marks this as a placeholder, not a real saved sticker —
+// idbAddStickers hands out non-negative autoIncrement ids, so this can
+// never collide, and it's how handleStickerFilesChange knows to drop the
+// placeholder once the user adds a sticker of their own.
+const DEFAULT_STICKER: Sticker = { id: -1, url: "/default-stickers/1.png" };
 const AUTO_ADVANCE_MS = 2000;
 
 const PICK_TO_IMAGE_KEY: Record<PickTarget, ImageKey> = {
@@ -30,15 +38,15 @@ export function useChatSim() {
   const [editingName, setEditingName] = useState(false);
 
   const [background, setBackground] = useState<string | null>(DEFAULT_BACKGROUND);
-  const [chatImage1, setChatImage1] = useState<string | null>(null);
-  const [chatImage2, setChatImage2] = useState<string | null>(null);
-  const [chatImage3, setChatImage3] = useState<string | null>(null);
+  const [chatImage1, setChatImage1] = useState<string | null>(DEFAULT_CHAT_IMAGE_1);
+  const [chatImage2, setChatImage2] = useState<string | null>(DEFAULT_CHAT_IMAGE_2);
+  const [chatImage3, setChatImage3] = useState<string | null>(DEFAULT_CHAT_IMAGE_3);
   const [slot, setSlot] = useState<ChatSlot>(0);
 
   const [mode, setMode] = useState<Mode>("keyboard");
   const [text, setText] = useState("");
 
-  const [stickers, setStickers] = useState<Sticker[]>([]);
+  const [stickers, setStickers] = useState<Sticker[]>([DEFAULT_STICKER]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const stickerInputRef = useRef<HTMLInputElement>(null);
@@ -142,7 +150,11 @@ export function useChatSim() {
 
     await idbAddStickers(files);
     const added = files.map((file, i) => ({ id: Date.now() + i, url: URL.createObjectURL(file) }));
-    setStickers((prev) => prev.concat(added));
+    // Drop the placeholder default sticker (negative id) the first time the
+    // user adds a real one — same "your upload replaces the default" rule
+    // background/chatImage follow, just expressed as a filter since this is
+    // a list instead of a single slot.
+    setStickers((prev) => prev.filter((s) => s.id >= 0).concat(added));
   }, []);
 
   const onStickerTap = useCallback(() => {
