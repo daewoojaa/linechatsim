@@ -1,7 +1,17 @@
+/* Lock html/body to the viewport's initial bounds so the page itself never
+   scrolls or reflows when the OS keyboard opens — position:fixed here is
+   what actually stops the whole document from being pushed/resized by the
+   visual viewport; overflow:hidden alone isn't enough on mobile Safari. */
 html,
 body {
   margin: 0;
   padding: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
   height: 100%;
   overflow: hidden;
   overscroll-behavior: none;

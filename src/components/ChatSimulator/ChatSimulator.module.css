@@ -1,10 +1,14 @@
 .appShell {
-  /* Fixed to the viewport's initial bounds instead of sized with 100dvh —
+  /* Fixed to the viewport's initial bounds instead of sized with 100dvh/vh —
      dvh recomputes (and reflows everything inside) when the OS keyboard
      opens/closes, which is exactly what let the keyboard shove the header
-     off-screen. inset:0 pins the whole shell in place regardless. */
+     off-screen. No height property here at all: top+bottom both pinned
+     to 0 is what actually gives this its height. */
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   min-height: 520px;
   overflow: hidden;
   background: #aab6d8;
