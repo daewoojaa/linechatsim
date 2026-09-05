@@ -61,7 +61,7 @@ export default function ChatSimulator() {
         />
       </div>
 
-      <div className={styles.contentColumn}>
+      <div className={styles.contentColumn} data-mode={mode}>
         {/* 1. Header bar */}
         <div className={styles.header}>
           <button type="button" className={styles.backButton} onClick={showFirst} title="กลับไปรูปแชทที่ 1">

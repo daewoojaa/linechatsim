@@ -14,6 +14,15 @@
   background: #aab6d8;
   user-select: none;
   font-family: var(--font-body), system-ui, -apple-system, sans-serif;
+  /* Fixed, hardcoded footprint for "whatever sits below the input bar"
+     (real keyboard, or the in-app sticker panel standing in for it) —
+     measured from a reference screenshot of the real LINE app with its
+     keyboard open (bottom of the message bar sits at ~55.7% down the
+     screen, i.e. ~44.3% of the screen below it). Not derived from any
+     live measurement on purpose: dynamic keyboard-height tracking kept
+     drifting/lagging in practice, so this locks the input bar to the
+     exact same on-screen spot every time, in both modes. */
+  --keyboard-reserve: 44.3vh;
 }
 
 /* Full-bleed background layer — extends under the notch/home-indicator;
@@ -40,17 +49,23 @@
   /* Header is fixed (see below) and out of flow — reserve its height here
      instead so the chat zone / input bar start right below it. */
   padding-top: calc(56px + env(safe-area-inset-top));
-  /* The viewport meta's interactive-widget:overlays-content means the OS
-     keyboard draws on top of the page instead of resizing it (see
-     layout.tsx) — nothing reflows, so the header never moves. The
-     trade-off is we now have to lift the input bar/sticker panel above
-     the keyboard ourselves. Not every browser that honors overlays-content
-     also populates env(keyboard-inset-height), so try it first and fall
-     back to --keyboard-inset-height, which useChatSim keeps in sync via
-     the VisualViewport API (0px until it's ever set). */
-  padding-bottom: calc(env(safe-area-inset-bottom) + env(keyboard-inset-height, var(--keyboard-inset-height, 0px)));
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
+}
+
+/* In keyboard mode, reserve the fixed --keyboard-reserve footprint below
+   the input bar (see .appShell) — the viewport meta's
+   interactive-widget:overlays-content (layout.tsx) means the real OS
+   keyboard draws on top of the page instead of resizing it, so this is
+   the only thing lifting the input bar up to meet it. Sticker mode
+   reserves nothing here because .stickerPanel takes up that same space
+   itself, in flow, below the input bar — see .stickerPanel. */
+.contentColumn[data-mode="keyboard"] {
+  padding-bottom: calc(env(safe-area-inset-bottom) + var(--keyboard-reserve));
+}
+
+.contentColumn[data-mode="sticker"] {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* ---- 1. Header ---- */
@@ -246,12 +261,11 @@
 .stickerPanel {
   position: relative;
   flex: none;
-  /* Match the real OS keyboard's last-measured height (see useChatSim)
-     instead of a fixed 46vh, so switching keyboard <-> sticker mode keeps
-     the input bar pinned at the exact same spot on screen either way.
-     Falls back to 46vh before any keyboard has ever been measured, and is
-     clamped so a bad reading can't collapse or blow out the panel. */
-  height: clamp(220px, var(--sticker-panel-height, 46vh), 70vh);
+  /* Same fixed footprint the keyboard reserves (see .appShell) — this is
+     what keeps the input bar pinned at the exact same spot switching
+     between keyboard and sticker mode, since both now just reserve an
+     identical, constant amount of space below the input bar. */
+  height: var(--keyboard-reserve);
   background: #ffffff;
   display: flex;
   flex-direction: column;
