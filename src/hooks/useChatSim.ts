@@ -89,6 +89,34 @@ export function useChatSim() {
     };
   }, []);
 
+  // ---- mirror the on-screen keyboard's height into a CSS variable ----
+  // interactive-widget:overlays-content (see layout.tsx) stops the keyboard
+  // from resizing/scrolling the page — that's what fixed the header drifting
+  // off-screen — but it also means CSS's own env(keyboard-inset-height)
+  // isn't populated on every browser that honors the meta tag, which left
+  // the input bar and chat image hidden under the keyboard instead of
+  // rising above it. The VisualViewport API reports the actually-visible
+  // area on essentially every mobile browser regardless of that, so we
+  // measure it directly and expose it as --keyboard-inset-height; the
+  // stylesheet tries the native env() first and falls back to this.
+  useEffect(() => {
+    const vv = typeof window !== "undefined" ? window.visualViewport : null;
+    if (!vv) return;
+
+    const updateInset = () => {
+      const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      document.documentElement.style.setProperty("--keyboard-inset-height", `${inset}px`);
+    };
+
+    updateInset();
+    vv.addEventListener("resize", updateInset);
+    vv.addEventListener("scroll", updateInset);
+    return () => {
+      vv.removeEventListener("resize", updateInset);
+      vv.removeEventListener("scroll", updateInset);
+    };
+  }, []);
+
   // ---- auto-advance: slot 1 -> 2 once a third chat image exists ----
   useEffect(() => {
     if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
