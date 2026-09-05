@@ -13,6 +13,7 @@ import {
 import type { ChatSlot, Mode, PickTarget, Sticker } from "@/lib/types";
 
 const DEFAULT_ROOM_NAME = "PLERN";
+const DEFAULT_BACKGROUND = "/default-bg.png";
 const AUTO_ADVANCE_MS = 2000;
 
 const PICK_TO_IMAGE_KEY: Record<PickTarget, ImageKey> = {
@@ -28,7 +29,7 @@ export function useChatSim() {
   const [roomName, setRoomName] = useState(DEFAULT_ROOM_NAME);
   const [editingName, setEditingName] = useState(false);
 
-  const [background, setBackground] = useState<string | null>(null);
+  const [background, setBackground] = useState<string | null>(DEFAULT_BACKGROUND);
   const [chatImage1, setChatImage1] = useState<string | null>(null);
   const [chatImage2, setChatImage2] = useState<string | null>(null);
   const [chatImage3, setChatImage3] = useState<string | null>(null);
