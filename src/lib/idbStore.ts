@@ -14,7 +14,7 @@ const META_STORE = "meta";
 const IMAGES_STORE = "images";
 const STICKERS_STORE = "stickers";
 
-export type ImageKey = "background" | "chatImage1" | "chatImage2" | "chatImage3";
+export type ImageKey = "background" | "chatImage1" | "chatImage2" | "chatImage3" | "chatImage4";
 
 export type StickerRecord = { id: number; blob: Blob };
 

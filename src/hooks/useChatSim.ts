@@ -14,9 +14,10 @@ import type { ChatSlot, Mode, PickTarget, Sticker } from "@/lib/types";
 
 const DEFAULT_ROOM_NAME = "อ.ตวง";
 const DEFAULT_BACKGROUND = "/default-bg.png";
-const DEFAULT_CHAT_IMAGE_1 = "/default-chat1.png";
-const DEFAULT_CHAT_IMAGE_2 = "/default-chat2.png";
-const DEFAULT_CHAT_IMAGE_3 = "/default-chat3.png";
+const DEFAULT_CHAT_IMAGE_1 = "/default-chat1.jpg";
+const DEFAULT_CHAT_IMAGE_2 = "/default-chat2.jpg";
+const DEFAULT_CHAT_IMAGE_3 = "/default-chat3.jpg";
+const DEFAULT_CHAT_IMAGE_4 = "/default-chat4.jpg";
 // Negative id marks this as a placeholder, not a real saved sticker —
 // idbAddStickers hands out non-negative autoIncrement ids, so this can
 // never collide, and it's how handleStickerFilesChange knows to drop the
@@ -29,6 +30,7 @@ const PICK_TO_IMAGE_KEY: Record<PickTarget, ImageKey> = {
   chatImage1: "chatImage1",
   chatImage2: "chatImage2",
   chatImage3: "chatImage3",
+  chatImage4: "chatImage4",
 };
 
 export function useChatSim() {
@@ -41,6 +43,7 @@ export function useChatSim() {
   const [chatImage1, setChatImage1] = useState<string | null>(DEFAULT_CHAT_IMAGE_1);
   const [chatImage2, setChatImage2] = useState<string | null>(DEFAULT_CHAT_IMAGE_2);
   const [chatImage3, setChatImage3] = useState<string | null>(DEFAULT_CHAT_IMAGE_3);
+  const [chatImage4, setChatImage4] = useState<string | null>(DEFAULT_CHAT_IMAGE_4);
   const [slot, setSlot] = useState<ChatSlot>(0);
 
   const [mode, setMode] = useState<Mode>("keyboard");
@@ -61,13 +64,14 @@ export function useChatSim() {
     let cancelled = false;
 
     (async () => {
-      const [savedRoomName, savedSlot, bgBlob, img1Blob, img2Blob, img3Blob, stickerRows] = await Promise.all([
+      const [savedRoomName, savedSlot, bgBlob, img1Blob, img2Blob, img3Blob, img4Blob, stickerRows] = await Promise.all([
         idbGetMeta<string>("roomName"),
         idbGetMeta<ChatSlot>("slot"),
         idbGetImage("background"),
         idbGetImage("chatImage1"),
         idbGetImage("chatImage2"),
         idbGetImage("chatImage3"),
+        idbGetImage("chatImage4"),
         idbGetAllStickers(),
       ]);
       if (cancelled) return;
@@ -78,6 +82,7 @@ export function useChatSim() {
       if (img1Blob) setChatImage1(URL.createObjectURL(img1Blob));
       if (img2Blob) setChatImage2(URL.createObjectURL(img2Blob));
       if (img3Blob) setChatImage3(URL.createObjectURL(img3Blob));
+      if (img4Blob) setChatImage4(URL.createObjectURL(img4Blob));
       if (stickerRows.length) {
         setStickers(stickerRows.map((row) => ({ id: row.id, url: URL.createObjectURL(row.blob) })));
       }
@@ -89,18 +94,18 @@ export function useChatSim() {
     };
   }, []);
 
-  // ---- auto-advance: slot 1 -> 2 once a third chat image exists ----
+  // ---- auto-advance: slot 2 -> 3 once a fourth chat image exists ----
   useEffect(() => {
     if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
-    if (slot === 1 && chatImage3) {
+    if (slot === 2 && chatImage4) {
       autoTimerRef.current = setTimeout(() => {
-        setSlot((current) => (current === 1 ? 2 : current));
+        setSlot((current) => (current === 2 ? 3 : current));
       }, AUTO_ADVANCE_MS);
     }
     return () => {
       if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
     };
-  }, [slot, chatImage3]);
+  }, [slot, chatImage4]);
 
   // persist slot after hydration so a reload resumes on the same image
   useEffect(() => {
@@ -134,6 +139,7 @@ export function useChatSim() {
     }
     if (target === "chatImage2") setChatImage2(url);
     if (target === "chatImage3") setChatImage3(url);
+    if (target === "chatImage4") setChatImage4(url);
   }, []);
 
   const requestAddStickers = useCallback(() => {
@@ -159,6 +165,12 @@ export function useChatSim() {
 
   const onStickerTap = useCallback(() => {
     setSlot(1);
+  }, []);
+
+  /** Tapping the displayed chat image itself: on the "ข้อความ2" slot,
+   *  advance to "ข้อความ3" — the other slots don't respond to this yet. */
+  const onChatImageTap = useCallback(() => {
+    setSlot((current) => (current === 1 ? 2 : current));
   }, []);
 
   /** Triple-tap anywhere on the empty sticker-grid background (not a sticker cell) adds stickers. */
@@ -218,7 +230,13 @@ export function useChatSim() {
   }, []);
 
   const displayedChatSrc =
-    slot === 2 ? chatImage3 ?? chatImage2 ?? chatImage1 : slot === 1 ? chatImage2 ?? chatImage1 : chatImage1 ?? chatImage2;
+    slot === 3
+      ? chatImage4 ?? chatImage3 ?? chatImage2 ?? chatImage1
+      : slot === 2
+        ? chatImage3 ?? chatImage2 ?? chatImage1
+        : slot === 1
+          ? chatImage2 ?? chatImage1
+          : chatImage1 ?? chatImage2;
 
   return {
     roomName,
@@ -244,6 +262,7 @@ export function useChatSim() {
 
     stickers,
     onStickerTap,
+    onChatImageTap,
     onPanelBackgroundTap,
 
     fileInputRef,

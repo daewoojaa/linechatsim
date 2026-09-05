@@ -43,6 +43,7 @@ export default function ChatSimulator() {
 
     stickers,
     onStickerTap,
+    onChatImageTap,
     onPanelBackgroundTap,
 
     fileInputRef,
@@ -101,8 +102,8 @@ export default function ChatSimulator() {
             <button
               type="button"
               className={styles.iconButton}
-              onClick={() => requestPick("background")}
-              title="ใส่ภาพพื้นหลัง"
+              onClick={() => requestPick("chatImage3")}
+              title="ใส่รูปแชทที่ 3"
             >
               <MenuIcon />
               <span className={styles.badgeDot} />
@@ -110,8 +111,9 @@ export default function ChatSimulator() {
           </div>
         </div>
 
-        {/* 2. Chat image zone (not tappable) */}
-        <div className={styles.chatZone}>
+        {/* 2. Chat image zone — tapping it on the "ข้อความ2" slot advances
+            to "ข้อความ3" (see onChatImageTap) */}
+        <div className={styles.chatZone} onClick={onChatImageTap}>
           <div
             className={styles.chatImage}
             style={{ backgroundImage: displayedChatSrc ? `url("${displayedChatSrc}")` : "none" }}
@@ -123,8 +125,8 @@ export default function ChatSimulator() {
           <button
             type="button"
             className={styles.chevronButton}
-            onClick={() => requestPick("chatImage3")}
-            title="ใส่รูปแชทที่ 3"
+            onClick={() => requestPick("chatImage4")}
+            title="ใส่รูปแชทที่ 4"
           >
             <ChevronRightIcon />
           </button>
