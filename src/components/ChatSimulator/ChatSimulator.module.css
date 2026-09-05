@@ -64,15 +64,21 @@
    the input bar (see .appShell) — the viewport meta's
    interactive-widget:overlays-content (layout.tsx) means the real OS
    keyboard draws on top of the page instead of resizing it, so this is
-   the only thing lifting the input bar up to meet it. Sticker mode
-   reserves nothing here because .stickerPanel takes up that same space
-   itself, in flow, below the input bar — see .stickerPanel. */
+   the only thing lifting the input bar up to meet it. No extra
+   safe-area-inset-bottom on top of it: --keyboard-reserve was measured
+   directly off a real keyboard screenshot (bottom-of-screen to
+   bottom-of-input-bar), which already covers the gesture-nav inset — an
+   open keyboard extends flush to the true screen edge, so adding the
+   inset again just left a dead gap between the input bar and the
+   keyboard's own toolbar row. Sticker mode reserves nothing here because
+   .stickerPanel takes up that same space itself, in flow, below the
+   input bar (and likewise runs flush to the bottom, no extra inset). */
 .contentColumn[data-mode="keyboard"] {
-  padding-bottom: calc(env(safe-area-inset-bottom) + var(--keyboard-reserve));
+  padding-bottom: var(--keyboard-reserve);
 }
 
 .contentColumn[data-mode="sticker"] {
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: 0;
 }
 
 /* ---- 1. Header ---- */
