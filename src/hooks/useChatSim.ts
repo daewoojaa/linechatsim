@@ -13,7 +13,7 @@ import {
 import type { ChatSlot, Mode, PickTarget, Sticker } from "@/lib/types";
 
 const DEFAULT_ROOM_NAME = "อ.ตวง";
-const DEFAULT_BACKGROUND = "/default-bg.png";
+const DEFAULT_BACKGROUND = "/default-bg2.png";
 const DEFAULT_CHAT_IMAGE_1 = "/default-chat1.jpg";
 const DEFAULT_CHAT_IMAGE_2 = "/default-chat2.jpg";
 const DEFAULT_CHAT_IMAGE_3 = "/default-chat3.jpg";
