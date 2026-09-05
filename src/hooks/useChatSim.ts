@@ -22,9 +22,9 @@ const DEFAULT_CHAT_IMAGE_1 = "/default-chat1.jpg";
 // for a slot always wins over either set (see customImageRef).
 const CHAT_SET_DEFAULTS: Record<ChatSet, { chatImage2: string; chatImage3: string; chatImage4: string }> = {
   A: {
-    chatImage2: "/default-chat2.jpg",
-    chatImage3: "/default-chat3.jpg",
-    chatImage4: "/default-chat4.jpg",
+    chatImage2: "/default-chatA2.jpg",
+    chatImage3: "/default-chatA3.jpg",
+    chatImage4: "/default-chatA4.jpg",
   },
   B: {
     chatImage2: "/default-chatB2.jpg",
