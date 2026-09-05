@@ -246,7 +246,12 @@
 .stickerPanel {
   position: relative;
   flex: none;
-  max-height: 46vh;
+  /* Match the real OS keyboard's last-measured height (see useChatSim)
+     instead of a fixed 46vh, so switching keyboard <-> sticker mode keeps
+     the input bar pinned at the exact same spot on screen either way.
+     Falls back to 46vh before any keyboard has ever been measured, and is
+     clamped so a bad reading can't collapse or blow out the panel. */
+  height: clamp(220px, var(--sticker-panel-height, 46vh), 70vh);
   background: #ffffff;
   display: flex;
   flex-direction: column;

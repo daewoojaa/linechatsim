@@ -106,6 +106,13 @@ export function useChatSim() {
     const updateInset = () => {
       const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
       document.documentElement.style.setProperty("--keyboard-inset-height", `${inset}px`);
+      // The sticker panel has no real OS keyboard to measure — remember the
+      // last non-zero reading so it can borrow it as its own height and
+      // keep the input bar sitting at the exact same spot when the mode
+      // button swaps the keyboard for the sticker panel (and back).
+      if (inset > 0) {
+        document.documentElement.style.setProperty("--sticker-panel-height", `${inset}px`);
+      }
     };
 
     updateInset();
