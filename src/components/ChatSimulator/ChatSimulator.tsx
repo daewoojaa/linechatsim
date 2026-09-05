@@ -61,7 +61,7 @@ export default function ChatSimulator() {
         />
       </div>
 
-      <div className={styles.contentColumn} data-mode={mode}>
+      <div className={styles.contentColumn}>
         {/* 1. Header bar */}
         <div className={styles.header}>
           <button type="button" className={styles.backButton} onClick={showFirst} title="กลับไปรูปแชทที่ 1">
@@ -166,17 +166,19 @@ export default function ChatSimulator() {
           </button>
         </div>
 
-        {/* 4. Bottom zone: sticker panel (keyboard mode relies on the OS keyboard) */}
-        {mode === "sticker" && (
-          <div className={styles.stickerPanel} onClick={onPanelBackgroundTap}>
-            <div className={styles.stickerGrid}>
-              {stickers.map((sticker) => (
-                <StickerCell key={sticker.id} sticker={sticker} onTap={onStickerTap} />
-              ))}
-            </div>
-            <div className={styles.stickerPanelSpacer} />
+        {/* 4. Bottom zone: sticker panel — always mounted, not just in
+            sticker mode. Tapping the mode button to go to keyboard mode
+            just focuses the message box; the real OS keyboard (drawn as
+            an overlay, see layout.tsx) rises on top of this panel without
+            it ever needing to unmount. */}
+        <div className={styles.stickerPanel} onClick={onPanelBackgroundTap}>
+          <div className={styles.stickerGrid}>
+            {stickers.map((sticker) => (
+              <StickerCell key={sticker.id} sticker={sticker} onTap={onStickerTap} />
+            ))}
           </div>
-        )}
+          <div className={styles.stickerPanelSpacer} />
+        </div>
       </div>
 
       <input
