@@ -21,8 +21,15 @@
      screen, i.e. ~44.3% of the screen below it). Not derived from any
      live measurement on purpose: dynamic keyboard-height tracking kept
      drifting/lagging in practice, so this locks the input bar to the
-     exact same on-screen spot every time, in both modes. */
-  --keyboard-reserve: 44.3vh;
+     exact same on-screen spot every time, in both modes.
+     dvh, not vh: plain `vh` on mobile Chrome is pegged to the LARGEST
+     possible viewport (address bar hidden), which is bigger than the
+     viewport actually visible while the address bar is showing — that
+     mismatch was blowing this past the .appShell it lives in (itself
+     sized off the real, current viewport via fixed+inset:0), squashing
+     the sticker grid into a tiny corner. dvh always tracks the real
+     current viewport, same basis .appShell already uses, so they agree. */
+  --keyboard-reserve: 44.3dvh;
 }
 
 /* Full-bleed background layer — extends under the notch/home-indicator;

@@ -3,7 +3,7 @@
 // "opens instantly / works offline": serve the shell + static assets from
 // cache first, and refresh the cache quietly in the background.
 
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 const CACHE_NAME = `chatsim-shell-${CACHE_VERSION}`;
 const APP_SHELL = ["/", "/manifest.webmanifest"];
 
