@@ -94,7 +94,7 @@ export function useChatSim() {
           idbGetImage("chatImage2"),
           idbGetImage("chatImage3"),
           idbGetImage("chatImage4"),
-          idbGetAllStickers(),
+          idbGetAllStickers("tuang"),
         ]);
       if (cancelled) return;
 
@@ -205,7 +205,7 @@ export function useChatSim() {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
 
-    await idbAddStickers(files);
+    await idbAddStickers("tuang", files);
     const added = files.map((file, i) => ({ id: Date.now() + i, url: URL.createObjectURL(file) }));
     // Drop the placeholder default sticker (negative id) the first time the
     // user adds a real one — same "your upload replaces the default" rule

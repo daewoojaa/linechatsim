@@ -14,9 +14,18 @@ const META_STORE = "meta";
 const IMAGES_STORE = "images";
 const STICKERS_STORE = "stickers";
 
-export type ImageKey = "background" | "chatImage1" | "chatImage2" | "chatImage3" | "chatImage4";
+// Was a fixed union ("background" | "chatImage1" | ... ) back when there was
+// only ever one room. Widened to plain string so a second (and later, Nth)
+// independent chat-simulator room can namespace its own keys, e.g.
+// "room1:image:3", without colliding with the original room's
+// "chatImage3" — see useMultiImageChatSim.
+export type ImageKey = string;
 
-export type StickerRecord = { id: number; blob: Blob };
+// `room` is optional so existing stored stickers (from before rooms existed)
+// keep working: idbGetAllStickers treats a missing room as belonging to
+// "tuang", the original chat simulator's room id, so nobody's already-saved
+// stickers silently vanish now that stickers are room-scoped.
+export type StickerRecord = { id: number; room?: string; blob: Blob };
 
 function isBrowser() {
   return typeof window !== "undefined" && "indexedDB" in window;
@@ -97,23 +106,31 @@ export async function idbSetImage(key: ImageKey, blob: Blob): Promise<void> {
   }
 }
 
-export async function idbGetAllStickers(): Promise<StickerRecord[]> {
+export async function idbDeleteImage(key: ImageKey): Promise<void> {
+  try {
+    await tx(IMAGES_STORE, "readwrite", (s) => s.delete(key));
+  } catch {
+    // ignore
+  }
+}
+
+export async function idbGetAllStickers(room: string): Promise<StickerRecord[]> {
   try {
     const rows = await tx<StickerRecord[]>(STICKERS_STORE, "readonly", (s) => s.getAll());
-    return rows.sort((a, b) => a.id - b.id);
+    return rows.filter((r) => (r.room ?? "tuang") === room).sort((a, b) => a.id - b.id);
   } catch {
     return [];
   }
 }
 
-export async function idbAddStickers(blobs: Blob[]): Promise<void> {
+export async function idbAddStickers(room: string, blobs: Blob[]): Promise<void> {
   if (!blobs.length) return;
   try {
     const db = await openDB();
     await new Promise<void>((resolve, reject) => {
       const t = db.transaction(STICKERS_STORE, "readwrite");
       const store = t.objectStore(STICKERS_STORE);
-      blobs.forEach((blob) => store.add({ blob }));
+      blobs.forEach((blob) => store.add({ room, blob }));
       t.oncomplete = () => resolve();
       t.onerror = () => reject(t.error);
     });
