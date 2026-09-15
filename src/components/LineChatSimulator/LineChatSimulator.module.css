@@ -1,0 +1,281 @@
+.appShell {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  background: #aab6d8;
+  user-select: none;
+  font-family: var(--font-body), system-ui, -apple-system, sans-serif;
+  --keyboard-reserve: 44.3dvh;
+}
+
+.backgroundLayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.backgroundImage {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.contentColumn {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-top: calc(56px + env(safe-area-inset-top));
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: var(--keyboard-reserve);
+}
+
+/* ---- Header ---- */
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  box-sizing: border-box;
+  height: calc(56px + env(safe-area-inset-top));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: env(safe-area-inset-top) calc(12px + env(safe-area-inset-right)) 0 calc(6px + env(safe-area-inset-left));
+  background: #ffffff;
+  border-bottom: 1px solid #ececec;
+  z-index: 20;
+}
+
+.backButton {
+  width: 26px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
+  cursor: pointer;
+  flex: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.roomNameText {
+  flex: 1;
+  min-width: 0;
+  font: 700 21px/1.2 system-ui, -apple-system, sans-serif;
+  color: #141414;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.roomNameInput {
+  flex: 1;
+  min-width: 0;
+  font: 700 20px system-ui, -apple-system, sans-serif;
+  color: #111;
+  background: rgba(255, 255, 255, 0.9);
+  border: 0;
+  border-radius: 8px;
+  padding: 6px 10px;
+  outline: 2px solid rgba(0, 0, 0, 0.25);
+}
+
+.iconButton {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex: none;
+}
+
+/* ---- Message feed ---- */
+
+.feed {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  cursor: pointer;
+}
+.feed::-webkit-scrollbar {
+  display: none;
+}
+
+.row {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.rowOut {
+  justify-content: flex-end;
+}
+
+.rowIn {
+  justify-content: flex-start;
+}
+
+.meta {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font: 700 12.5px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  color: rgba(0, 0, 0, 0.8);
+  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.55);
+  line-height: 1.35;
+  padding-bottom: 2px;
+}
+
+.metaIn {
+  align-items: flex-start;
+}
+
+.bubble {
+  max-width: 72%;
+  padding: 9px 13px;
+  border-radius: 16px;
+  font: 400 15.5px/1.4 system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.bubbleOut {
+  background: #64b5fa;
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+}
+
+.bubbleIn {
+  background: #ffffff;
+  color: #141414;
+  border-bottom-left-radius: 4px;
+}
+
+/* ---- Rich "shared link" card (kind: "card") ---- */
+
+.card {
+  max-width: 78%;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #64b5fa;
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+}
+
+.cardBody {
+  padding: 11px 14px;
+}
+
+.cardApp {
+  font: 700 13px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  margin-bottom: 4px;
+  opacity: 0.9;
+}
+
+.cardTitle {
+  font: 700 15px/1.35 system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+}
+
+.cardSubtitle {
+  font: 400 13.5px/1.35 system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  opacity: 0.9;
+  margin-top: 2px;
+}
+
+.cardDivider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.3);
+  margin: 8px 0;
+}
+
+.cardUrl {
+  font: 400 13px system-ui, -apple-system, sans-serif;
+  text-decoration: underline;
+  word-break: break-all;
+}
+
+/* ---- Input bar ---- */
+
+.inputBar {
+  position: relative;
+  flex: none;
+  background: #ffffff;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inputPill {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f1f1f3;
+  border-radius: 999px;
+  padding: 0 8px 0 16px;
+  height: 44px;
+}
+
+.textInput {
+  flex: 1;
+  min-width: 0;
+  max-height: 60px;
+  overflow-y: auto;
+  border: 0;
+  background: transparent;
+  outline: none;
+  font: 400 17px var(--font-body), sans-serif;
+  color: #111;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.textInput:empty:before {
+  content: attr(data-placeholder);
+  color: #8e8e93;
+  pointer-events: none;
+}
+
+.sendButton {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64b5fa;
+}
+
+.sendButton:disabled {
+  color: #c7c7cc;
+  cursor: default;
+}

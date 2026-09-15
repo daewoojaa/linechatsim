@@ -1,0 +1,176 @@
+.appShell {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  background: #f6f6f7;
+  font-family: var(--font-body), system-ui, -apple-system, sans-serif;
+}
+
+.header {
+  flex: none;
+  height: calc(56px + env(safe-area-inset-top));
+  padding: env(safe-area-inset-top) 12px 0 6px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border-bottom: 1px solid #ececec;
+}
+
+.backButton {
+  width: 32px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  flex: none;
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  font: 700 18px/1.2 system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  color: #141414;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px 12px calc(90px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.indexBadge {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #64b5fa;
+  color: #ffffff;
+  font: 700 11px system-ui, -apple-system, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kindSelect {
+  flex: none;
+  font: 400 13px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  padding: 5px 8px;
+  border-radius: 8px;
+  border: 1px solid #dcdce0;
+  background: #ffffff;
+  color: #141414;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.iconBtn {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 6px;
+  background: #f1f1f3;
+  color: #3a3a3c;
+  font: 700 13px system-ui, -apple-system, sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.deleteBtn {
+  composes: iconBtn;
+  color: #d9455a;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.fieldLabel {
+  font: 400 11px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  color: #8e8e93;
+}
+
+.fieldInput,
+.fieldTextarea {
+  font: 400 14px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  color: #141414;
+  border: 1px solid #dcdce0;
+  border-radius: 8px;
+  padding: 7px 10px;
+  background: #fafafa;
+}
+
+.fieldTextarea {
+  resize: vertical;
+  min-height: 44px;
+}
+
+.row2 {
+  display: flex;
+  gap: 8px;
+}
+
+.row2 > .field {
+  flex: 1;
+  min-width: 0;
+}
+
+.addButton {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  height: 46px;
+  border: 0;
+  border-radius: 999px;
+  background: #64b5fa;
+  color: #ffffff;
+  font: 700 15px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  cursor: pointer;
+}
+
+.empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: #8e8e93;
+  font: 400 14px/1.5 system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+}
