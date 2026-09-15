@@ -1,5 +1,5 @@
-import ChatSimulator from "@/components/ChatSimulator/ChatSimulator";
+import ChatList from "@/components/ChatList/ChatList";
 
 export default function Home() {
-  return <ChatSimulator />;
+  return <ChatList />;
 }

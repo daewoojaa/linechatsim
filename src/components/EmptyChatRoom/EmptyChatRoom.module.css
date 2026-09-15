@@ -1,0 +1,58 @@
+.appShell {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  background: #aab6d8;
+  font-family: var(--font-body), system-ui, -apple-system, sans-serif;
+}
+
+.header {
+  flex: none;
+  height: calc(56px + env(safe-area-inset-top));
+  padding: env(safe-area-inset-top) 12px 0 6px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+}
+
+.backButton {
+  width: 32px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  flex: none;
+}
+
+.roomName {
+  font: 700 19px/1.2 system-ui, -apple-system, sans-serif;
+  color: #141414;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.placeholder {
+  color: rgba(20, 20, 20, 0.55);
+  font: 400 15px/1.5 system-ui, -apple-system, sans-serif;
+}

@@ -1,0 +1,264 @@
+.appShell {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  font-family: var(--font-body), system-ui, -apple-system, sans-serif;
+}
+
+/* ---- Header ---- */
+
+.header {
+  flex: none;
+  padding: calc(env(safe-area-inset-top) + 10px) 14px 10px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.chatDropdown {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  border-radius: 999px;
+  background: #1c1c1e;
+  color: #ffffff;
+  font: 700 16px system-ui, -apple-system, sans-serif;
+  padding: 8px 12px 8px 16px;
+  cursor: pointer;
+}
+
+.friendsTab {
+  flex: 1;
+  font: 700 22px system-ui, -apple-system, sans-serif;
+  color: #1c1c1e;
+}
+
+.headerIcons {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.headerIconButton {
+  position: relative;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.smallDot {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2fbf5e;
+  border: 1.5px solid #ffffff;
+}
+
+/* ---- Room list ---- */
+
+.list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+.row[data-linked="false"] {
+  cursor: default;
+}
+
+.avatar {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font: 700 18px system-ui, -apple-system, sans-serif;
+}
+
+.rowMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.roomName {
+  font: 700 16px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  color: #1c1c1e;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  border-radius: 6px;
+  width: fit-content;
+  max-width: 100%;
+}
+
+/* Only hints "tap to edit" while unlocked (see .navItem[data-unlocked]) —
+   otherwise indistinguishable from plain text, since tapping does nothing. */
+.roomName[data-editable="true"],
+.message[data-editable="true"] {
+  text-decoration: underline dashed rgba(59, 130, 246, 0.5);
+  text-underline-offset: 3px;
+}
+
+.roomName[data-editable="true"]:active,
+.message[data-editable="true"]:active {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.roomNameInput,
+.messageInput {
+  color: #1c1c1e;
+  background: #f1f1f3;
+  border: 0;
+  border-radius: 6px;
+  padding: 2px 6px;
+  margin: -2px -6px;
+  outline: 2px solid #3b82f6;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.roomNameInput {
+  font: 700 16px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+}
+
+.messageInput {
+  font: 400 14px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+}
+
+.message {
+  font: 400 14px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  color: #8e8e93;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.rowEnd {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.time {
+  font: 400 12px system-ui, -apple-system, sans-serif;
+  color: #8e8e93;
+}
+
+.unreadBadge {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #3b82f6;
+  color: #ffffff;
+  font: 700 12px system-ui, -apple-system, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---- Bottom nav ---- */
+
+.bottomNav {
+  flex: none;
+  display: flex;
+  border-top: 1px solid #ececec;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: #ffffff;
+}
+
+.navItem {
+  position: relative;
+  flex: 1;
+  border: 0;
+  background: transparent;
+  padding: 8px 0 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+}
+
+/* Home doubles as the edit lock/unlock toggle (see ChatList.tsx) — this is
+   the only visual cue that names/messages are currently editable. */
+.navItem[data-unlocked="true"] {
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 12px;
+  margin: 0 4px;
+}
+
+.navLabel {
+  font: 400 11px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  color: #8e8e93;
+}
+
+.navLabel[data-active="true"] {
+  color: #1c1c1e;
+  font-weight: 700;
+}
+
+.navBadge {
+  position: absolute;
+  top: 4px;
+  right: calc(50% - 20px);
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #ff3b30;
+  color: #ffffff;
+  font: 700 10px system-ui, -apple-system, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navDot {
+  position: absolute;
+  top: 6px;
+  right: calc(50% - 14px);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff3b30;
+}

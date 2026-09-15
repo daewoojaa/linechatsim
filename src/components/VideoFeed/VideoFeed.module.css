@@ -1,0 +1,155 @@
+.appShell {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  background: #000000;
+}
+
+/* The swipeable video area — everything except the bottom tab bar. */
+.stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.track {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  transition: transform 350ms ease-out;
+  will-change: transform;
+}
+
+.slide {
+  flex: none;
+  width: 100%;
+  height: 100%;
+}
+
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background: #000000;
+}
+
+/* The locked video-UI chrome (LIVE badge, search icon, etc.) — a sibling
+   of .track, not a child of it, so .track's slide-up transform never
+   touches it. Always the same frame on screen regardless of which clip
+   is playing underneath. */
+/* object-fit: contain would letterbox this sideways — the source PNG
+   (1080x2340, ratio ~0.46) is narrower than the locked 9:16 frame
+   (0.5625), so "contain" fits it to the frame's height and leaves gaps
+   on the left/right. "cover" + object-position:top instead always
+   spans the full width edge-to-edge, cropping any excess height off the
+   bottom — safe since the actual artwork (LIVE badge, search icon) only
+   occupies a thin band near the top of the source image. */
+.uiOverlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* ---- Bottom tab bar ---- */
+
+.bottomNav {
+  flex: none;
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border-top: 1px solid #ececec;
+  padding: 8px 6px calc(6px + env(safe-area-inset-bottom));
+}
+
+.navItem {
+  position: relative;
+  flex: 1;
+  border: 0;
+  background: transparent;
+  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+}
+
+.navLabel {
+  font: 400 10.5px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  color: #1c1c1e;
+}
+
+.navDot {
+  position: absolute;
+  top: 2px;
+  right: calc(50% - 14px);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fe2c55;
+  border: 1.5px solid #ffffff;
+}
+
+.navBadge {
+  position: absolute;
+  top: -2px;
+  right: calc(50% - 22px);
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #fe2c55;
+  color: #ffffff;
+  font: 700 10px system-ui, -apple-system, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #ffffff;
+}
+
+.createButton {
+  flex: none;
+  width: 46px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  margin: 0 10px;
+  cursor: pointer;
+  position: relative;
+  background: linear-gradient(90deg, #20d5ec 0%, #1c1c1e 30%, #1c1c1e 70%, #fe2c55 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.createButton::before,
+.createButton::after {
+  content: "";
+  position: absolute;
+  background: #ffffff;
+  border-radius: 2px;
+}
+
+/* The plus sign, drawn as two crossed bars. */
+.createButton::before {
+  width: 14px;
+  height: 2.6px;
+}
+
+.createButton::after {
+  width: 2.6px;
+  height: 14px;
+}
