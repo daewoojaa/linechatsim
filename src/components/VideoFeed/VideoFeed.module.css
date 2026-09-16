@@ -41,24 +41,20 @@
   background: #000000;
 }
 
-/* The locked video-UI chrome (LIVE badge, search icon, etc.) — a sibling
-   of .track, not a child of it, so .track's slide-up transform never
-   touches it. Always the same frame on screen regardless of which clip
-   is playing underneath. */
-/* object-fit: contain would letterbox this sideways — the source PNG
-   (1080x2340, ratio ~0.46) is narrower than the locked 9:16 frame
-   (0.5625), so "contain" fits it to the frame's height and leaves gaps
-   on the left/right. "cover" + object-position:top instead always
-   spans the full width edge-to-edge, cropping any excess height off the
-   bottom — safe since the actual artwork (LIVE badge, search icon) only
-   occupies a thin band near the top of the source image. */
+/* The locked video-UI chrome (LIVE badge, "กำลังติดตาม" tab, search icon)
+   — a sibling of .track, not a child of it, so .track's slide-up
+   transform never touches it. Always the same frame on screen regardless
+   of which clip is playing underneath. The source PNG (1440x209) is
+   already just this thin top strip, not a full-screen canvas, so it's
+   pinned flush to the top/left/right edges at its own aspect ratio
+   instead of being stretched or cropped to fill the whole stage. */
 .uiOverlay {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top;
+  height: auto;
   pointer-events: none;
   z-index: 5;
 }

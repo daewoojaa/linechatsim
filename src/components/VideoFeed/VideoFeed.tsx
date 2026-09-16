@@ -122,7 +122,7 @@ export default function VideoFeed() {
         </div>
 
         {/* eslint-disable-next-line @next/next/no-img-element -- static PWA asset, no next/image optimization needed */}
-        <img src="/videofeed-ui-overlay.png" className={styles.uiOverlay} alt="" />
+        <img src="/videofeed-ui-overlay2.png" className={styles.uiOverlay} alt="" />
       </div>
 
       {/* Bottom tab bar — outside .stage, so it never moves or fades with
