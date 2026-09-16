@@ -1,9 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMultiImageChatSim } from "@/hooks/useMultiImageChatSim";
-import { BackArrowIcon, KeyboardGlyphIcon, MenuIcon, StickerGlyphIcon } from "@/components/icons/Icons";
-import StickerCell from "@/components/ChatSimulator/StickerCell";
+import { BackArrowIcon, ChevronRightIcon, EmojiIcon, MenuIcon, MicIcon, SendArrowIcon } from "@/components/icons/Icons";
 import styles from "./MultiImageChatSimulator.module.css";
 
 type Props = {
@@ -20,10 +20,12 @@ type Props = {
 
 /**
  * Same overall chrome as ChatSimulator (header/room-name-edit, chat image
- * zone, input bar, keyboard/sticker toggle, sticker panel) but generalized
- * for a room with an arbitrary number of sequential chat-image screenshots
- * instead of a fixed 4 with a scripted reveal. Tapping the chat image or a
- * sticker just reveals the next uploaded image down the line.
+ * zone) but generalized for a room with an arbitrary number of sequential
+ * chat-image screenshots instead of a fixed 4 with a scripted reveal, and
+ * using LineChatSimulator's input bar (chevron / pill / emoji / mic-or-send)
+ * instead of ChatSimulator's own — the blue send arrow advances to the next
+ * uploaded image rather than sending a live message, same as tapping the
+ * chat image itself.
  */
 export default function MultiImageChatSimulator({ roomId, defaultRoomName, slotCount, defaultImage0, manageHref }: Props) {
   const router = useRouter();
@@ -40,23 +42,22 @@ export default function MultiImageChatSimulator({ roomId, defaultRoomName, slotC
     displayedChatSrc,
     showFirst,
 
-    mode,
-    toggleMode,
-
     setText,
     blockEnter,
     textInputRef,
 
-    stickers,
-    onStickerTap,
     onChatImageTap,
-    onPanelBackgroundTap,
-
-    stickerInputRef,
-    handleStickerFilesChange,
   } = useMultiImageChatSim({ roomId, defaultRoomName, slotCount, defaultImage0 });
 
   const openManage = () => router.push(manageHref);
+  const [hasText, setHasText] = useState(false);
+
+  const advanceAndClear = () => {
+    onChatImageTap();
+    setText("");
+    setHasText(false);
+    if (textInputRef.current) textInputRef.current.textContent = "";
+  };
 
   return (
     <div className={styles.appShell}>
@@ -67,7 +68,7 @@ export default function MultiImageChatSimulator({ roomId, defaultRoomName, slotC
         />
       </div>
 
-      <div className={styles.contentColumn} data-mode={mode}>
+      <div className={styles.contentColumn}>
         {/* 1. Header bar */}
         <div className={styles.header}>
           <button type="button" className={styles.backButton} onClick={showFirst} title="กลับไปรูปแรก">
@@ -104,16 +105,14 @@ export default function MultiImageChatSimulator({ roomId, defaultRoomName, slotC
           />
         </div>
 
-        {/* 3. Message input bar */}
+        {/* 3. Input bar (LineChatSimulator's design) — the blue arrow
+            advances to the next image instead of sending a live message. */}
         <div className={styles.inputBar}>
-          <button type="button" className={styles.chevronButton} onClick={openManage} title="จัดการรูปภาพ">
-            <MenuIcon />
+          <button type="button" className={styles.chevronButton} tabIndex={-1}>
+            <ChevronRightIcon />
           </button>
 
           <div className={styles.inputPill}>
-            {/* contentEditable instead of <input> — Chrome only shows its
-                key/card/location autofill accessory bar above the keyboard
-                for real form fields, so a div here keeps that bar off. */}
             <div
               ref={textInputRef}
               contentEditable
@@ -122,7 +121,11 @@ export default function MultiImageChatSimulator({ roomId, defaultRoomName, slotC
               role="textbox"
               aria-multiline="false"
               data-placeholder=""
-              onInput={(e) => setText(e.currentTarget.textContent ?? "")}
+              onInput={(e) => {
+                const value = e.currentTarget.textContent ?? "";
+                setText(value);
+                setHasText(value.trim().length > 0);
+              }}
               onKeyDown={blockEnter}
               autoCorrect="off"
               autoCapitalize="off"
@@ -132,38 +135,16 @@ export default function MultiImageChatSimulator({ roomId, defaultRoomName, slotC
               data-bwignore="true"
               inputMode="text"
             />
-            <button
-              type="button"
-              className={styles.modeButton}
-              onClick={toggleMode}
-              title="สลับคีย์บอร์ด / สติ๊กเกอร์"
-            >
-              {mode === "keyboard" ? <KeyboardGlyphIcon /> : <StickerGlyphIcon />}
+            <button type="button" className={styles.emojiButton} tabIndex={-1}>
+              <EmojiIcon />
             </button>
           </div>
+
+          <button type="button" className={styles.sendButton} onClick={advanceAndClear} title="รูปถัดไป">
+            {hasText ? <SendArrowIcon /> : <MicIcon />}
+          </button>
         </div>
-
-        {/* 4. Bottom zone: sticker panel (keyboard mode relies on the OS keyboard) */}
-        {mode === "sticker" && (
-          <div className={styles.stickerPanel} onClick={onPanelBackgroundTap}>
-            <div className={styles.stickerGrid}>
-              {stickers.map((sticker) => (
-                <StickerCell key={sticker.id} sticker={sticker} onTap={onStickerTap} />
-              ))}
-            </div>
-            <div className={styles.stickerPanelSpacer} />
-          </div>
-        )}
       </div>
-
-      <input
-        type="file"
-        accept="image/*"
-        multiple
-        ref={stickerInputRef}
-        onChange={handleStickerFilesChange}
-        className={styles.hiddenFileInput}
-      />
     </div>
   );
 }

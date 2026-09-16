@@ -46,14 +46,7 @@
   padding-top: calc(56px + env(safe-area-inset-top));
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
-}
-
-.contentColumn[data-mode="keyboard"] {
   padding-bottom: var(--keyboard-reserve);
-}
-
-.contentColumn[data-mode="sticker"] {
-  padding-bottom: 0;
 }
 
 /* ---- 1. Header ---- */
@@ -208,7 +201,7 @@
   pointer-events: none;
 }
 
-.modeButton {
+.emojiButton {
   flex: none;
   width: 32px;
   height: 32px;
@@ -221,43 +214,16 @@
   justify-content: center;
 }
 
-/* ---- 4. Sticker panel ---- */
-
-.stickerPanel {
-  position: relative;
+.sendButton {
   flex: none;
-  height: var(--keyboard-reserve);
-  background: #ffffff;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
   display: flex;
-  flex-direction: column;
-}
-
-.stickerGrid {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  padding: 12px 0;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  align-content: start;
-}
-.stickerGrid::-webkit-scrollbar {
-  display: none;
-}
-
-/* .stickerCell itself isn't styled here — StickerCell.tsx imports its
-   styles directly from ChatSimulator.module.css regardless of which page
-   renders it, so that's the module that actually needs the rule. */
-
-.stickerPanelSpacer {
-  flex: none;
-  height: 20px;
-  background: #fff;
-}
-
-.hiddenFileInput {
-  display: none;
+  align-items: center;
+  justify-content: center;
+  color: #64b5fa;
 }
