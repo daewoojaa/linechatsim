@@ -64,6 +64,34 @@ export function StickerGlyphIcon() {
   );
 }
 
+export function EmojiIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" strokeWidth={1.7}>
+      <circle cx={12} cy={12} r={9} />
+      <circle cx={9} cy={10} r={1.1} fill="#8e8e93" stroke="none" />
+      <circle cx={15} cy={10} r={1.1} fill="#8e8e93" stroke="none" />
+      <path d="M8.5 14.5c1 1.2 2.1 1.8 3.5 1.8s2.5-.6 3.5-1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function MicIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
+      <rect x={9} y={2.5} width={6} height={11.5} rx={3} />
+      <path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3.2" />
+    </svg>
+  );
+}
+
+export function SendArrowIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M3 11.5 20.5 3l-5 17-5.2-6.3L3 11.5Z" />
+    </svg>
+  );
+}
+
 export function EditNameIcon() {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3a3a3c" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">

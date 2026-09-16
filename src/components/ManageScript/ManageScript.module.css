@@ -65,6 +65,17 @@
   gap: 8px;
 }
 
+.readConfigCard {
+  composes: card;
+  background: #eef4ff;
+  border: 1px solid #cfe0ff;
+}
+
+.readConfigTitle {
+  font: 700 13px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  color: #2f5fc7;
+}
+
 .cardTop {
   display: flex;
   align-items: center;

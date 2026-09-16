@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { idbGetMeta, idbSetMeta } from "@/lib/idbStore";
-import type { ScriptedMessage } from "@/lib/scriptedMessage";
+import { defaultReadReceiptConfig, isReadReceiptSettled, type ReadReceiptConfig, type ScriptedMessage } from "@/lib/scriptedMessage";
 
 const DEFAULT_BACKGROUND = "/default-bg2.png";
 
 export type DisplayMessage =
   | { kind: "scripted"; key: string; msg: ScriptedMessage }
-  | { kind: "live"; key: string; text: string; time: string };
+  | { kind: "live"; key: string; text: string; time: string; sentAt: number };
 
 export type LineChatConfig = {
   roomId: string;
@@ -29,11 +29,12 @@ function nowLabel() {
  * swapping whole pre-made screenshot images. Two ways a bubble gets added:
  *  - revealNext() pulls the next message out of the pre-authored `script`
  *    (edited on a separate "จัดการข้อความ" page) and appends it as an
- *    outgoing (right, blue) bubble — driven by tapping the feed.
+ *    incoming (left, with avatar) bubble — driven by tapping the feed.
  *  - sendLive() takes whatever's currently typed in the real keyboard
- *    input and appends it as an incoming-style (left, white) bubble —
- *    for cueing a reply live, in time with a take, rather than scripting
- *    it in advance.
+ *    input and appends it as an outgoing (right, blue) bubble — this is
+ *    the operator's own line, cued live in time with a take rather than
+ *    scripted in advance, and is what carries the room's read-receipt
+ *    animation (see `readConfig`).
  * resetConversation() clears the feed and rewinds the script pointer back
  * to the start, for the next take, without touching the authored script.
  */
@@ -45,6 +46,7 @@ export function useLineChatSim({ roomId, defaultRoomName, defaultBackground }: L
   const [background] = useState<string | null>(defaultBackground ?? DEFAULT_BACKGROUND);
 
   const [script, setScript] = useState<ScriptedMessage[]>([]);
+  const [readConfig, setReadConfig] = useState<ReadReceiptConfig>(defaultReadReceiptConfig());
   const [scriptedIndex, setScriptedIndex] = useState(0);
   const [feed, setFeed] = useState<DisplayMessage[]>([]);
 
@@ -57,9 +59,10 @@ export function useLineChatSim({ roomId, defaultRoomName, defaultBackground }: L
     let cancelled = false;
 
     (async () => {
-      const [savedRoomName, savedScript, savedFeed, savedIndex] = await Promise.all([
+      const [savedRoomName, savedScript, savedReadConfig, savedFeed, savedIndex] = await Promise.all([
         idbGetMeta<string>(`${roomId}:roomName`),
         idbGetMeta<ScriptedMessage[]>(`${roomId}:script`),
+        idbGetMeta<ReadReceiptConfig>(`${roomId}:readConfig`),
         idbGetMeta<DisplayMessage[]>(`${roomId}:feed`),
         idbGetMeta<number>(`${roomId}:scriptedIndex`),
       ]);
@@ -67,6 +70,7 @@ export function useLineChatSim({ roomId, defaultRoomName, defaultBackground }: L
 
       if (savedRoomName) setRoomName(savedRoomName);
       if (savedScript) setScript(savedScript);
+      if (savedReadConfig) setReadConfig(savedReadConfig);
       if (savedFeed) setFeed(savedFeed);
       if (savedIndex !== undefined) setScriptedIndex(savedIndex);
       setHydrated(true);
@@ -77,13 +81,17 @@ export function useLineChatSim({ roomId, defaultRoomName, defaultBackground }: L
     };
   }, [roomId]);
 
-  // Re-read the script whenever the tab regains focus, so edits made on
-  // the "จัดการข้อความ" page (a separate route/mount) show up here without
-  // needing a full reload.
+  // Re-read the script/read-config whenever the tab regains focus, so edits
+  // made on the "จัดการข้อความ" page (a separate route/mount) show up here
+  // without needing a full reload.
   useEffect(() => {
     const onFocus = () => {
-      idbGetMeta<ScriptedMessage[]>(`${roomId}:script`).then((saved) => {
-        if (saved) setScript(saved);
+      Promise.all([
+        idbGetMeta<ScriptedMessage[]>(`${roomId}:script`),
+        idbGetMeta<ReadReceiptConfig>(`${roomId}:readConfig`),
+      ]).then(([savedScript, savedReadConfig]) => {
+        if (savedScript) setScript(savedScript);
+        if (savedReadConfig) setReadConfig(savedReadConfig);
       });
     };
     window.addEventListener("focus", onFocus);
@@ -100,7 +108,21 @@ export function useLineChatSim({ roomId, defaultRoomName, defaultBackground }: L
     idbSetMeta(`${roomId}:scriptedIndex`, scriptedIndex);
   }, [scriptedIndex, hydrated, roomId]);
 
-  /** Tapping the chat feed reveals the next scripted (outgoing) message. */
+  // Ticks `now` forward while any live message's read-receipt animation is
+  // still advancing, so the component's display stays current — stops
+  // itself once everything has settled.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (readConfig.sequence.length === 0) return;
+    const stillTicking = feed.some(
+      (item) => item.kind === "live" && !isReadReceiptSettled(item.sentAt, now, readConfig)
+    );
+    if (!stillTicking) return;
+    const id = setInterval(() => setNow(Date.now()), 500);
+    return () => clearInterval(id);
+  }, [feed, readConfig, now]);
+
+  /** Tapping the chat feed reveals the next scripted (incoming) message. */
   const revealNext = useCallback(() => {
     if (scriptedIndex >= script.length) return;
     const msg = script[scriptedIndex];
@@ -108,11 +130,14 @@ export function useLineChatSim({ roomId, defaultRoomName, defaultBackground }: L
     setScriptedIndex((i) => i + 1);
   }, [script, scriptedIndex]);
 
-  /** Sends whatever's currently typed as a live incoming-style bubble. */
+  /** Sends whatever's currently typed as a live outgoing bubble. */
   const sendLive = useCallback(() => {
     const trimmed = text.trim();
     if (trimmed) {
-      setFeed((prev) => [...prev, { kind: "live", key: `l-${Date.now()}`, text: trimmed, time: nowLabel() }]);
+      setFeed((prev) => [
+        ...prev,
+        { kind: "live", key: `l-${Date.now()}`, text: trimmed, time: nowLabel(), sentAt: Date.now() },
+      ]);
     }
     setText("");
     // The input is an uncontrolled contentEditable (see ChatSimulator's
@@ -172,6 +197,8 @@ export function useLineChatSim({ roomId, defaultRoomName, defaultBackground }: L
 
     background,
     feed,
+    readConfig,
+    now,
     revealNext,
     hasMoreScript: scriptedIndex < script.length,
     resetConversation,

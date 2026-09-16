@@ -137,15 +137,28 @@
   justify-content: flex-start;
 }
 
+.avatar {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #e3e3e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
 .meta {
   flex: none;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  gap: 2px;
   font: 700 12.5px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
-  color: rgba(0, 0, 0, 0.8);
-  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.55);
-  line-height: 1.35;
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+  line-height: 1.3;
   padding-bottom: 2px;
 }
 
@@ -153,11 +166,16 @@
   align-items: flex-start;
 }
 
+.metaTime {
+  font-weight: 400;
+  font-size: 11px;
+}
+
 .bubble {
-  max-width: 72%;
-  padding: 9px 13px;
-  border-radius: 16px;
-  font: 400 15.5px/1.4 system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  max-width: 70%;
+  padding: 10px 16px;
+  border-radius: 20px;
+  font: 400 16px/1.4 system-ui, -apple-system, "Noto Sans Thai", sans-serif;
   word-break: break-word;
   white-space: pre-wrap;
 }
@@ -177,12 +195,12 @@
 /* ---- Rich "shared link" card (kind: "card") ---- */
 
 .card {
-  max-width: 78%;
-  border-radius: 16px;
+  max-width: 76%;
+  border-radius: 20px;
   overflow: hidden;
-  background: #64b5fa;
-  color: #ffffff;
-  border-bottom-right-radius: 4px;
+  background: #ffffff;
+  color: #141414;
+  border-bottom-left-radius: 4px;
 }
 
 .cardBody {
@@ -207,12 +225,13 @@
 
 .cardDivider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.1);
   margin: 8px 0;
 }
 
 .cardUrl {
   font: 400 13px system-ui, -apple-system, sans-serif;
+  color: #4a7fd4;
   text-decoration: underline;
   word-break: break-all;
 }
@@ -223,10 +242,23 @@
   position: relative;
   flex: none;
   background: #ffffff;
-  padding: 6px 10px;
+  padding: 4px 10px;
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.chevronButton {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+  padding: 0;
 }
 
 .inputPill {
@@ -261,7 +293,7 @@
   pointer-events: none;
 }
 
-.sendButton {
+.emojiButton {
   flex: none;
   width: 32px;
   height: 32px;
@@ -272,10 +304,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #64b5fa;
 }
 
-.sendButton:disabled {
-  color: #c7c7cc;
-  cursor: default;
+.sendButton {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64b5fa;
 }
