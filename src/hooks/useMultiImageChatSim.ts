@@ -119,6 +119,17 @@ export function useMultiImageChatSim({
     idbSetMeta(`${roomId}:activeIndex`, activeIndex);
   }, [activeIndex, hydrated, roomId]);
 
+  // Warms the browser's image cache for every known slot (bundled defaults
+  // included) so switching to one — whether by tap or auto-advance — paints
+  // instantly instead of flashing blank while it fetches over the network.
+  useEffect(() => {
+    images.forEach((src) => {
+      if (!src) return;
+      const img = new Image();
+      img.src = src;
+    });
+  }, [images]);
+
   // ---- auto-advance through a configured slot range, e.g. images 3-6 ----
   useEffect(() => {
     if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
