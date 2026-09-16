@@ -79,7 +79,12 @@ export default function MultiImageChatSimulator({
     onChatImageTap();
     setText("");
     setHasText(false);
-    if (textInputRef.current) textInputRef.current.textContent = "";
+    if (textInputRef.current) {
+      textInputRef.current.textContent = "";
+      // Keep the real keyboard (and cursor) open across sends — without
+      // this the button tap would steal focus and dismiss it.
+      textInputRef.current.focus();
+    }
   };
 
   return (
@@ -173,7 +178,13 @@ export default function MultiImageChatSimulator({
             </button>
           </div>
 
-          <button type="button" className={styles.sendButton} onClick={advanceAndClear} title="รูปถัดไป">
+          <button
+            type="button"
+            className={styles.sendButton}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={advanceAndClear}
+            title="รูปถัดไป"
+          >
             {hasText ? <SendArrowIcon /> : <MicIcon />}
           </button>
         </div>

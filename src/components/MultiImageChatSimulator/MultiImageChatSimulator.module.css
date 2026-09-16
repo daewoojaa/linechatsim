@@ -202,7 +202,7 @@
   border: 0;
   background: transparent;
   outline: none;
-  font: 400 17px var(--font-body), sans-serif;
+  font: 400 17px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Thai", sans-serif;
   color: #111;
   white-space: pre-wrap;
   word-break: break-word;
