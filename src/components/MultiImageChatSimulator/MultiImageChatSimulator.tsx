@@ -30,7 +30,7 @@ type Props = {
    *  instead of the default transparent header. */
   headerBackground?: string;
   /** See useMultiImageChatSim's own doc comment. */
-  autoAdvance?: { from: number; to: number; delaysMs: number[] };
+  autoAdvance?: { from: number; to: number; delaysMs: number[] }[];
 };
 
 /**

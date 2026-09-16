@@ -23,17 +23,19 @@ export type MultiImageRoomConfig = {
    *  until overridden" pattern as ChatSimulator's DEFAULT_CHAT_IMAGE_1. A
    *  sparse array is fine; only the slots you pass get a bundled default. */
   defaultImages?: string[];
-  /** Auto-advances through a contiguous range of slots on a timer instead
-   *  of waiting for a tap, once that range is reached — e.g. images 3-6
-   *  cycling on their own. `from`/`to` are 0-indexed slots: advancing
-   *  starts on reaching `from` and stops once `to` is reached (`to` is
-   *  itself just the final destination, not a step that advances further).
-   *  `delaysMs[i]` is how long slot `from + i` waits before moving on to
-   *  the next one, cycling through the array if there are more steps than
-   *  delays given. Define this as a stable module-level constant in the
-   *  caller, not an inline object literal, so its identity doesn't change
-   *  every render and retrigger the effect. */
-  autoAdvance?: { from: number; to: number; delaysMs: number[] };
+  /** Auto-advances through one or more contiguous slot ranges on a timer
+   *  instead of waiting for a tap, once each range is reached — e.g. images
+   *  2-7 cycling on their own, then a manual tap into image 8 kicks off the
+   *  next range. `from`/`to` are 0-indexed slots: advancing starts on
+   *  reaching `from` and stops once `to` is reached (`to` is itself just
+   *  the final destination, not a step that advances further — crossing
+   *  into the next range needs a tap, even if it's adjacent). `delaysMs[i]`
+   *  is how long slot `from + i` waits before moving on to the next one,
+   *  cycling through the array if there are more steps than delays given.
+   *  Ranges must not overlap. Define this as a stable module-level constant
+   *  in the caller, not an inline array/object literal, so its identity
+   *  doesn't change every render and retrigger the effect. */
+  autoAdvance?: { from: number; to: number; delaysMs: number[] }[];
 };
 
 /**
@@ -130,14 +132,13 @@ export function useMultiImageChatSim({
     });
   }, [images]);
 
-  // ---- auto-advance through a configured slot range, e.g. images 3-6 ----
+  // ---- auto-advance through configured slot ranges, e.g. images 2-7 ----
   useEffect(() => {
     if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
-    if (!autoAdvance) return;
-    const { from, to, delaysMs } = autoAdvance;
-    if (activeIndex < from || activeIndex >= to || !images[activeIndex + 1]) return;
+    const range = autoAdvance?.find((r) => activeIndex >= r.from && activeIndex < r.to);
+    if (!range || !images[activeIndex + 1]) return;
 
-    const delay = delaysMs[(activeIndex - from) % delaysMs.length] ?? 1500;
+    const delay = range.delaysMs[(activeIndex - range.from) % range.delaysMs.length] ?? 1500;
     autoAdvanceTimerRef.current = setTimeout(() => {
       setActiveIndex((current) => (current === activeIndex ? activeIndex + 1 : current));
     }, delay);

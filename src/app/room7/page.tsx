@@ -1,21 +1,20 @@
 import MultiImageChatSimulator from "@/components/MultiImageChatSimulator/MultiImageChatSimulator";
 
-// Bundled default images for slots 0-5 (image 1-6) — module-level so array
-// identity is stable across renders.
-const ROOM7_IMAGES = [
-  "/room7-image1.jpg",
-  "/room7-image2.jpg",
-  "/room7-image3.jpg",
-  "/room7-image4.jpg",
-  "/room7-image5.jpg",
-  "/room7-image6.jpg",
-];
+// Bundled default images for slots 0-16 (image 1-17) — module-level so
+// array identity is stable across renders.
+const ROOM7_IMAGES = Array.from({ length: 17 }, (_, i) => `/room7-image${i + 1}.jpg`);
 
-// Images 2-6 (0-indexed slots 1-5) play on their own once reached: image
-// 2->3 waits 4s, then 3->6 alternates 1s/2s — module-level so its identity
-// is stable across renders (see useMultiImageChatSim's autoAdvance doc
-// comment).
-const AUTO_ADVANCE = { from: 1, to: 5, delaysMs: [4000, 1000, 2000, 1000] };
+// Four independent auto-advance ranges (0-indexed slots): images 2-7,
+// 8-12, 13-15, 16-17 each cycle on their own once reached, alternating a
+// 1s/2s delay between steps; crossing from one range into the next (7->8,
+// 12->13, 15->16) still needs a tap. Module-level so identity is stable
+// across renders (see useMultiImageChatSim's autoAdvance doc comment).
+const AUTO_ADVANCE = [
+  { from: 1, to: 6, delaysMs: [1000, 2000] }, // images 2-7
+  { from: 7, to: 11, delaysMs: [1000, 2000] }, // images 8-12
+  { from: 12, to: 14, delaysMs: [1000, 2000] }, // images 13-15
+  { from: 15, to: 16, delaysMs: [1000, 2000] }, // images 16-17
+];
 
 export default function Room7Page() {
   return (
