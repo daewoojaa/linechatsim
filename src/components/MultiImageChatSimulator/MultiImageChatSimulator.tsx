@@ -3,7 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMultiImageChatSim } from "@/hooks/useMultiImageChatSim";
-import { BackArrowIcon, ChevronRightIcon, EmojiIcon, MenuIcon, MicIcon, SendArrowIcon } from "@/components/icons/Icons";
+import {
+  BackArrowIcon,
+  ChevronRightIcon,
+  EmojiIcon,
+  MenuIcon,
+  MicIcon,
+  PhoneIcon,
+  SearchIcon,
+  SendArrowIcon,
+} from "@/components/icons/Icons";
 import styles from "./MultiImageChatSimulator.module.css";
 
 type Props = {
@@ -85,7 +94,7 @@ export default function MultiImageChatSimulator({
           style={{ backgroundImage: headerBackground ? `url("${headerBackground}")` : undefined }}
         >
           <button type="button" className={styles.backButton} onClick={showFirst} title="กลับไปรูปแรก">
-            <BackArrowIcon />
+            <BackArrowIcon color="#ffffff" />
           </button>
 
           {editingName ? (
@@ -104,8 +113,15 @@ export default function MultiImageChatSimulator({
           )}
 
           <div className={styles.headerIcons}>
+            <button type="button" className={styles.iconButton} tabIndex={-1}>
+              <SearchIcon color="#ffffff" />
+            </button>
+            <button type="button" className={styles.iconButton} tabIndex={-1}>
+              <PhoneIcon color="#ffffff" />
+            </button>
             <button type="button" className={styles.iconButton} onClick={openManage} title="จัดการรูปภาพ">
-              <MenuIcon />
+              <MenuIcon color="#ffffff" />
+              <span className={styles.badgeDot} />
             </button>
           </div>
         </div>

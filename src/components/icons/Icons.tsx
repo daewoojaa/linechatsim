@@ -3,34 +3,34 @@
  * (`Chat Simulator.dc.html`) — same viewBox, stroke color/width, and path data.
  */
 
-export function BackArrowIcon() {
+export function BackArrowIcon({ color = "#1c1c1e" }: { color?: string } = {}) {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
       <path d="M15 4 7 12l8 8" />
     </svg>
   );
 }
 
-export function SearchIcon() {
+export function SearchIcon({ color = "#1c1c1e" }: { color?: string } = {}) {
   return (
-    <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" strokeWidth={1.9} strokeLinecap="round">
+    <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.9} strokeLinecap="round">
       <circle cx={11} cy={11} r={6.5} />
       <path d="m16 16 4.5 4.5" />
     </svg>
   );
 }
 
-export function PhoneIcon() {
+export function PhoneIcon({ color = "#1c1c1e" }: { color?: string } = {}) {
   return (
-    <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
+    <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
       <path d="M6.5 3.8c1 0 1.6.5 1.9 1.4l.8 2.2c.3.8.1 1.4-.6 1.9l-1 .7c.9 2 2.4 3.5 4.4 4.4l.7-1c.5-.7 1.1-.9 1.9-.6l2.2.8c.9.3 1.4.9 1.4 1.9v2c0 1.2-.8 2-2 2C9.7 19.5 4.5 14.3 4.5 5.8c0-1.2.8-2 2-2Z" />
     </svg>
   );
 }
 
-export function MenuIcon() {
+export function MenuIcon({ color = "#1c1c1e" }: { color?: string } = {}) {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" strokeWidth={2} strokeLinecap="round">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round">
       <path d="M4 7h16M4 12h16M4 17h16" />
     </svg>
   );

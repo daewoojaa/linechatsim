@@ -128,6 +128,16 @@
   position: relative;
 }
 
+.badgeDot {
+  position: absolute;
+  top: 2px;
+  right: 1px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #2fbf5e;
+}
+
 /* ---- 2. Chat image zone ---- */
 
 .chatZone {
