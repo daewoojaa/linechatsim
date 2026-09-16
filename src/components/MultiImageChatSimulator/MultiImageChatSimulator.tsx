@@ -16,6 +16,9 @@ type Props = {
    *  since there's no way to fit that many per-slot picker icons in the
    *  header the way the fixed-4-image ChatSimulator does. */
   manageHref: string;
+  /** A public/ asset path painted behind the header bar (room name row)
+   *  instead of the default transparent header. */
+  headerBackground?: string;
 };
 
 /**
@@ -27,7 +30,14 @@ type Props = {
  * uploaded image rather than sending a live message, same as tapping the
  * chat image itself.
  */
-export default function MultiImageChatSimulator({ roomId, defaultRoomName, slotCount, defaultImage0, manageHref }: Props) {
+export default function MultiImageChatSimulator({
+  roomId,
+  defaultRoomName,
+  slotCount,
+  defaultImage0,
+  manageHref,
+  headerBackground,
+}: Props) {
   const router = useRouter();
   const {
     roomName,
@@ -70,7 +80,10 @@ export default function MultiImageChatSimulator({ roomId, defaultRoomName, slotC
 
       <div className={styles.contentColumn}>
         {/* 1. Header bar */}
-        <div className={styles.header}>
+        <div
+          className={styles.header}
+          style={{ backgroundImage: headerBackground ? `url("${headerBackground}")` : undefined }}
+        >
           <button type="button" className={styles.backButton} onClick={showFirst} title="กลับไปรูปแรก">
             <BackArrowIcon />
           </button>
@@ -108,7 +121,7 @@ export default function MultiImageChatSimulator({ roomId, defaultRoomName, slotC
         {/* 3. Input bar (LineChatSimulator's design) — the blue arrow
             advances to the next image instead of sending a live message. */}
         <div className={styles.inputBar}>
-          <button type="button" className={styles.chevronButton} tabIndex={-1}>
+          <button type="button" className={styles.chevronButton} onClick={() => router.push("/")} title="กลับไปหน้ารวมแชท">
             <ChevronRightIcon />
           </button>
 

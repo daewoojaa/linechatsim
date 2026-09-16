@@ -8,6 +8,7 @@ export default function Room7Page() {
       slotCount={20}
       defaultImage0="/room7-image1.jpg"
       manageHref="/room7/manage"
+      headerBackground="/room7-header-bg.jpg"
     />
   );
 }
