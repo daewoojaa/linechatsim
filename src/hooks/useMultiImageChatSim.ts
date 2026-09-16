@@ -22,6 +22,17 @@ export type MultiImageRoomConfig = {
    *  user uploads their own — same "default until overridden" pattern as
    *  ChatSimulator's DEFAULT_CHAT_IMAGE_1. */
   defaultImage0?: string;
+  /** Auto-advances through a contiguous range of slots on a timer instead
+   *  of waiting for a tap, once that range is reached — e.g. images 3-6
+   *  cycling on their own. `from`/`to` are 0-indexed slots: advancing
+   *  starts on reaching `from` and stops once `to` is reached (`to` is
+   *  itself just the final destination, not a step that advances further).
+   *  `delaysMs[i]` is how long slot `from + i` waits before moving on to
+   *  the next one, cycling through the array if there are more steps than
+   *  delays given. Define this as a stable module-level constant in the
+   *  caller, not an inline object literal, so its identity doesn't change
+   *  every render and retrigger the effect. */
+  autoAdvance?: { from: number; to: number; delaysMs: number[] };
 };
 
 /**
@@ -32,7 +43,13 @@ export type MultiImageRoomConfig = {
  * it — images are uploaded/replaced from a separate "manage images" page
  * (see useManageImages), not from per-slot header icons like ChatSimulator.
  */
-export function useMultiImageChatSim({ roomId, defaultRoomName, slotCount, defaultImage0 }: MultiImageRoomConfig) {
+export function useMultiImageChatSim({
+  roomId,
+  defaultRoomName,
+  slotCount,
+  defaultImage0,
+  autoAdvance,
+}: MultiImageRoomConfig) {
   const [hydrated, setHydrated] = useState(false);
 
   const [roomName, setRoomName] = useState(defaultRoomName);
@@ -55,6 +72,7 @@ export function useMultiImageChatSim({ roomId, defaultRoomName, slotCount, defau
   const nameInputRef = useRef<HTMLInputElement>(null);
   const textInputRef = useRef<HTMLDivElement>(null);
   const tripleTapRef = useRef({ count: 0, timer: null as ReturnType<typeof setTimeout> | null });
+  const autoAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ---- initial hydration from IndexedDB ----
   useEffect(() => {
@@ -97,6 +115,23 @@ export function useMultiImageChatSim({ roomId, defaultRoomName, slotCount, defau
     if (!hydrated) return;
     idbSetMeta(`${roomId}:activeIndex`, activeIndex);
   }, [activeIndex, hydrated, roomId]);
+
+  // ---- auto-advance through a configured slot range, e.g. images 3-6 ----
+  useEffect(() => {
+    if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
+    if (!autoAdvance) return;
+    const { from, to, delaysMs } = autoAdvance;
+    if (activeIndex < from || activeIndex >= to || !images[activeIndex + 1]) return;
+
+    const delay = delaysMs[(activeIndex - from) % delaysMs.length] ?? 1500;
+    autoAdvanceTimerRef.current = setTimeout(() => {
+      setActiveIndex((current) => (current === activeIndex ? activeIndex + 1 : current));
+    }, delay);
+
+    return () => {
+      if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
+    };
+  }, [activeIndex, images, autoAdvance]);
 
   const showFirst = useCallback(() => setActiveIndex(0), []);
 

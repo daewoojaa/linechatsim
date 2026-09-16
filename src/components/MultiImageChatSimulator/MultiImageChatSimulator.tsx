@@ -28,6 +28,8 @@ type Props = {
   /** A public/ asset path painted behind the header bar (room name row)
    *  instead of the default transparent header. */
   headerBackground?: string;
+  /** See useMultiImageChatSim's own doc comment. */
+  autoAdvance?: { from: number; to: number; delaysMs: number[] };
 };
 
 /**
@@ -46,6 +48,7 @@ export default function MultiImageChatSimulator({
   defaultImage0,
   manageHref,
   headerBackground,
+  autoAdvance,
 }: Props) {
   const router = useRouter();
   const {
@@ -66,7 +69,7 @@ export default function MultiImageChatSimulator({
     textInputRef,
 
     onChatImageTap,
-  } = useMultiImageChatSim({ roomId, defaultRoomName, slotCount, defaultImage0 });
+  } = useMultiImageChatSim({ roomId, defaultRoomName, slotCount, defaultImage0, autoAdvance });
 
   const openManage = () => router.push(manageHref);
   const [hasText, setHasText] = useState(false);
