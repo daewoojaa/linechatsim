@@ -9,9 +9,9 @@ import {
   EmojiIcon,
   MenuIcon,
   MicIcon,
+  NoteIcon,
   PhoneIcon,
   SearchIcon,
-  SendArrowIcon,
 } from "@/components/icons/Icons";
 import styles from "./MultiImageChatSimulator.module.css";
 
@@ -185,7 +185,7 @@ export default function MultiImageChatSimulator({
             onClick={advanceAndClear}
             title="รูปถัดไป"
           >
-            {hasText ? <SendArrowIcon /> : <MicIcon />}
+            {hasText ? <NoteIcon /> : <MicIcon />}
           </button>
         </div>
       </div>
