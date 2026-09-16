@@ -9,7 +9,7 @@ import styles from "./ManageImages.module.css";
 type Props = {
   roomId: string;
   slotCount: number;
-  defaultImage0?: string;
+  defaultImages?: string[];
   title: string;
   backHref: string;
 };
@@ -17,13 +17,14 @@ type Props = {
 /**
  * Grid of every chat-image slot for a MultiImageChatSimulator room — tap an
  * empty slot to upload into it, tap a filled one to replace it, or hit the
- * × to clear it back to empty (or back to its bundled default, for slot 0).
- * Writes go straight to the same IndexedDB keys the chat room itself reads
- * on mount, so there's nothing else to wire up for changes to show there.
+ * × to clear it back to empty (or back to its bundled default, for slots
+ * that have one). Writes go straight to the same IndexedDB keys the chat
+ * room itself reads on mount, so there's nothing else to wire up for
+ * changes to show there.
  */
-export default function ManageImages({ roomId, slotCount, defaultImage0, title, backHref }: Props) {
+export default function ManageImages({ roomId, slotCount, defaultImages, title, backHref }: Props) {
   const router = useRouter();
-  const defaults = defaultImage0 ? [defaultImage0] : [];
+  const defaults = defaultImages ?? [];
   const { images, upload, clear } = useManageImages(roomId, slotCount, defaults);
 
   const pendingIndexRef = useRef<number | null>(null);

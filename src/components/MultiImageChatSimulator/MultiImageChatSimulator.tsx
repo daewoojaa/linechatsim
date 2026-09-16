@@ -19,7 +19,8 @@ type Props = {
   roomId: string;
   defaultRoomName: string;
   slotCount: number;
-  defaultImage0?: string;
+  /** See useMultiImageChatSim's own doc comment. */
+  defaultImages?: string[];
   /** Where the "จัดการรูปภาพ" icon navigates — a dedicated page (see
    *  ManageImages) for uploading/replacing any of the slotCount images,
    *  since there's no way to fit that many per-slot picker icons in the
@@ -45,7 +46,7 @@ export default function MultiImageChatSimulator({
   roomId,
   defaultRoomName,
   slotCount,
-  defaultImage0,
+  defaultImages,
   manageHref,
   headerBackground,
   autoAdvance,
@@ -69,7 +70,7 @@ export default function MultiImageChatSimulator({
     textInputRef,
 
     onChatImageTap,
-  } = useMultiImageChatSim({ roomId, defaultRoomName, slotCount, defaultImage0, autoAdvance });
+  } = useMultiImageChatSim({ roomId, defaultRoomName, slotCount, defaultImages, autoAdvance });
 
   const openManage = () => router.push(manageHref);
   const [hasText, setHasText] = useState(false);

@@ -18,10 +18,11 @@ export type MultiImageRoomConfig = {
   defaultRoomName: string;
   /** Total number of chat-image slots this room supports (e.g. 14). */
   slotCount: number;
-  /** Bundled default for slot 0 (a public/ asset path), shown until the
-   *  user uploads their own — same "default until overridden" pattern as
-   *  ChatSimulator's DEFAULT_CHAT_IMAGE_1. */
-  defaultImage0?: string;
+  /** Bundled defaults (public/ asset paths), index-aligned to slot number —
+   *  shown until the user uploads their own into that slot, same "default
+   *  until overridden" pattern as ChatSimulator's DEFAULT_CHAT_IMAGE_1. A
+   *  sparse array is fine; only the slots you pass get a bundled default. */
+  defaultImages?: string[];
   /** Auto-advances through a contiguous range of slots on a timer instead
    *  of waiting for a tap, once that range is reached — e.g. images 3-6
    *  cycling on their own. `from`/`to` are 0-indexed slots: advancing
@@ -47,7 +48,7 @@ export function useMultiImageChatSim({
   roomId,
   defaultRoomName,
   slotCount,
-  defaultImage0,
+  defaultImages,
   autoAdvance,
 }: MultiImageRoomConfig) {
   const [hydrated, setHydrated] = useState(false);
@@ -58,7 +59,9 @@ export function useMultiImageChatSim({
   const [background, setBackground] = useState<string | null>(DEFAULT_BACKGROUND);
   const [images, setImages] = useState<(string | null)[]>(() => {
     const arr = new Array<string | null>(slotCount).fill(null);
-    if (defaultImage0) arr[0] = defaultImage0;
+    defaultImages?.forEach((src, i) => {
+      if (src) arr[i] = src;
+    });
     return arr;
   });
   const [activeIndex, setActiveIndex] = useState(0);
