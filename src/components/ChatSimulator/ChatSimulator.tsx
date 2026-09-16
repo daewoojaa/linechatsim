@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useChatSim } from "@/hooks/useChatSim";
 import {
   BackArrowIcon,
@@ -21,6 +22,7 @@ import styles from "./ChatSimulator.module.css";
  * fake chat. See README.md for the full behavior spec this recreates.
  */
 export default function ChatSimulator() {
+  const router = useRouter();
   const {
     roomName,
     setRoomName,
@@ -127,12 +129,7 @@ export default function ChatSimulator() {
 
         {/* 3. Message input bar */}
         <div className={styles.inputBar}>
-          <button
-            type="button"
-            className={styles.chevronButton}
-            onClick={() => requestPick("chatImage4")}
-            title="ใส่รูปแชทที่ 4"
-          >
+          <button type="button" className={styles.chevronButton} onClick={() => router.push("/")} title="กลับไปหน้ารวมแชท">
             <ChevronRightIcon />
           </button>
 
