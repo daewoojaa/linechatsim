@@ -1,5 +1,5 @@
-import VideoCallSimulator from "@/components/VideoCallSimulator/VideoCallSimulator";
+import VideoCallFlow from "@/components/VideoCallSimulator/VideoCallFlow";
 
 export default function Room4Page() {
-  return <VideoCallSimulator roomId="room4" />;
+  return <VideoCallFlow roomId="room4" />;
 }

@@ -70,6 +70,14 @@ export function ActivitiesIcon() {
   );
 }
 
+export function PhoneIcon() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="#ffffff">
+      <path d="M6.6 2.7c1.1 0 1.8.6 2.1 1.6l.9 2.5c.3.9.1 1.6-.6 2.1l-1.1.8c1 2.3 2.7 4 5 5l.8-1.1c.5-.7 1.2-1 2.1-.6l2.5.9c1 .3 1.6 1 1.6 2.1v2.2c0 1.3-.9 2.2-2.2 2.2C9.5 20.4 3.6 14.5 3.6 5.9c0-1.3.9-2.2 2.2-2.2Z" />
+    </svg>
+  );
+}
+
 export function XIcon() {
   return (
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth={2.4} strokeLinecap="round">

@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useVideoCallSim } from "@/hooks/useVideoCallSim";
+import { useFrontCamera } from "@/hooks/useFrontCamera";
 import {
   ActivitiesIcon,
   CameraFlipIcon,
@@ -28,8 +30,13 @@ type Props = {
  */
 export default function VideoCallSimulator({ roomId }: Props) {
   const router = useRouter();
-  const { clipSrc, cameraStream, cameraError, pipVideoRef, fileInputRef, requestPickClip, handleClipFileChange, retryCamera } =
-    useVideoCallSim(roomId);
+  const { clipSrc, fileInputRef, requestPickClip, handleClipFileChange } = useVideoCallSim(roomId);
+  const { stream: cameraStream, error: cameraError, retry: retryCamera } = useFrontCamera();
+  const pipVideoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (pipVideoRef.current) pipVideoRef.current.srcObject = cameraStream;
+  }, [cameraStream]);
 
   return (
     <div className={styles.appShell}>
