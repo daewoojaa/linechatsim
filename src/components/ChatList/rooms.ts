@@ -22,7 +22,14 @@ export const INITIAL_ROOMS: ChatRoom[] = [
   },
   { id: "2", name: "301 แก่น", message: "ส่งรูปภาพ", time: "เมื่อวาน", unread: 1, color: "#7fb3d5" },
   { id: "3", name: "309 TikTok ดอกรักคนเดิม", message: "ส่งสติกเกอร์", time: "20/8", unread: 12, color: "#a3d9a5" },
-  { id: "4", name: "820 Ninja", message: "โอเคครับ เดี๋ยวจัดการให้", time: "18/8", color: "#f7b7a3" },
+  {
+    id: "4",
+    name: "820 Ninja",
+    message: "โอเคครับ เดี๋ยวจัดการให้",
+    time: "18/8",
+    color: "#f7b7a3",
+    href: "/room4",
+  },
   { id: "5", name: "815 TikTok", message: "ได้เลยครับ", time: "12/8", unread: 5, color: "#c39bd3", href: "/room5" },
   { id: "6", name: "237 แก่น", message: "ส่งเสียง", time: "23/6", color: "#f9e79f" },
   {

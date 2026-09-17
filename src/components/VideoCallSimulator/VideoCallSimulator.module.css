@@ -1,0 +1,139 @@
+.appShell {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  background: #1c1c1e;
+  user-select: none;
+  font-family: var(--font-body), system-ui, -apple-system, sans-serif;
+}
+
+/* ---- Main frame: the other person's clip ---- */
+
+.mainVideoWrap {
+  position: absolute;
+  inset: 0;
+}
+
+.mainVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.mainVideoPlaceholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(160deg, #3a3a3c, #1c1c1e 70%);
+}
+
+/* ---- Picture-in-picture: the device's own front camera ---- */
+
+.pip {
+  position: absolute;
+  top: calc(22px + env(safe-area-inset-top));
+  left: calc(14px + env(safe-area-inset-left));
+  width: 110px;
+  height: 165px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #2c2c2e;
+  z-index: 10;
+}
+
+.pipVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform: scaleX(-1); /* mirror, like a real selfie preview */
+}
+
+.pipOff {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8e8e93;
+}
+
+/* ---- Top-right chrome ---- */
+
+.topIcons {
+  position: absolute;
+  top: calc(28px + env(safe-area-inset-top));
+  right: calc(16px + env(safe-area-inset-right));
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  z-index: 10;
+}
+
+.topIconButton {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.95;
+}
+
+/* ---- Bottom control bar ---- */
+
+.bottomBar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(48px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-around;
+  padding: 0 8px;
+  z-index: 10;
+}
+
+.controlButton {
+  flex: none;
+  width: 64px;
+  border: 0;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.controlLabel {
+  font: 400 11px system-ui, -apple-system, sans-serif;
+  color: #ffffff;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.endCallButton {
+  flex: none;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 0;
+  background: #fe3b30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-top: -2px;
+}
+
+.hiddenFileInput {
+  display: none;
+}

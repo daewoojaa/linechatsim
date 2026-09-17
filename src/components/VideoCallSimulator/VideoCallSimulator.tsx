@@ -1,0 +1,101 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useVideoCallSim } from "@/hooks/useVideoCallSim";
+import {
+  ActivitiesIcon,
+  CameraFlipIcon,
+  CameraOffIcon,
+  LayoutIcon,
+  MuteMicIcon,
+  PipSwapIcon,
+  SparkleIcon,
+  XIcon,
+} from "@/components/icons/VideoCallIcons";
+import styles from "./VideoCallSimulator.module.css";
+
+type Props = {
+  roomId: string;
+};
+
+/**
+ * Video-call simulator (room 4) — a FaceTime/Instagram-call-style screen.
+ * The big frame loops an MP4 standing in for the other person (picked via
+ * "Activities"); the picture-in-picture box in the corner is the device's
+ * own live front camera, so an actor can perform alongside the clip in
+ * real time. Every other control (mute, camera effects, the top-right
+ * icons) is decorative chrome for visual authenticity, not wired up.
+ */
+export default function VideoCallSimulator({ roomId }: Props) {
+  const router = useRouter();
+  const { clipSrc, cameraStream, cameraError, pipVideoRef, fileInputRef, requestPickClip, handleClipFileChange, retryCamera } =
+    useVideoCallSim(roomId);
+
+  return (
+    <div className={styles.appShell}>
+      {/* Main frame — the other person's video clip */}
+      <div className={styles.mainVideoWrap}>
+        {clipSrc ? (
+          <video className={styles.mainVideo} src={clipSrc} autoPlay loop muted playsInline />
+        ) : (
+          <div className={styles.mainVideoPlaceholder} />
+        )}
+      </div>
+
+      {/* Picture-in-picture — the device's own live front camera */}
+      <div className={styles.pip}>
+        {cameraStream && !cameraError ? (
+          <video ref={pipVideoRef} className={styles.pipVideo} autoPlay muted playsInline />
+        ) : (
+          <div className={styles.pipOff}>
+            <CameraOffIcon />
+          </div>
+        )}
+      </div>
+
+      {/* Top-right chrome */}
+      <div className={styles.topIcons}>
+        <button type="button" className={styles.topIconButton} tabIndex={-1}>
+          <PipSwapIcon />
+        </button>
+        <button type="button" className={styles.topIconButton} tabIndex={-1}>
+          <CameraFlipIcon />
+        </button>
+        <button type="button" className={styles.topIconButton} tabIndex={-1}>
+          <LayoutIcon />
+        </button>
+      </div>
+
+      {/* Bottom control bar */}
+      <div className={styles.bottomBar}>
+        <button type="button" className={styles.controlButton} tabIndex={-1}>
+          <MuteMicIcon />
+          <span className={styles.controlLabel}>Mute mic</span>
+        </button>
+        <button type="button" className={styles.controlButton} onClick={retryCamera}>
+          <CameraOffIcon />
+          <span className={styles.controlLabel}>Turn on camera</span>
+        </button>
+        <button type="button" className={styles.endCallButton} onClick={() => router.push("/")} title="กลับไปหน้ารวมแชท">
+          <XIcon />
+        </button>
+        <button type="button" className={styles.controlButton} tabIndex={-1}>
+          <SparkleIcon />
+          <span className={styles.controlLabel}>Camera effects</span>
+        </button>
+        <button type="button" className={styles.controlButton} onClick={requestPickClip}>
+          <ActivitiesIcon />
+          <span className={styles.controlLabel}>Activities</span>
+        </button>
+      </div>
+
+      <input
+        type="file"
+        accept="video/*"
+        ref={fileInputRef}
+        onChange={handleClipFileChange}
+        className={styles.hiddenFileInput}
+      />
+    </div>
+  );
+}
