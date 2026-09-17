@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { useVideoCallSim } from "@/hooks/useVideoCallSim";
 import { useFrontCamera } from "@/hooks/useFrontCamera";
 import {
@@ -29,7 +28,6 @@ type Props = {
  * icons) is decorative chrome for visual authenticity, not wired up.
  */
 export default function VideoCallSimulator({ roomId }: Props) {
-  const router = useRouter();
   const { clipSrc, fileInputRef, requestPickClip, handleClipFileChange } = useVideoCallSim(roomId);
   const { stream: cameraStream, error: cameraError, retry: retryCamera } = useFrontCamera();
   const pipVideoRef = useRef<HTMLVideoElement>(null);
@@ -37,6 +35,16 @@ export default function VideoCallSimulator({ roomId }: Props) {
   useEffect(() => {
     if (pipVideoRef.current) pipVideoRef.current.srcObject = cameraStream;
   }, [cameraStream]);
+
+  // Browsers only allow a script to close a tab/window it opened itself —
+  // reassigning via window.open("", "_self") first is the standard
+  // workaround that lets window.close() succeed for a regular tab too, on
+  // browsers that permit it at all (notably not iOS Safari, which never
+  // allows a page to close itself no matter what).
+  const handleEndCall = () => {
+    window.open("", "_self");
+    window.close();
+  };
 
   return (
     <div className={styles.appShell}>
@@ -83,7 +91,7 @@ export default function VideoCallSimulator({ roomId }: Props) {
           <CameraOffIcon />
           <span className={styles.controlLabel}>Turn on camera</span>
         </button>
-        <button type="button" className={styles.endCallButton} onClick={() => router.push("/")} title="กลับไปหน้ารวมแชท">
+        <button type="button" className={styles.endCallButton} onClick={handleEndCall} title="ออกจากแอป">
           <XIcon />
         </button>
         <button type="button" className={styles.controlButton} tabIndex={-1}>
