@@ -15,6 +15,28 @@ type Props = {
 };
 
 /**
+ * Three chevrons that light up back-to-front in a loop, like a pulse of
+ * energy chasing forward in the direction they point — the hint animation
+ * next to the answer/decline buttons. `flip` mirrors it to point left.
+ */
+function ChevronTrail({ color, flip }: { color: string; flip?: boolean }) {
+  return (
+    <svg
+      width="46"
+      height="22"
+      viewBox="0 0 54 22"
+      fill="none"
+      className={styles.chevronTrail}
+      style={flip ? { transform: "scaleX(-1)" } : undefined}
+    >
+      <path className={styles.chevronBack} d="M3 3l8 8-8 8" stroke={color} strokeWidth={4} strokeLinecap="round" strokeLinejoin="round" />
+      <path className={styles.chevronMid} d="M21 3l8 8-8 8" stroke={color} strokeWidth={4} strokeLinecap="round" strokeLinejoin="round" />
+      <path className={styles.chevronFront} d="M39 3l8 8-8 8" stroke={color} strokeWidth={4} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/**
  * Incoming-call "ringing" screen shown before room 4's video call actually
  * starts — tap the green circle to answer (-> onAccept) or the red circle
  * to decline back to the chat list, like a real incoming call. The
@@ -114,8 +136,8 @@ export default function IncomingCallAlert({ roomId, onAccept }: Props) {
         <button type="button" className={styles.answerButton} onClick={onAccept} title="รับสาย">
           <PhoneIcon />
         </button>
-        <span className={styles.hintGreen}>&gt;&gt;</span>
-        <span className={styles.hintRed}>&lt;&lt;</span>
+        <ChevronTrail color="#34c759" />
+        <ChevronTrail color="#fe3b30" flip />
         <button type="button" className={styles.declineButton} onClick={() => router.push("/")} title="วางสาย">
           <PhoneIcon />
         </button>

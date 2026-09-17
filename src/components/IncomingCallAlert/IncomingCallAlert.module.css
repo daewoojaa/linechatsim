@@ -197,18 +197,38 @@
   transform: rotate(135deg);
 }
 
-.hintGreen,
-.hintRed {
-  font: 700 16px system-ui, -apple-system, sans-serif;
-  letter-spacing: -2px;
+.chevronTrail {
+  flex: none;
+  overflow: visible;
 }
 
-.hintGreen {
-  color: #34c759;
+@keyframes chevronPulse {
+  0%,
+  60%,
+  100% {
+    opacity: 0.22;
+  }
+  30% {
+    opacity: 1;
+  }
 }
 
-.hintRed {
-  color: #fe3b30;
+.chevronBack,
+.chevronMid,
+.chevronFront {
+  animation: chevronPulse 1.4s ease-in-out infinite;
+}
+
+.chevronBack {
+  animation-delay: 0s;
+}
+
+.chevronMid {
+  animation-delay: 0.15s;
+}
+
+.chevronFront {
+  animation-delay: 0.3s;
 }
 
 .hiddenFileInput {
