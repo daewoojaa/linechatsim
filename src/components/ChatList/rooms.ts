@@ -31,7 +31,14 @@ export const INITIAL_ROOMS: ChatRoom[] = [
     href: "/room4",
   },
   { id: "5", name: "815 TikTok", message: "ได้เลยครับ", time: "12/8", unread: 5, color: "#c39bd3", href: "/room5" },
-  { id: "6", name: "237 แก่น", message: "ส่งเสียง", time: "23/6", color: "#f9e79f" },
+  {
+    id: "6",
+    name: "237 แก่น",
+    message: "ส่งเสียง",
+    time: "23/6",
+    color: "#f9e79f",
+    href: "/room6",
+  },
   {
     id: "7",
     name: "วงไข่มุกบารมี (87)",

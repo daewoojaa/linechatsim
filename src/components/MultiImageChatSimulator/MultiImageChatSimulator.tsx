@@ -7,6 +7,7 @@ import {
   BackArrowIcon,
   ChevronRightIcon,
   EmojiIcon,
+  KeyboardIcon,
   MenuIcon,
   MicIcon,
   PhoneIcon,
@@ -31,6 +32,11 @@ type Props = {
   headerBackground?: string;
   /** See useMultiImageChatSim's own doc comment. */
   autoAdvance?: { from: number; to: number; delaysMs: number[] }[];
+  /** Tapping the mic icon (input empty) opens a "tap to record a voice
+   *  message" panel below the input bar instead of advancing the image —
+   *  purely a UI simulation, no real recording happens. Off by default so
+   *  existing rooms keep their current mic-advances-the-image behavior. */
+  enableVoiceRecord?: boolean;
 };
 
 /**
@@ -50,6 +56,7 @@ export default function MultiImageChatSimulator({
   manageHref,
   headerBackground,
   autoAdvance,
+  enableVoiceRecord,
 }: Props) {
   const router = useRouter();
   const {
@@ -74,6 +81,7 @@ export default function MultiImageChatSimulator({
 
   const openManage = () => router.push(manageHref);
   const [hasText, setHasText] = useState(false);
+  const [showRecordPanel, setShowRecordPanel] = useState(false);
 
   const advanceAndClear = () => {
     onChatImageTap();
@@ -87,6 +95,18 @@ export default function MultiImageChatSimulator({
     }
   };
 
+  const onMicButtonClick = () => {
+    if (hasText) {
+      advanceAndClear();
+      return;
+    }
+    if (enableVoiceRecord) {
+      setShowRecordPanel((v) => !v);
+      return;
+    }
+    advanceAndClear();
+  };
+
   return (
     <div className={styles.appShell}>
       <div className={styles.backgroundLayer}>
@@ -96,7 +116,7 @@ export default function MultiImageChatSimulator({
         />
       </div>
 
-      <div className={styles.contentColumn}>
+      <div className={styles.contentColumn} data-panel-open={showRecordPanel || undefined}>
         {/* 1. Header bar */}
         <div
           className={styles.header}
@@ -182,12 +202,28 @@ export default function MultiImageChatSimulator({
             type="button"
             className={styles.sendButton}
             onMouseDown={(e) => e.preventDefault()}
-            onClick={advanceAndClear}
-            title="รูปถัดไป"
+            onClick={onMicButtonClick}
+            title={showRecordPanel ? "กลับไปพิมพ์ข้อความ" : "รูปถัดไป"}
           >
-            {hasText ? <SendArrowIcon /> : <MicIcon />}
+            {hasText ? <SendArrowIcon /> : showRecordPanel ? <KeyboardIcon /> : <MicIcon />}
           </button>
         </div>
+
+        {/* 4. Voice-record simulation panel — replaces the keyboard's
+            reserved space below the input bar while open. */}
+        {showRecordPanel && (
+          <div className={styles.recordPanel}>
+            <div className={styles.recordHint}>แตะเพื่อบันทึกข้อความเสียง</div>
+            <button
+              type="button"
+              className={styles.recordButton}
+              onClick={() => setShowRecordPanel(false)}
+              title="บันทึกข้อความเสียง"
+            >
+              <span className={styles.recordDot} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -49,6 +49,10 @@
   padding-bottom: var(--keyboard-reserve);
 }
 
+.contentColumn[data-panel-open] {
+  padding-bottom: 0;
+}
+
 /* ---- 1. Header ---- */
 
 /* Fixed to the viewport (not just the top of the scroll flow) so it stays
@@ -239,4 +243,42 @@
   align-items: center;
   justify-content: center;
   color: #64b5fa;
+}
+
+/* ---- 4. Voice-record simulation panel ---- */
+
+.recordPanel {
+  flex: none;
+  height: var(--keyboard-reserve);
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+}
+
+.recordHint {
+  font: 400 14px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  color: #8e8e93;
+}
+
+.recordButton {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  border: 1.5px solid #e5e5ea;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.recordDot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fe3b30;
 }

@@ -84,6 +84,15 @@ export function MicIcon() {
   );
 }
 
+export function KeyboardIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+      <rect x={2.5} y={6} width={19} height={12} rx={2} />
+      <path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h8" />
+    </svg>
+  );
+}
+
 export function SendArrowIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
