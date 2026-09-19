@@ -150,6 +150,16 @@ export function useMultiImageChatSim({
 
   const showFirst = useCallback(() => setActiveIndex(0), []);
 
+  /** Jumps straight to a specific slot, regardless of whether it has an
+   *  image uploaded yet — a direct shortcut, unlike advance()'s "skip
+   *  forward to the next filled slot" search. */
+  const jumpTo = useCallback(
+    (index: number) => {
+      if (index >= 0 && index < slotCount) setActiveIndex(index);
+    },
+    [slotCount]
+  );
+
   /** Tapping the chat image or a sticker: jump to the next slot down the
    *  line that actually has an image uploaded (skipping gaps), stopping
    *  at the last one if there's nothing further to reveal. */
@@ -251,6 +261,7 @@ export function useMultiImageChatSim({
     background,
     displayedChatSrc: images[activeIndex] ?? null,
     showFirst,
+    jumpTo,
 
     mode,
     toggleMode,
