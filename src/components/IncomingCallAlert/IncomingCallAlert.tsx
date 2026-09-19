@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { useFrontCamera } from "@/hooks/useFrontCamera";
 import { useIncomingCall } from "@/hooks/useIncomingCall";
+import { idbSetImage } from "@/lib/idbStore";
 import { CameraOffIcon, LayoutIcon, PhoneIcon, PipSwapIcon, SparkleIcon } from "@/components/icons/VideoCallIcons";
 import styles from "./IncomingCallAlert.module.css";
 
@@ -38,15 +38,18 @@ function ChevronTrail({ color, flip }: { color: string; flip?: boolean }) {
 
 /**
  * Incoming-call "ringing" screen shown before room 4's video call actually
- * starts — tap the green circle to answer (-> onAccept) or the red circle
- * to decline back to the chat list, like a real incoming call. The
- * full-screen background is the device's own live front camera, same
- * source as VideoCallSimulator's picture-in-picture (see useFrontCamera).
+ * starts — tap the green circle to answer (-> onAccept); the red circle
+ * doesn't decline the call, it sets the "app closed" still that
+ * VideoCallSimulator's own red X shows full-screen once the call ends
+ * (a real app can't be closed from a web page in any browser, so this
+ * fakes the visual instead). The full-screen background is the device's
+ * own live front camera, same source as VideoCallSimulator's picture-in-
+ * picture (see useFrontCamera).
  */
 export default function IncomingCallAlert({ roomId, onAccept }: Props) {
-  const router = useRouter();
   const { stream: cameraStream, error: cameraError } = useFrontCamera();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const exitImageInputRef = useRef<HTMLInputElement>(null);
 
   const {
     callerName,
@@ -65,6 +68,20 @@ export default function IncomingCallAlert({ roomId, onAccept }: Props) {
   useEffect(() => {
     if (videoRef.current) videoRef.current.srcObject = cameraStream;
   }, [cameraStream]);
+
+  const requestPickExitImage = () => {
+    const el = exitImageInputRef.current;
+    if (el) {
+      el.value = "";
+      el.click();
+    }
+  };
+
+  const handleExitImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await idbSetImage(`${roomId}:exitImage`, file);
+  };
 
   return (
     <div className={styles.appShell}>
@@ -138,7 +155,7 @@ export default function IncomingCallAlert({ roomId, onAccept }: Props) {
         </button>
         <ChevronTrail color="#34c759" />
         <ChevronTrail color="#fe3b30" flip />
-        <button type="button" className={styles.declineButton} onClick={() => router.push("/")} title="วางสาย">
+        <button type="button" className={styles.declineButton} onClick={requestPickExitImage} title="ตั้งรูปจำลองปิดแอป">
           <PhoneIcon />
         </button>
       </div>
@@ -148,6 +165,13 @@ export default function IncomingCallAlert({ roomId, onAccept }: Props) {
         accept="image/*"
         ref={photoInputRef}
         onChange={handlePhotoChange}
+        className={styles.hiddenFileInput}
+      />
+      <input
+        type="file"
+        accept="image/*"
+        ref={exitImageInputRef}
+        onChange={handleExitImageChange}
         className={styles.hiddenFileInput}
       />
     </div>

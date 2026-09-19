@@ -8,19 +8,25 @@ import { idbGetImage, idbSetImage } from "@/lib/idbStore";
  * standing in for "the other person", picked via the "Activities" button
  * — same one-file-picker pattern as ChatSimulator's per-slot image
  * uploads. The picture-in-picture camera preview is a separate concern,
- * see useFrontCamera.
+ * see useFrontCamera. exitImageSrc is the "app closed" still shown full-
+ * screen when the call ends — set from the incoming-call alert screen
+ * (see IncomingCallAlert), just read here.
  */
 export function useVideoCallSim(roomId: string) {
   const [clipSrc, setClipSrc] = useState<string | null>(null);
+  const [exitImageSrc, setExitImageSrc] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // ---- hydrate the saved clip from IndexedDB ----
+  // ---- hydrate the saved clip + "app closed" exit image from IndexedDB ----
   useEffect(() => {
     let cancelled = false;
-    idbGetImage(`${roomId}:clip`).then((blob) => {
-      if (cancelled || !blob) return;
-      setClipSrc(URL.createObjectURL(blob));
-    });
+    Promise.all([idbGetImage(`${roomId}:clip`), idbGetImage(`${roomId}:exitImage`)]).then(
+      ([clipBlob, exitBlob]) => {
+        if (cancelled) return;
+        if (clipBlob) setClipSrc(URL.createObjectURL(clipBlob));
+        if (exitBlob) setExitImageSrc(URL.createObjectURL(exitBlob));
+      }
+    );
     return () => {
       cancelled = true;
     };
@@ -46,6 +52,7 @@ export function useVideoCallSim(roomId: string) {
 
   return {
     clipSrc,
+    exitImageSrc,
     fileInputRef,
     requestPickClip,
     handleClipFileChange,

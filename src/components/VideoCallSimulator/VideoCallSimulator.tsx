@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useVideoCallSim } from "@/hooks/useVideoCallSim";
 import { useFrontCamera } from "@/hooks/useFrontCamera";
 import {
@@ -28,23 +28,29 @@ type Props = {
  * icons) is decorative chrome for visual authenticity, not wired up.
  */
 export default function VideoCallSimulator({ roomId }: Props) {
-  const { clipSrc, fileInputRef, requestPickClip, handleClipFileChange } = useVideoCallSim(roomId);
+  const { clipSrc, exitImageSrc, fileInputRef, requestPickClip, handleClipFileChange } = useVideoCallSim(roomId);
   const { stream: cameraStream, error: cameraError, retry: retryCamera } = useFrontCamera();
   const pipVideoRef = useRef<HTMLVideoElement>(null);
+  // A real app can't be closed from a web page in any browser (installed
+  // PWA or not) — this simulates the visual instead: a still that reads
+  // as "the app is gone", set on the incoming-call alert screen (see
+  // IncomingCallAlert's decline button).
+  const [showExitImage, setShowExitImage] = useState(false);
 
   useEffect(() => {
     if (pipVideoRef.current) pipVideoRef.current.srcObject = cameraStream;
   }, [cameraStream]);
 
-  // Browsers only allow a script to close a tab/window it opened itself —
-  // reassigning via window.open("", "_self") first is the standard
-  // workaround that lets window.close() succeed for a regular tab too, on
-  // browsers that permit it at all (notably not iOS Safari, which never
-  // allows a page to close itself no matter what).
-  const handleEndCall = () => {
-    window.open("", "_self");
-    window.close();
-  };
+  if (showExitImage) {
+    return (
+      <div className={styles.exitScreen}>
+        {exitImageSrc && (
+          // eslint-disable-next-line @next/next/no-img-element -- IndexedDB blob URL, no next/image optimization applicable
+          <img src={exitImageSrc} className={styles.exitImage} alt="" />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className={styles.appShell}>
@@ -91,7 +97,7 @@ export default function VideoCallSimulator({ roomId }: Props) {
           <CameraOffIcon />
           <span className={styles.controlLabel}>Turn on camera</span>
         </button>
-        <button type="button" className={styles.endCallButton} onClick={handleEndCall} title="ออกจากแอป">
+        <button type="button" className={styles.endCallButton} onClick={() => setShowExitImage(true)} title="วางสาย">
           <XIcon />
         </button>
         <button type="button" className={styles.controlButton} tabIndex={-1}>
