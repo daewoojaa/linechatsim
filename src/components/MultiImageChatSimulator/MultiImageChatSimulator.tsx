@@ -35,8 +35,19 @@ type Props = {
   /** Tapping the mic icon (input empty) opens a "tap to record a voice
    *  message" panel below the input bar instead of advancing the image —
    *  purely a UI simulation, no real recording happens. Off by default so
-   *  existing rooms keep their current mic-advances-the-image behavior. */
+   *  existing rooms keep their current mic-advances-the-image behavior.
+   *  Tapping that panel plays voiceRecordVideo in its place (simulating
+   *  an active recording); tapping again while it plays advances the chat
+   *  image and returns to the static panel, ready for another "recording". */
   enableVoiceRecord?: boolean;
+  /** A public/ asset path (mp4) played while "recording" — see
+   *  enableVoiceRecord. Required for that feature to do anything once the
+   *  panel itself is tapped. */
+  voiceRecordVideo?: string;
+  /** White header text/icons (default, matches room 7's dark banner) or
+   *  black (for a light wallpaper showing through a transparent header,
+   *  like room 10's). */
+  headerTint?: "light" | "dark";
 };
 
 /**
@@ -57,7 +68,10 @@ export default function MultiImageChatSimulator({
   headerBackground,
   autoAdvance,
   enableVoiceRecord,
+  voiceRecordVideo,
+  headerTint = "light",
 }: Props) {
+  const iconColor = headerTint === "dark" ? "#1c1c1e" : "#ffffff";
   const router = useRouter();
   const {
     roomName,
@@ -81,7 +95,11 @@ export default function MultiImageChatSimulator({
 
   const openManage = () => router.push(manageHref);
   const [hasText, setHasText] = useState(false);
-  const [showRecordPanel, setShowRecordPanel] = useState(false);
+  // "closed": normal texting mode. "panel": the static "tap to record"
+  // prompt is showing. "recording": the stand-in video is playing in its
+  // place, simulating an in-progress recording.
+  const [voiceStage, setVoiceStage] = useState<"closed" | "panel" | "recording">("closed");
+  const showRecordArea = voiceStage !== "closed";
 
   const advanceAndClear = () => {
     onChatImageTap();
@@ -101,10 +119,22 @@ export default function MultiImageChatSimulator({
       return;
     }
     if (enableVoiceRecord) {
-      setShowRecordPanel((v) => !v);
+      setVoiceStage((v) => (v === "closed" ? "panel" : "closed"));
       return;
     }
     advanceAndClear();
+  };
+
+  /** Tapping the record panel/video itself: start "recording" (play the
+   *  video), or if already playing, finish it — advancing the chat image
+   *  and returning to the static panel, ready to "record" again. */
+  const onRecordAreaTap = () => {
+    if (voiceStage === "panel") {
+      setVoiceStage("recording");
+    } else if (voiceStage === "recording") {
+      onChatImageTap();
+      setVoiceStage("panel");
+    }
   };
 
   return (
@@ -116,14 +146,14 @@ export default function MultiImageChatSimulator({
         />
       </div>
 
-      <div className={styles.contentColumn} data-panel-open={showRecordPanel || undefined}>
+      <div className={styles.contentColumn} data-panel-open={showRecordArea || undefined}>
         {/* 1. Header bar */}
         <div
           className={styles.header}
           style={{ backgroundImage: headerBackground ? `url("${headerBackground}")` : undefined }}
         >
           <button type="button" className={styles.backButton} onClick={showFirst} title="กลับไปรูปแรก">
-            <BackArrowIcon color="#ffffff" />
+            <BackArrowIcon color={iconColor} />
           </button>
 
           {editingName ? (
@@ -136,20 +166,20 @@ export default function MultiImageChatSimulator({
               ref={nameInputRef}
             />
           ) : (
-            <div className={styles.roomNameText} onClick={startEditName} title="แก้ไขชื่อห้องแชท">
+            <div className={styles.roomNameText} style={{ color: iconColor }} onClick={startEditName} title="แก้ไขชื่อห้องแชท">
               {roomName}
             </div>
           )}
 
           <div className={styles.headerIcons}>
             <button type="button" className={styles.iconButton} tabIndex={-1}>
-              <SearchIcon color="#ffffff" />
+              <SearchIcon color={iconColor} />
             </button>
             <button type="button" className={styles.iconButton} tabIndex={-1}>
-              <PhoneIcon color="#ffffff" />
+              <PhoneIcon color={iconColor} />
             </button>
             <button type="button" className={styles.iconButton} onClick={openManage} title="จัดการรูปภาพ">
-              <MenuIcon color="#ffffff" />
+              <MenuIcon color={iconColor} />
               <span className={styles.badgeDot} />
             </button>
           </div>
@@ -203,25 +233,29 @@ export default function MultiImageChatSimulator({
             className={styles.sendButton}
             onMouseDown={(e) => e.preventDefault()}
             onClick={onMicButtonClick}
-            title={showRecordPanel ? "กลับไปพิมพ์ข้อความ" : "รูปถัดไป"}
+            title={showRecordArea ? "กลับไปพิมพ์ข้อความ" : "รูปถัดไป"}
           >
-            {hasText ? <SendArrowIcon /> : showRecordPanel ? <KeyboardIcon /> : <MicIcon />}
+            {hasText ? <SendArrowIcon /> : showRecordArea ? <KeyboardIcon /> : <MicIcon />}
           </button>
         </div>
 
         {/* 4. Voice-record simulation panel — replaces the keyboard's
-            reserved space below the input bar while open. */}
-        {showRecordPanel && (
-          <div className={styles.recordPanel}>
+            reserved space below the input bar while open. Tapping it
+            swaps the static prompt for a looping "recording" video;
+            tapping again advances the chat image and swaps back. */}
+        {voiceStage === "panel" && (
+          <div className={styles.recordPanel} onClick={onRecordAreaTap}>
             <div className={styles.recordHint}>แตะเพื่อบันทึกข้อความเสียง</div>
-            <button
-              type="button"
-              className={styles.recordButton}
-              onClick={() => setShowRecordPanel(false)}
-              title="บันทึกข้อความเสียง"
-            >
+            <div className={styles.recordButton}>
               <span className={styles.recordDot} />
-            </button>
+            </div>
+          </div>
+        )}
+        {voiceStage === "recording" && (
+          <div className={styles.recordPanel} onClick={onRecordAreaTap}>
+            {voiceRecordVideo && (
+              <video className={styles.recordVideo} src={voiceRecordVideo} autoPlay loop muted playsInline />
+            )}
           </div>
         )}
       </div>

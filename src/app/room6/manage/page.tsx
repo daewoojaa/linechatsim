@@ -1,6 +1,6 @@
 import ManageImages from "@/components/ManageImages/ManageImages";
 
-const ROOM6_IMAGES = ["/room6-image1.jpg"];
+const ROOM6_IMAGES = ["/room6-image1.jpg", "/room6-image2.jpg"];
 
 export default function Room6ManagePage() {
   return (
