@@ -126,6 +126,10 @@ export default function MultiImageChatSimulator({
     if (enableVoiceRecord) {
       if (voiceStage === "closed") {
         setVoiceStage("panel");
+        // Drop focus so the real on-screen keyboard closes — the record
+        // panel takes over that same reserved space, so both open at once
+        // would fight each other.
+        textInputRef.current?.blur();
       } else {
         setVoiceStage("closed");
         // Closing back to texting mode (the "X") should drop the cursor
