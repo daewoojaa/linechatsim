@@ -124,7 +124,14 @@ export default function MultiImageChatSimulator({
       return;
     }
     if (enableVoiceRecord) {
-      setVoiceStage((v) => (v === "closed" ? "panel" : "closed"));
+      if (voiceStage === "closed") {
+        setVoiceStage("panel");
+      } else {
+        setVoiceStage("closed");
+        // Closing back to texting mode (the "X") should drop the cursor
+        // straight into the input, same as advanceAndClear does.
+        textInputRef.current?.focus();
+      }
       return;
     }
     advanceAndClear();
