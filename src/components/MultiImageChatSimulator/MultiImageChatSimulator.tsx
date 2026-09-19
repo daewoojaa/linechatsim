@@ -6,8 +6,8 @@ import { useMultiImageChatSim } from "@/hooks/useMultiImageChatSim";
 import {
   BackArrowIcon,
   ChevronRightIcon,
+  CloseXIcon,
   EmojiIcon,
-  KeyboardIcon,
   MenuIcon,
   MicIcon,
   PhoneIcon,
@@ -240,7 +240,7 @@ export default function MultiImageChatSimulator({
             onClick={onMicButtonClick}
             title={showRecordArea ? "กลับไปพิมพ์ข้อความ" : "รูปถัดไป"}
           >
-            {hasText ? <SendArrowIcon /> : showRecordArea ? <KeyboardIcon /> : <MicIcon />}
+            {hasText ? <SendArrowIcon /> : showRecordArea ? <CloseXIcon /> : <MicIcon />}
           </button>
         </div>
 

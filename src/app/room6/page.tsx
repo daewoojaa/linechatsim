@@ -14,7 +14,7 @@ export default function Room6Page() {
       manageHref="/room6/manage"
       enableVoiceRecord
       voiceRecordVideo="/room6-voice-record.mp4"
-      voiceRecordPanelImage="/room6-voice-record-panel.png"
+      voiceRecordPanelImage="/voiceRecordPanelImage.jpg"
       headerTint="dark"
     />
   );
