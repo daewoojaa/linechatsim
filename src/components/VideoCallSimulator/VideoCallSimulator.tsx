@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useVideoCallSim } from "@/hooks/useVideoCallSim";
 import { useFrontCamera } from "@/hooks/useFrontCamera";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import {
   ActivitiesIcon,
   CameraFlipIcon,
@@ -36,6 +37,10 @@ export default function VideoCallSimulator({ roomId }: Props) {
   // as "the app is gone", set on the incoming-call alert screen (see
   // IncomingCallAlert's decline button).
   const [showExitImage, setShowExitImage] = useState(false);
+  // The app's own status-bar tint is a fixed light blue — override it to
+  // match whichever dark screen is actually showing so the status bar
+  // reads as part of the background instead of a mismatched bar on top.
+  useThemeColor(showExitImage ? "#000000" : "#1c1c1e");
 
   useEffect(() => {
     if (pipVideoRef.current) pipVideoRef.current.srcObject = cameraStream;

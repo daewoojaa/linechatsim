@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useFrontCamera } from "@/hooks/useFrontCamera";
 import { useIncomingCall } from "@/hooks/useIncomingCall";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { idbSetImage } from "@/lib/idbStore";
 import { CameraOffIcon, LayoutIcon, PhoneIcon, PipSwapIcon, SparkleIcon } from "@/components/icons/VideoCallIcons";
 import styles from "./IncomingCallAlert.module.css";
@@ -50,6 +51,8 @@ export default function IncomingCallAlert({ roomId, onAccept }: Props) {
   const { stream: cameraStream, error: cameraError } = useFrontCamera();
   const videoRef = useRef<HTMLVideoElement>(null);
   const exitImageInputRef = useRef<HTMLInputElement>(null);
+  // Same status-bar tint fix as VideoCallSimulator — this screen is black too.
+  useThemeColor("#000000");
 
   const {
     callerName,
