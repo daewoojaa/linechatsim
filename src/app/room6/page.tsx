@@ -2,7 +2,11 @@ import MultiImageChatSimulator from "@/components/MultiImageChatSimulator/MultiI
 
 // Bundled default images for room 6 — its own separate asset set, distinct
 // from room 7's room7-imageN.jpg files.
-const ROOM6_IMAGES = ["/room6-image1.jpg", "/room6-image2.jpg", "/room6-image3.jpg"];
+const ROOM6_IMAGES = ["/room6-image1.jpg", "/room6-image2.jpg", "/room6-image3.jpg", "/room6-image4.jpg"];
+
+// Menu icon toggles between images 3 and 4 (0-indexed slots 2/3) — module-
+// level so its identity is stable across renders.
+const MENU_TOGGLE: [number, number] = [2, 3];
 
 export default function Room6Page() {
   return (
@@ -16,7 +20,7 @@ export default function Room6Page() {
       voiceRecordVideo="/room6-voice-record.mp4"
       voiceRecordPanelImage="/voiceRecordPanelImage.jpg"
       headerTint="dark"
-      menuJumpToIndex={2}
+      menuToggleIndices={MENU_TOGGLE}
     />
   );
 }

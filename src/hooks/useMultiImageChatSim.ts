@@ -260,6 +260,7 @@ export function useMultiImageChatSim({
 
     background,
     displayedChatSrc: images[activeIndex] ?? null,
+    activeIndex,
     showFirst,
     jumpTo,
 

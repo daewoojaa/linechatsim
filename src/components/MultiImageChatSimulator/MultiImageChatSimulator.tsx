@@ -51,10 +51,12 @@ type Props = {
    *  black (for a light wallpaper showing through a transparent header,
    *  like room 10's). */
   headerTint?: "light" | "dark";
-  /** If set, tapping the header's menu (☰) icon jumps straight to this
-   *  0-indexed slot instead of opening "จัดการรูปภาพ" — a quick-access
-   *  shortcut for a specific beat during filming rather than a setup tool. */
-  menuJumpToIndex?: number;
+  /** If set, tapping the header's menu (☰) icon toggles between these two
+   *  0-indexed slots instead of opening "จัดการรูปภาพ" — a quick-access
+   *  shortcut for flipping between two specific beats during filming
+   *  rather than a setup tool. Landing on neither slot (e.g. a fresh
+   *  mount) jumps to the first one. */
+  menuToggleIndices?: [number, number];
 };
 
 /**
@@ -78,7 +80,7 @@ export default function MultiImageChatSimulator({
   voiceRecordVideo,
   voiceRecordPanelImage,
   headerTint = "light",
-  menuJumpToIndex,
+  menuToggleIndices,
 }: Props) {
   const iconColor = headerTint === "dark" ? "#1c1c1e" : "#ffffff";
   const router = useRouter();
@@ -93,6 +95,7 @@ export default function MultiImageChatSimulator({
 
     background,
     displayedChatSrc,
+    activeIndex,
     showFirst,
     jumpTo,
 
@@ -103,8 +106,9 @@ export default function MultiImageChatSimulator({
     onChatImageTap,
   } = useMultiImageChatSim({ roomId, defaultRoomName, slotCount, defaultImages, autoAdvance });
 
-  const onMenuClick =
-    menuJumpToIndex !== undefined ? () => jumpTo(menuJumpToIndex) : () => router.push(manageHref);
+  const onMenuClick = menuToggleIndices
+    ? () => jumpTo(activeIndex === menuToggleIndices[0] ? menuToggleIndices[1] : menuToggleIndices[0])
+    : () => router.push(manageHref);
   const [hasText, setHasText] = useState(false);
   const [panelImageFailed, setPanelImageFailed] = useState(false);
   // "closed": normal texting mode. "panel": the static "tap to record"
@@ -205,7 +209,7 @@ export default function MultiImageChatSimulator({
               type="button"
               className={styles.iconButton}
               onClick={onMenuClick}
-              title={menuJumpToIndex !== undefined ? `ไปรูปที่ ${menuJumpToIndex + 1}` : "จัดการรูปภาพ"}
+              title={menuToggleIndices ? `สลับรูป ${menuToggleIndices[0] + 1} / ${menuToggleIndices[1] + 1}` : "จัดการรูปภาพ"}
             >
               <MenuIcon color={iconColor} />
               <span className={styles.badgeDot} />
