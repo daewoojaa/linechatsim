@@ -44,6 +44,9 @@ type Props = {
    *  enableVoiceRecord. Required for that feature to do anything once the
    *  panel itself is tapped. */
   voiceRecordVideo?: string;
+  /** A public/ asset path (image) shown for the static "tap to record"
+   *  prompt instead of the built-in text + red-dot circle. */
+  voiceRecordPanelImage?: string;
   /** White header text/icons (default, matches room 7's dark banner) or
    *  black (for a light wallpaper showing through a transparent header,
    *  like room 10's). */
@@ -69,6 +72,7 @@ export default function MultiImageChatSimulator({
   autoAdvance,
   enableVoiceRecord,
   voiceRecordVideo,
+  voiceRecordPanelImage,
   headerTint = "light",
 }: Props) {
   const iconColor = headerTint === "dark" ? "#1c1c1e" : "#ffffff";
@@ -95,6 +99,7 @@ export default function MultiImageChatSimulator({
 
   const openManage = () => router.push(manageHref);
   const [hasText, setHasText] = useState(false);
+  const [panelImageFailed, setPanelImageFailed] = useState(false);
   // "closed": normal texting mode. "panel": the static "tap to record"
   // prompt is showing. "recording": the stand-in video is playing in its
   // place, simulating an in-progress recording.
@@ -245,10 +250,22 @@ export default function MultiImageChatSimulator({
             tapping again advances the chat image and swaps back. */}
         {voiceStage === "panel" && (
           <div className={styles.recordPanel} onClick={onRecordAreaTap}>
-            <div className={styles.recordHint}>แตะเพื่อบันทึกข้อความเสียง</div>
-            <div className={styles.recordButton}>
-              <span className={styles.recordDot} />
-            </div>
+            {voiceRecordPanelImage && !panelImageFailed ? (
+              // eslint-disable-next-line @next/next/no-img-element -- static public/ asset, no next/image optimization needed
+              <img
+                src={voiceRecordPanelImage}
+                className={styles.recordPanelImage}
+                alt="แตะเพื่อบันทึกข้อความเสียง"
+                onError={() => setPanelImageFailed(true)}
+              />
+            ) : (
+              <>
+                <div className={styles.recordHint}>แตะเพื่อบันทึกข้อความเสียง</div>
+                <div className={styles.recordButton}>
+                  <span className={styles.recordDot} />
+                </div>
+              </>
+            )}
           </div>
         )}
         {voiceStage === "recording" && (

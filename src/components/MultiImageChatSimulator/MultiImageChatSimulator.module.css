@@ -267,6 +267,13 @@
   display: block;
 }
 
+.recordPanelImage {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
 .recordHint {
   font: 400 14px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
   color: #8e8e93;
