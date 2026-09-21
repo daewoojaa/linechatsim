@@ -21,7 +21,8 @@ const WHEEL_THRESHOLD_PX = 30;
 
 const FIELD_LABELS: Record<ClipField, string> = {
   name: "ชื่อแอคเค้าท์",
-  caption: "แคปชั่น / แฮชแท็ก",
+  caption: "แคปชั่น",
+  tags: "แฮชแท็ก",
   song: "ชื่อเพลง",
   likes: "ยอดไลค์",
   comments: "ยอดคอมเม้นท์",
@@ -166,6 +167,9 @@ function ClipOverlay({ info, avatar, onEdit, onPickAvatar }: OverlayProps) {
         </button>
         <button type="button" className={styles.infoCaption} onClick={() => onEdit("caption")}>
           {info.caption}
+        </button>
+        <button type="button" className={styles.infoCaption} onClick={() => onEdit("tags")}>
+          {info.tags || " "}
         </button>
         <button type="button" className={styles.songChip} onClick={() => onEdit("song")}>
           <NoteIcon />

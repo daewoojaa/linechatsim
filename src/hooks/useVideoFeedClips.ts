@@ -6,6 +6,7 @@ import { idbGetImage, idbGetMeta, idbSetImage, idbSetMeta } from "@/lib/idbStore
 export type ClipField =
   | "name"
   | "caption"
+  | "tags"
   | "song"
   | "likes"
   | "comments"
@@ -19,7 +20,8 @@ export const CLIP_COUNT = 3;
 const DEFAULT_CLIPS: ClipInfo[] = [
   {
     name: "เรื่องเล่าสตอรี่",
-    caption: "“หน้ากากผี” #หนังสั้น #เอไอ #jintok #ละครสั้น",
+    caption: "“หน้ากากผี”",
+    tags: "#หนังสั้น #เอไอ #jintok #ละครสั้น",
     song: "เรื่องเล่าสตอรี่ - ผีหน้ากาก",
     likes: "39.2k",
     comments: "313",
@@ -28,7 +30,8 @@ const DEFAULT_CLIPS: ClipInfo[] = [
   },
   {
     name: "ม่วนเฟรม",
-    caption: "กะหยุดคือกัน #คลิปai #ละครสั้น #หนังไทย",
+    caption: "กะหยุดคือกัน",
+    tags: "#คลิปai #ละครสั้น #หนังไทย",
     song: "ม่วนเฟรม - รถมอไซ",
     likes: "19.4k",
     comments: "145",
@@ -38,6 +41,7 @@ const DEFAULT_CLIPS: ClipInfo[] = [
   {
     name: "จินซีรี่ย์",
     caption: "EP.1 เอ้ายาย!",
+    tags: "",
     song: "จินซีรี่ย์ - ยายยยยยยย",
     likes: "5,699",
     comments: "312",
@@ -45,6 +49,21 @@ const DEFAULT_CLIPS: ClipInfo[] = [
     saves: "290",
   },
 ];
+
+/** Older saves kept the hashtags inside the caption; split them back out. */
+function mergeSaved(base: ClipInfo, saved: Partial<ClipInfo> | undefined): ClipInfo {
+  const merged = { ...base, ...(saved ?? {}) };
+  if (saved && saved.tags === undefined && saved.caption) {
+    const at = saved.caption.indexOf("#");
+    if (at >= 0) {
+      merged.caption = saved.caption.slice(0, at).trim();
+      merged.tags = saved.caption.slice(at).trim();
+    } else {
+      merged.tags = "";
+    }
+  }
+  return merged;
+}
 
 const META_KEY = "room5:clips2";
 const avatarKey = (clip: number) => `room5:avatar${clip}`;
@@ -75,7 +94,7 @@ export function useVideoFeedClips() {
     ]).then(([saved, ...blobs]) => {
       if (cancelled) return;
       if (Array.isArray(saved)) {
-        const merged = Array.from({ length: CLIP_COUNT }, (_, i) => ({ ...DEFAULT_CLIPS[i], ...(saved[i] ?? {}) }));
+        const merged = Array.from({ length: CLIP_COUNT }, (_, i) => mergeSaved(DEFAULT_CLIPS[i], saved[i]));
         clipsRef.current = merged;
         setClips(merged);
       }
