@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useInstaChatSim, type InstaMessage } from "@/hooks/useInstaChatSim";
 import styles from "./InstaChatSimulator.module.css";
@@ -86,11 +86,13 @@ function MessageRow({
   avatarSrc,
   photoSrc,
   onPickPhoto,
+  onViewPhoto,
 }: {
   msg: InstaMessage;
   avatarSrc: string | null;
   photoSrc: string | null;
   onPickPhoto: () => void;
+  onViewPhoto: () => void;
 }) {
   if (msg.side === "right") {
     return (
@@ -106,7 +108,10 @@ function MessageRow({
       <div className={styles.leftCol}>
         {msg.kind === "image" ? (
           <div className={styles.imageLine}>
-            <div className={`${styles.imageCard} ${photoSrc ? "" : styles.imageCardEmpty}`}>
+            <div
+              className={`${styles.imageCard} ${photoSrc ? styles.imageCardTappable : styles.imageCardEmpty}`}
+              onClick={photoSrc ? onViewPhoto : undefined}
+            >
               {photoSrc ? (
                 // eslint-disable-next-line @next/next/no-img-element -- IndexedDB blob URL, no next/image optimization applicable
                 <img src={photoSrc} className={styles.photo} alt="" />
@@ -178,6 +183,12 @@ export default function InstaChatSimulator({ roomId }: { roomId: string }) {
     };
   }, []);
 
+  const [viewingPhoto, setViewingPhoto] = useState(false);
+  const closeViewer = () => {
+    setViewingPhoto(false);
+    textInputRef.current?.focus();
+  };
+
   const feedRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = feedRef.current;
@@ -220,7 +231,13 @@ export default function InstaChatSimulator({ roomId }: { roomId: string }) {
 
       <div className={styles.feed} ref={feedRef} onClick={() => textInputRef.current?.focus()}>
         {feed.map((m) => (
-          <MessageRow key={m.id} msg={m} avatarSrc={avatarSrc} photoSrc={photoSrc} onPickPhoto={requestPickPhoto} />
+          <MessageRow
+            key={m.id}
+            msg={m}
+            avatarSrc={avatarSrc}
+            photoSrc={photoSrc} onPickPhoto={requestPickPhoto}
+            onViewPhoto={() => setViewingPhoto(true)}
+          />
         ))}
       </div>
 
@@ -258,6 +275,18 @@ export default function InstaChatSimulator({ roomId }: { roomId: string }) {
           {hasText ? <ArrowGlyph /> : <MicGlyph />}
         </button>
       </div>
+
+      {viewingPhoto && photoSrc && (
+        <div className={styles.viewer} onClick={closeViewer}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- IndexedDB blob URL, no next/image optimization applicable */}
+          <img src={photoSrc} className={styles.viewerImage} alt="" />
+          <button type="button" className={styles.viewerClose} onClick={closeViewer} aria-label="ปิด">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round">
+              <path d="M6 6l12 12M18 6 6 18" />
+            </svg>
+          </button>
+        </div>
+      )}
 
       <input type="file" accept="image/*" ref={avatarInputRef} onChange={handleAvatarChange} className={styles.hidden} />
       <input type="file" accept="image/*" ref={photoInputRef} onChange={handlePhotoChange} className={styles.hidden} />
