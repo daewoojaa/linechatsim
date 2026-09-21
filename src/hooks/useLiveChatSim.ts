@@ -7,7 +7,9 @@ export type LiveMessage =
   | { id: string; kind: "text"; text: string; time: string }
   | { id: string; kind: "missedCall"; time: string }
   | { id: string; kind: "voice"; seconds: number; time: string }
-  | { id: string; kind: "dateLabel"; text: string };
+  | { id: string; kind: "dateLabel" };
+
+export const DEFAULT_BG = "#ffffff";
 
 /** Where the voice-record panel is: closed (normal typing), the static
  *  "tap to record" prompt, live recording, or stopped-and-waiting. */
@@ -44,6 +46,8 @@ export function useLiveChatSim(roomId: string, defaultRoomName: string) {
   const [hasText, setHasText] = useState(false);
   const [voiceStage, setVoiceStage] = useState<VoiceStage>("closed");
   const [recordSeconds, setRecordSeconds] = useState(0);
+  const [bgColor, setBgColorState] = useState(DEFAULT_BG);
+  const [dayLabel, setDayLabel] = useState("วันนี้");
 
   const nameInputRef = useRef<HTMLInputElement>(null);
   const textInputRef = useRef<HTMLDivElement>(null);
@@ -52,13 +56,26 @@ export function useLiveChatSim(roomId: string, defaultRoomName: string) {
 
   useEffect(() => {
     let cancelled = false;
-    idbGetMeta<string>(`${roomId}:roomName`).then((saved) => {
-      if (!cancelled && saved) setRoomName(saved);
+    Promise.all([idbGetMeta<string>(`${roomId}:roomName`), idbGetMeta<string>(`${roomId}:bgColor`)]).then(([savedName, savedBg]) => {
+      if (cancelled) return;
+      if (savedName) setRoomName(savedName);
+      if (savedBg) setBgColorState(savedBg);
     });
     return () => {
       cancelled = true;
     };
   }, [roomId]);
+
+  const setBgColor = useCallback(
+    (color: string) => {
+      setBgColorState(color);
+      idbSetMeta(`${roomId}:bgColor`, color);
+    },
+    [roomId]
+  );
+
+  /** The header menu flips the date label between today and yesterday. */
+  const toggleDayLabel = useCallback(() => setDayLabel((d) => (d === "วันนี้" ? "เมื่อวาน" : "วันนี้")), []);
 
   const startEditName = useCallback(() => setEditingName(true), []);
   useEffect(() => {
@@ -85,7 +102,7 @@ export function useLiveChatSim(roomId: string, defaultRoomName: string) {
     const items: LiveMessage[] = [];
     if (!hasSentRef.current) {
       hasSentRef.current = true;
-      items.push({ id: "today", kind: "dateLabel", text: "วันนี้" });
+      items.push({ id: "today", kind: "dateLabel" });
     }
     idRef.current += 1;
     items.push({ ...msg, id: `m${idRef.current}` } as LiveMessage);
@@ -158,6 +175,10 @@ export function useLiveChatSim(roomId: string, defaultRoomName: string) {
   }, [append, recordSeconds]);
 
   return {
+    bgColor,
+    setBgColor,
+    dayLabel,
+    toggleDayLabel,
     roomName,
     setRoomName,
     editingName,

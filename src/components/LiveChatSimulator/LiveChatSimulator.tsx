@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLiveChatSim, type LiveMessage } from "@/hooks/useLiveChatSim";
 import {
@@ -16,7 +16,24 @@ import {
 } from "@/components/icons/Icons";
 import styles from "./LiveChatSimulator.module.css";
 
-const ICON_COLOR = "#1c1c1e";
+const BG_PRESETS = [
+  { name: "ขาว", color: "#ffffff" },
+  { name: "ฟ้า LINE", color: "#94a7d1" },
+  { name: "ชมพู", color: "#f6d5df" },
+  { name: "เขียวมิ้นต์", color: "#d3ebd8" },
+  { name: "ครีม", color: "#f3ead8" },
+  { name: "ม่วงอ่อน", color: "#e3dcf3" },
+  { name: "เทา", color: "#cfd4d8" },
+  { name: "ดำ", color: "#1c1c1e" },
+];
+
+function isDarkColor(hex: string) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex);
+  if (!m) return false;
+  const n = parseInt(m[1], 16);
+  const lum = (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+  return lum < 0.45;
+}
 
 // Fixed waveform so every voice bubble looks the same (heights in %).
 const WAVE = [30, 55, 80, 45, 90, 60, 35, 70, 95, 50, 65, 85, 40, 75, 55, 90, 45, 70, 30, 60, 80, 50, 35, 65, 45];
@@ -37,14 +54,14 @@ function CallIcon() {
 function MusicBadgeIcon() {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24">
-      <rect width="24" height="24" rx="7" fill="#dbe9fb" />
-      <path d="M15.5 6.5v7.2a2.4 2.4 0 1 1-1.5-2.2V8.6l-4 .9v5.6a2.4 2.4 0 1 1-1.5-2.2V8.3l7-1.8Z" fill="#3f78b8" transform="translate(0.5 1)" />
+      <rect width="24" height="24" rx="7" fill="#ffffff" />
+      <path d="M15.5 6.5v7.2a2.4 2.4 0 1 1-1.5-2.2V8.6l-4 .9v5.6a2.4 2.4 0 1 1-1.5-2.2V8.3l7-1.8Z" fill="#4f86c6" transform="translate(0.5 1)" />
     </svg>
   );
 }
 function SmallChevron() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dbe9fb" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2f5f9e" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
       <path d="m9 5 7 7-7 7" />
     </svg>
   );
@@ -71,11 +88,11 @@ function PlaneIcon() {
   );
 }
 
-function MessageRow({ msg }: { msg: LiveMessage }) {
+function MessageRow({ msg, dayLabel }: { msg: LiveMessage; dayLabel: string }) {
   if (msg.kind === "dateLabel") {
     return (
       <div className={styles.dateRow}>
-        <span className={styles.datePill}>{msg.text}</span>
+        <span className={styles.datePill}>{dayLabel}</span>
       </div>
     );
   }
@@ -100,7 +117,7 @@ function MessageRow({ msg }: { msg: LiveMessage }) {
       )}
       {msg.kind === "voice" && (
         <div className={`${styles.bubble} ${styles.voiceBubble}`}>
-          <PlayGlyph color="#1f4577" />
+          <PlayGlyph color="#3f6aa3" />
           <span className={styles.wave}>
             {WAVE.map((h, i) => (
               <i key={i} style={{ height: `${h}%` }} />
@@ -121,6 +138,10 @@ function MessageRow({ msg }: { msg: LiveMessage }) {
 export default function LiveChatSimulator({ roomId, defaultRoomName }: { roomId: string; defaultRoomName: string }) {
   const router = useRouter();
   const {
+    bgColor,
+    setBgColor,
+    dayLabel,
+    toggleDayLabel,
     roomName,
     setRoomName,
     editingName,
@@ -150,13 +171,19 @@ export default function LiveChatSimulator({ roomId, defaultRoomName }: { roomId:
   }, [feed, voiceStage]);
 
   const panelOpen = voiceStage !== "closed";
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const dark = isDarkColor(bgColor);
+  const iconColor = dark ? "#ffffff" : "#1c1c1e";
 
   return (
-    <div className={styles.appShell}>
+    <div
+      className={styles.appShell}
+      style={{ background: bgColor, ["--time-color" as string]: dark ? "#d8d8de" : "#6f6f76" }}
+    >
       <div className={styles.contentColumn} data-panel-open={panelOpen || undefined}>
         <div className={styles.header}>
           <button type="button" className={styles.backButton} onClick={() => router.push("/")} title="กลับไปหน้ารวมแชท">
-            <BackArrowIcon color={ICON_COLOR} />
+            <BackArrowIcon color={iconColor} />
           </button>
           {editingName ? (
             <input
@@ -168,28 +195,69 @@ export default function LiveChatSimulator({ roomId, defaultRoomName }: { roomId:
               ref={nameInputRef}
             />
           ) : (
-            <div className={styles.roomNameText} onClick={startEditName} title="แก้ไขชื่อห้องแชท">
+            <div className={styles.roomNameText} style={{ color: iconColor }} onClick={startEditName} title="แก้ไขชื่อห้องแชท">
               {roomName}
             </div>
           )}
           <div className={styles.headerIcons}>
+            <button
+              type="button"
+              className={styles.iconButton}
+              onClick={() => setPickerOpen((o) => !o)}
+              title="เปลี่ยนสีพื้นหลัง"
+            >
+              <SearchIcon color={iconColor} />
+            </button>
             <span className={styles.iconButton}>
-              <SearchIcon color={ICON_COLOR} />
+              <PhoneIcon color={iconColor} />
             </span>
-            <span className={styles.iconButton}>
-              <PhoneIcon color={ICON_COLOR} />
-            </span>
-            <span className={styles.iconButton}>
-              <MenuIcon color={ICON_COLOR} />
+            <button
+              type="button"
+              className={styles.iconButton}
+              onClick={toggleDayLabel}
+              title={`สลับ วันนี้ / เมื่อวาน (ตอนนี้: ${dayLabel})`}
+            >
+              <MenuIcon color={iconColor} />
               <span className={styles.badgeDot} />
-            </span>
+            </button>
           </div>
         </div>
+
+        {pickerOpen && (
+          <>
+            <div className={styles.pickerScrim} onClick={() => setPickerOpen(false)} />
+            <div className={styles.picker}>
+              <div className={styles.pickerTitle}>สีพื้นหลังห้องแชท</div>
+              <div className={styles.swatches}>
+                {BG_PRESETS.map((p) => (
+                  <button
+                    type="button"
+                    key={p.color}
+                    className={`${styles.swatch} ${bgColor.toLowerCase() === p.color ? styles.swatchActive : ""}`}
+                    style={{ background: p.color }}
+                    onClick={() => setBgColor(p.color)}
+                    aria-label={p.name}
+                    title={p.name}
+                  />
+                ))}
+              </div>
+              <label className={styles.customRow}>
+                <span>เลือกสีเอง (ทุกเฉดสี)</span>
+                <input
+                  type="color"
+                  className={styles.colorInput}
+                  value={/^#[0-9a-f]{6}$/i.test(bgColor) ? bgColor : "#ffffff"}
+                  onChange={(e) => setBgColor(e.target.value)}
+                />
+              </label>
+            </div>
+          </>
+        )}
 
         <div className={styles.feed} ref={feedRef} onClick={() => !panelOpen && textInputRef.current?.focus()}>
           <div className={styles.feedInner}>
             {feed.map((m) => (
-              <MessageRow key={m.id} msg={m} />
+              <MessageRow key={m.id} msg={m} dayLabel={dayLabel} />
             ))}
           </div>
         </div>
