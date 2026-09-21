@@ -11,8 +11,10 @@
   --bubble: #bcd3ef;
   --time-color: #6f6f76;
   /* Footprint of whatever sits below the input bar (real keyboard, or the
-     voice-record panel standing in for it) — measured on the real phone. */
-  --keyboard-reserve: 40.9dvh;
+     voice-record panel standing in for it). Re-measured from a phone
+     screenshot: the keyboard (toolbar row included) covers ~43.5% of the
+     screen, so 40.9dvh let it overlap the input bar. */
+  --keyboard-reserve: 43.8dvh;
 }
 
 .contentColumn {
@@ -114,7 +116,7 @@ button.iconButton {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #2fbf5e;
+  background: #bcd3ef;
 }
 
 /* ---- conversation ---- */
@@ -133,8 +135,8 @@ button.iconButton {
   margin-top: auto;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 10px 14px 12px;
+  gap: 7px;
+  padding: 8px 12px 8px;
 }
 
 .row {
@@ -146,7 +148,7 @@ button.iconButton {
 
 .time {
   flex: none;
-  font: 400 13px system-ui, -apple-system, sans-serif;
+  font: 400 12px system-ui, -apple-system, sans-serif;
   color: var(--time-color);
   padding-bottom: 2px;
 }
@@ -154,33 +156,33 @@ button.iconButton {
 .bubble {
   position: relative;
   max-width: 76%;
-  padding: 10px 18px;
-  border-radius: 20px;
+  padding: 7px 14px;
+  border-radius: 18px;
   background: var(--bubble);
   color: #1c1c1e;
-  font: 400 20px/1.35 system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  font: 400 17px/1.35 system-ui, -apple-system, "Noto Sans Thai", sans-serif;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
 .callCard {
   padding: 0;
-  width: min(300px, 76%);
+  width: min(260px, 76%);
   overflow: visible;
 }
 
 .callTop {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px 18px;
+  gap: 12px;
+  padding: 10px 14px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .callCircle {
   flex: none;
-  width: 52px;
-  height: 52px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.08);
   display: flex;
@@ -189,34 +191,34 @@ button.iconButton {
 }
 
 .callTitle {
-  font: 700 19px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  font: 700 16px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
 }
 
 .callFooter {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 14px;
+  padding: 6px 12px;
 }
 
 .callFooterText {
   flex: 1;
   min-width: 0;
-  font: 700 14px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  font: 700 12.5px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
   color: #2f5f9e;
 }
 
 .voiceBubble {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 18px;
-  width: min(300px, 76%);
+  gap: 10px;
+  padding: 7px 14px;
+  width: min(260px, 76%);
 }
 
 .wave {
   flex: 1;
-  height: 34px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -231,7 +233,7 @@ button.iconButton {
 
 .voiceTime {
   flex: none;
-  font: 400 17px system-ui, -apple-system, sans-serif;
+  font: 400 15px system-ui, -apple-system, sans-serif;
 }
 
 .dateRow {
@@ -240,11 +242,11 @@ button.iconButton {
 }
 
 .datePill {
-  padding: 5px 22px;
+  padding: 3px 18px;
   border-radius: 999px;
   background: rgba(60, 70, 100, 0.55);
   color: #ffffff;
-  font: 600 15px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  font: 600 13px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
 }
 
 /* ---- input bar ---- */
