@@ -359,7 +359,7 @@ button.iconButton {
 
 .recordClock {
   font: 700 22px system-ui, -apple-system, sans-serif;
-  color: #4cc36a;
+  color: #bcd3ef;
   font-variant-numeric: tabular-nums;
 }
 
@@ -390,7 +390,7 @@ button.iconButton {
   border-radius: 50%;
   border: 0;
   padding: 0;
-  background: #34c759;
+  background: #bcd3ef;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -410,7 +410,7 @@ button.iconButton {
   position: absolute;
   inset: -22px;
   border-radius: 50%;
-  background: rgba(52, 199, 89, 0.14);
+  background: rgba(188, 211, 239, 0.3);
   animation: halo 1.6s ease-in-out infinite;
   pointer-events: none;
 }
