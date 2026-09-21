@@ -17,7 +17,10 @@
   /* Fixed, hardcoded footprint for "whatever sits below the input bar"
      (real keyboard, or the in-app sticker panel standing in for it) — see
      ChatSimulator.module.css for how this exact value was measured. */
-  --keyboard-reserve: 44.3dvh;
+  /* Was 44.3dvh, which left a ~3.4% gap above the real keyboard on the
+     user's phone (measured from a device screenshot) — trimmed so the
+     input bar sits flush on the keyboard's toolbar row. */
+  --keyboard-reserve: 40.9dvh;
 }
 
 /* Full-bleed background layer — extends under the notch/home-indicator;
