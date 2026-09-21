@@ -81,7 +81,17 @@ function Avatar({ src, className }: { src: string | null; className: string }) {
   );
 }
 
-function MessageRow({ msg, avatarSrc }: { msg: InstaMessage; avatarSrc: string | null }) {
+function MessageRow({
+  msg,
+  avatarSrc,
+  photoSrc,
+  onPickPhoto,
+}: {
+  msg: InstaMessage;
+  avatarSrc: string | null;
+  photoSrc: string | null;
+  onPickPhoto: () => void;
+}) {
   if (msg.side === "right") {
     return (
       <div className={`${styles.row} ${styles.rowRight}`}>
@@ -97,12 +107,25 @@ function MessageRow({ msg, avatarSrc }: { msg: InstaMessage; avatarSrc: string |
         {msg.kind === "image" ? (
           <div className={styles.imageLine}>
             <div className={styles.imageCard}>
-              <PhotoIcon size={30} />
-              <span>แตะเพื่อดูรูปภาพ</span>
+              {photoSrc ? (
+                // eslint-disable-next-line @next/next/no-img-element -- IndexedDB blob URL, no next/image optimization applicable
+                <img src={photoSrc} className={styles.photo} alt="" />
+              ) : (
+                <>
+                  <PhotoIcon size={30} />
+                  <span>แตะเพื่อดูรูปภาพ</span>
+                </>
+              )}
             </div>
-            <div className={styles.sendCircle}>
+            <button
+              type="button"
+              className={styles.sendCircle}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={onPickPhoto}
+              title="ใส่รูปภาพ"
+            >
               <ArrowGlyph />
-            </div>
+            </button>
           </div>
         ) : (
           <div className={styles.bubbleTheirs}>{msg.text}</div>
@@ -132,6 +155,10 @@ export default function InstaChatSimulator({ roomId }: { roomId: string }) {
     requestPickAvatar,
     avatarInputRef,
     handleAvatarChange,
+    photoSrc,
+    requestPickPhoto,
+    photoInputRef,
+    handlePhotoChange,
     feed,
     hasText,
     textInputRef,
@@ -139,6 +166,17 @@ export default function InstaChatSimulator({ roomId }: { roomId: string }) {
     onKeyDown,
     send,
   } = useInstaChatSim(roomId);
+
+  // Let env(keyboard-inset-height) report the real keyboard where supported.
+  useEffect(() => {
+    const vk = (navigator as Navigator & { virtualKeyboard?: { overlaysContent: boolean } }).virtualKeyboard;
+    if (!vk) return;
+    const prev = vk.overlaysContent;
+    vk.overlaysContent = true;
+    return () => {
+      vk.overlaysContent = prev;
+    };
+  }, []);
 
   const feedRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -182,7 +220,7 @@ export default function InstaChatSimulator({ roomId }: { roomId: string }) {
 
       <div className={styles.feed} ref={feedRef} onClick={() => textInputRef.current?.focus()}>
         {feed.map((m) => (
-          <MessageRow key={m.id} msg={m} avatarSrc={avatarSrc} />
+          <MessageRow key={m.id} msg={m} avatarSrc={avatarSrc} photoSrc={photoSrc} onPickPhoto={requestPickPhoto} />
         ))}
       </div>
 
@@ -222,6 +260,7 @@ export default function InstaChatSimulator({ roomId }: { roomId: string }) {
       </div>
 
       <input type="file" accept="image/*" ref={avatarInputRef} onChange={handleAvatarChange} className={styles.hidden} />
+      <input type="file" accept="image/*" ref={photoInputRef} onChange={handlePhotoChange} className={styles.hidden} />
     </div>
   );
 }

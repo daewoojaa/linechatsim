@@ -9,7 +9,6 @@ export type InstaMessage =
   | { id: string; side: "right"; kind: "text"; text: string; time: string };
 
 const DEFAULT_NAME = "Phukwan Boonyavanish";
-const FIRST_LEFT_DELAY_MS = 5000;
 const SECOND_LEFT_DELAY_MS = 3000;
 const SECOND_LEFT_TEXT = "เมื่อกี้";
 
@@ -20,8 +19,9 @@ function nowLabel() {
 
 /**
  * Backs the Instagram-style chat (room 3). The conversation is a fixed
- * script that restarts on every visit: 5s after entering, the other side
- * sends a photo; each thing the operator types goes out as a right-side
+ * script that restarts on every visit: the other side's photo is already
+ * there on entering (tap its arrow to put a picture in it — remembered for
+ * next time); each thing the operator types goes out as a right-side
  * bubble; 3s after the operator's first message the other side replies
  * "เมื่อกี้"; anything typed after that just keeps sending on the right.
  * The other person's avatar and name persist (tap to change) and every
@@ -33,33 +33,37 @@ export function useInstaChatSim(roomId: string) {
   const [avatarSrc, setAvatarSrc] = useState<string | null>(null);
   const [feed, setFeed] = useState<InstaMessage[]>([]);
   const [hasText, setHasText] = useState(false);
+  const [photoSrc, setPhotoSrc] = useState<string | null>(null);
 
   const textInputRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
-  const imageArrivedRef = useRef(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
   const sentCountRef = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([idbGetMeta<string>(`${roomId}:name`), idbGetImage(`${roomId}:avatar`)]).then(
-      ([savedName, avatarBlob]) => {
-        if (cancelled) return;
-        if (savedName) setName(savedName);
-        if (avatarBlob) setAvatarSrc(URL.createObjectURL(avatarBlob));
-      }
-    );
+    Promise.all([
+      idbGetMeta<string>(`${roomId}:name`),
+      idbGetImage(`${roomId}:avatar`),
+      idbGetImage(`${roomId}:photo`),
+    ]).then(([savedName, avatarBlob, photoBlob]) => {
+      if (cancelled) return;
+      if (savedName) setName(savedName);
+      if (avatarBlob) setAvatarSrc(URL.createObjectURL(avatarBlob));
+      if (photoBlob) setPhotoSrc(URL.createObjectURL(photoBlob));
+    });
     return () => {
       cancelled = true;
     };
   }, [roomId]);
 
-  // Script step 1: the photo arrives after a delay, then the input is ready.
+  // Script step 1: the photo message is already there on entering (time
+  // stamped client-side, so it can't be part of the server render).
   useEffect(() => {
     const timer = setTimeout(() => {
-      imageArrivedRef.current = true;
-      setFeed((prev) => [...prev, { id: "img", side: "left", kind: "image", time: nowLabel() }]);
-    }, FIRST_LEFT_DELAY_MS);
+      setFeed([{ id: "img", side: "left", kind: "image", time: nowLabel() }]);
+    }, 0);
     return () => clearTimeout(timer);
   }, []);
 
@@ -71,7 +75,7 @@ export function useInstaChatSim(roomId: string) {
   const send = useCallback(() => {
     const el = textInputRef.current;
     const text = (el?.textContent ?? "").trim();
-    if (!text || !imageArrivedRef.current) {
+    if (!text) {
       el?.focus();
       return;
     }
@@ -105,6 +109,24 @@ export function useInstaChatSim(roomId: string) {
       }
     },
     [send]
+  );
+
+  const requestPickPhoto = useCallback(() => {
+    const el = photoInputRef.current;
+    if (el) {
+      el.value = "";
+      el.click();
+    }
+  }, []);
+  const handlePhotoChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      await idbSetImage(`${roomId}:photo`, file);
+      setPhotoSrc(URL.createObjectURL(file));
+      textInputRef.current?.focus();
+    },
+    [roomId]
   );
 
   const startEditName = useCallback(() => setEditingName(true), []);
@@ -159,6 +181,10 @@ export function useInstaChatSim(roomId: string) {
     requestPickAvatar,
     avatarInputRef,
     handleAvatarChange,
+    photoSrc,
+    requestPickPhoto,
+    photoInputRef,
+    handlePhotoChange,
     feed,
     hasText,
     textInputRef,
