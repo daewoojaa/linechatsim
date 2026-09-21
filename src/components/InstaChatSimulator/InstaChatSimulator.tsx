@@ -110,7 +110,15 @@ function MessageRow({
           <div className={styles.imageLine}>
             <div
               className={`${styles.imageCard} ${photoSrc ? styles.imageCardTappable : styles.imageCardEmpty}`}
-              onClick={photoSrc ? onViewPhoto : undefined}
+              onClick={
+                photoSrc
+                  ? (e) => {
+                      // Don't let the feed's tap-to-focus bring the keyboard back.
+                      e.stopPropagation();
+                      onViewPhoto();
+                    }
+                  : undefined
+              }
             >
               {photoSrc ? (
                 // eslint-disable-next-line @next/next/no-img-element -- IndexedDB blob URL, no next/image optimization applicable
@@ -184,6 +192,11 @@ export default function InstaChatSimulator({ roomId }: { roomId: string }) {
   }, []);
 
   const [viewingPhoto, setViewingPhoto] = useState(false);
+  const openViewer = () => {
+    // Drop the keyboard while the picture is up; closeViewer brings it back.
+    textInputRef.current?.blur();
+    setViewingPhoto(true);
+  };
   const closeViewer = () => {
     setViewingPhoto(false);
     textInputRef.current?.focus();
@@ -236,7 +249,7 @@ export default function InstaChatSimulator({ roomId }: { roomId: string }) {
             msg={m}
             avatarSrc={avatarSrc}
             photoSrc={photoSrc} onPickPhoto={requestPickPhoto}
-            onViewPhoto={() => setViewingPhoto(true)}
+            onViewPhoto={openViewer}
           />
         ))}
       </div>
