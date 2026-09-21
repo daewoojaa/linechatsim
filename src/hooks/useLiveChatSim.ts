@@ -9,6 +9,8 @@ export type LiveMessage =
   | { id: string; kind: "voice"; seconds: number; time: string }
   | { id: string; kind: "dateLabel" };
 
+const DAY_LABELS = ["วันนี้", "เมื่อวาน", "จ. 12 ก.ย."];
+
 export const DEFAULT_BG = "#ffffff";
 
 /** Where the voice-record panel is: closed (normal typing), the static
@@ -74,8 +76,11 @@ export function useLiveChatSim(roomId: string, defaultRoomName: string) {
     [roomId]
   );
 
-  /** The header menu flips the date label between today and yesterday. */
-  const toggleDayLabel = useCallback(() => setDayLabel((d) => (d === "วันนี้" ? "เมื่อวาน" : "วันนี้")), []);
+  /** The header menu steps the date label through DAY_LABELS. */
+  const toggleDayLabel = useCallback(
+    () => setDayLabel((d) => DAY_LABELS[(DAY_LABELS.indexOf(d) + 1) % DAY_LABELS.length]),
+    []
+  );
 
   const startEditName = useCallback(() => setEditingName(true), []);
   useEffect(() => {

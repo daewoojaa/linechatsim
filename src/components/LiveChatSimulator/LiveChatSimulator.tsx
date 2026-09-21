@@ -215,7 +215,7 @@ export default function LiveChatSimulator({ roomId, defaultRoomName }: { roomId:
               type="button"
               className={styles.iconButton}
               onClick={toggleDayLabel}
-              title={`สลับ วันนี้ / เมื่อวาน (ตอนนี้: ${dayLabel})`}
+              title={`สลับป้ายวันที่ (ตอนนี้: ${dayLabel})`}
             >
               <MenuIcon color={iconColor} />
               <span className={styles.badgeDot} />
