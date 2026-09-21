@@ -8,7 +8,9 @@ export type InstaMessage =
   | { id: string; side: "left"; kind: "text"; text: string; time: string }
   | { id: string; side: "right"; kind: "text"; text: string; time: string };
 
-const DEFAULT_NAME = "Phukwan Boonyavanish";
+const DEFAULT_NAME = "ดอกรักคนเดิม";
+const DEFAULT_AVATAR = "/room3-avatar.png";
+const DEFAULT_PHOTO = "/room3-photo.jpg";
 const SECOND_LEFT_DELAY_MS = 3000;
 const SECOND_LEFT_TEXT = "เมื่อกี้";
 
@@ -30,10 +32,10 @@ function nowLabel() {
 export function useInstaChatSim(roomId: string) {
   const [name, setName] = useState(DEFAULT_NAME);
   const [editingName, setEditingName] = useState(false);
-  const [avatarSrc, setAvatarSrc] = useState<string | null>(null);
+  const [avatarSrc, setAvatarSrc] = useState<string | null>(DEFAULT_AVATAR);
   const [feed, setFeed] = useState<InstaMessage[]>([]);
   const [hasText, setHasText] = useState(false);
-  const [photoSrc, setPhotoSrc] = useState<string | null>(null);
+  const [photoSrc, setPhotoSrc] = useState<string | null>(DEFAULT_PHOTO);
 
   const textInputRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
