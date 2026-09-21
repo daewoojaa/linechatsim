@@ -2,22 +2,21 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CLIP_COUNT, useVideoFeedClips, type ClipField, type ClipInfo } from "@/hooks/useVideoFeedClips";
+import { EMPTY_CLIP, useVideoFeedClips, type ClipField, type ClipInfo } from "@/hooks/useVideoFeedClips";
 import styles from "./VideoFeed.module.css";
 
-const CLIPS = ["/videos/jintok-1.mp4", "/videos/jintok-2.mp4", "/videos/jintok-3.mp4"];
-
-// A duplicate of clip 1 appended after the real last clip. Swiping past
+// The slide list is the clips followed by a duplicate of clip 1. Swiping past
 // the last clip slides up onto this phantom slide (looks identical to
 // clip 1), then a transition-less snap back to the real index 0 happens
-// right after — that avoids the alternative of animating the last index -> 0
+// right after - that avoids the alternative of animating the last index -> 0
 // directly, which would visibly rewind backward through every clip instead
 // of looping forward.
-const SLIDES = [...CLIPS, CLIPS[0]];
 
 const TRANSITION_MS = 350;
 const SWIPE_THRESHOLD_PX = 50;
 const WHEEL_THRESHOLD_PX = 30;
+
+const FORM_FIELDS: ClipField[] = ["name", "caption", "tags", "song", "likes", "comments", "shares", "saves"];
 
 const FIELD_LABELS: Record<ClipField, string> = {
   name: "ชื่อแอคเค้าท์",
@@ -182,10 +181,12 @@ function ClipOverlay({ info, avatar, onEdit, onPickAvatar }: OverlayProps) {
 }
 
 /**
- * TikTok-style vertical video feed (room 5 / "815 TikTok"). Three clips loop
+ * TikTok-style vertical video feed (room 5 / "815 TikTok"). The clips loop
  * with a CSS slide-up transform on .track, one clip per screen; swipe to
- * advance. The "+" in the bottom bar uploads a video that replaces the
- * clip on screen (kept in IndexedDB, so it is remembered). The top and bottom bars are
+ * advance. The search item in the bottom bar uploads a video that replaces
+ * the clip on screen, and "+" adds a brand-new clip after asking for its
+ * details on an input page (both kept in IndexedDB, so they are
+ * remembered). Clips play with their own sound. The top and bottom bars are
  * siblings of .track so they stay locked in place through every transition,
  * while the side rail and caption block live inside each slide and slide
  * away with the clip. Every piece of text (and the account picture) is
@@ -200,29 +201,70 @@ export default function VideoFeed() {
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const touchStartY = useRef<number | null>(null);
   const lockedRef = useRef(false);
-  const { clips, avatars, videos, requestPickVideo, videoInputRef, handleVideoChange, setField, requestPickAvatar, avatarInputRef, handleAvatarChange } = useVideoFeedClips();
+  const {
+    clips,
+    avatars,
+    videoSrcs,
+    addClip,
+    requestPickVideo,
+    videoInputRef,
+    handleVideoChange,
+    setField,
+    requestPickAvatar,
+    avatarInputRef,
+    handleAvatarChange,
+  } = useVideoFeedClips();
+  const slides = [...videoSrcs, videoSrcs[0]];
+  const clipCount = clips.length;
+
+  // "+" flow: pick a video, then fill in its details on the input page.
+  const addInputRef = useRef<HTMLInputElement>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [form, setForm] = useState<ClipInfo>(EMPTY_CLIP);
+  const [saving, setSaving] = useState(false);
+  // Set when the browser refuses to autoplay with sound: playback falls
+  // back to muted and the sound comes on at the next touch.
+  const soundBlocked = useRef(false);
 
   useEffect(() => {
     videoRefs.current.forEach((video, i) => {
       if (!video) return;
       if (i === index) {
         video.currentTime = 0;
+        video.muted = false;
         video.play().catch(() => {
-          // Autoplay can still be blocked in some browsers even when muted
-          // (e.g. low-power mode) — not worth surfacing an error for.
+          // Sound autoplay needs a prior tap; play silently for now.
+          soundBlocked.current = true;
+          video.muted = true;
+          video.play().catch(() => {
+            // Still blocked (e.g. low-power mode) - nothing more to do.
+          });
         });
       } else {
         video.pause();
       }
     });
-  }, [index, videos]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- videoSrcs is re-created every render; its joined value is the real dependency
+  }, [index, videoSrcs.join("|")]);
+
+  useEffect(() => {
+    const unmute = () => {
+      if (!soundBlocked.current) return;
+      soundBlocked.current = false;
+      videoRefs.current.forEach((v) => {
+        if (v) v.muted = false;
+      });
+    };
+    window.addEventListener("pointerdown", unmute);
+    return () => window.removeEventListener("pointerdown", unmute);
+  }, []);
 
   const goTo = (next: number) => {
-    if (lockedRef.current || next < 0 || next >= SLIDES.length || next === index) return;
+    if (lockedRef.current || next < 0 || next >= slides.length || next === index) return;
     lockedRef.current = true;
     setIndex(next);
 
-    if (next === SLIDES.length - 1) {
+    if (next === slides.length - 1) {
       // Landed on the phantom clip-1 duplicate: let the slide-up
       // animation finish, then snap to the real clip 1 with the CSS
       // transition disabled for one frame so it's an invisible cut.
@@ -267,6 +309,22 @@ export default function VideoFeed() {
     setEditing(null);
   };
 
+  const saveNewClip = async () => {
+    if (!pendingFile || saving) return;
+    setSaving(true);
+    const trimmed = Object.fromEntries(Object.entries(form).map(([k, v]) => [k, v.trim()])) as ClipInfo;
+    const newIndex = await addClip(pendingFile, trimmed);
+    setPendingFile(null);
+    setSaving(false);
+    // Slide to the new clip (same tick as the clip list update, so the
+    // track already has its slide).
+    lockedRef.current = true;
+    setIndex(newIndex);
+    setTimeout(() => {
+      lockedRef.current = false;
+    }, TRANSITION_MS);
+  };
+
   return (
     <div className={styles.appShell}>
       <div className={styles.stage} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} onWheel={onWheel}>
@@ -277,8 +335,8 @@ export default function VideoFeed() {
             transition: suppressTransition ? "none" : undefined,
           }}
         >
-          {SLIDES.map((src, i) => {
-            const clip = i % CLIP_COUNT;
+          {slides.map((src, i) => {
+            const clip = i % clipCount;
             return (
               <div className={styles.slide} key={i}>
                 <video
@@ -286,12 +344,10 @@ export default function VideoFeed() {
                     videoRefs.current[i] = el;
                   }}
                   className={styles.video}
-                  src={videos[clip] ?? src}
-                  muted
+                  src={src}
                   loop
                   playsInline
-                  autoPlay={i === 0}
-                  preload={i === 0 || i === SLIDES.length - 1 ? "auto" : "metadata"}
+                  preload={i === 0 || i === slides.length - 1 ? "auto" : "metadata"}
                 />
                 <ClipOverlay
                   info={clips[clip]}
@@ -328,11 +384,16 @@ export default function VideoFeed() {
             <i className={styles.navDot} />
             <span className={styles.navLabel}>หน้าหลัก</span>
           </button>
-          <div className={styles.navItem}>
+          <button
+            type="button"
+            className={styles.navItem}
+            onClick={() => requestPickVideo(index % clipCount)}
+            aria-label="เปลี่ยนคลิปนี้ (อัพโหลดคลิปแทน)"
+          >
             <CompassIcon />
             <span className={styles.navLabel}>ค้นหา</span>
-          </div>
-          <button type="button" className={styles.navItem} onClick={() => requestPickVideo(index % CLIP_COUNT)} aria-label="อัพโหลดคลิปแทนคลิปนี้">
+          </button>
+          <button type="button" className={styles.navItem} onClick={() => addInputRef.current?.click()} aria-label="เพิ่มคลิปใหม่">
             <span className={styles.plusPill}>
               <svg width="22" height="22" viewBox="0 0 24 24" {...stroke} strokeWidth={2.6}>
                 <path d="M12 5v14M5 12h14" />
@@ -375,6 +436,49 @@ export default function VideoFeed() {
         </div>
       )}
 
+      {pendingFile && (
+        <div className={styles.formPage}>
+          <div className={styles.formHeader}>เพิ่มคลิปใหม่</div>
+          <div className={styles.formFile}>{pendingFile.name}</div>
+          <div className={styles.formBody}>
+            {FORM_FIELDS.map((field) => (
+              <label key={field} className={styles.formField}>
+                <span>{FIELD_LABELS[field]}</span>
+                <input
+                  className={styles.editorInput}
+                  value={form[field]}
+                  onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))}
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck={false}
+                />
+              </label>
+            ))}
+          </div>
+          <div className={styles.formActions}>
+            <button type="button" className={styles.formCancel} onClick={() => setPendingFile(null)} disabled={saving}>
+              ยกเลิก
+            </button>
+            <button type="button" className={styles.editorOk} onClick={saveNewClip} disabled={saving}>
+              เพิ่มคลิป
+            </button>
+          </div>
+        </div>
+      )}
+
+      <input
+        type="file"
+        accept="video/*"
+        ref={addInputRef}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          if (!file) return;
+          setForm(EMPTY_CLIP);
+          setPendingFile(file);
+        }}
+        className={styles.hidden}
+      />
       <input type="file" accept="video/*" ref={videoInputRef} onChange={handleVideoChange} className={styles.hidden} />
       <input type="file" accept="image/*" ref={avatarInputRef} onChange={handleAvatarChange} className={styles.hidden} />
     </div>
