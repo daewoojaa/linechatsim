@@ -159,7 +159,7 @@ button.iconButton {
   padding: 7px 14px;
   border-radius: 18px;
   background: var(--bubble);
-  color: #ffffff;
+  color: #2b5488;
   font: 400 17px/1.35 system-ui, -apple-system, "Noto Sans Thai", sans-serif;
   white-space: pre-wrap;
   word-break: break-word;
@@ -205,7 +205,7 @@ button.iconButton {
   flex: 1;
   min-width: 0;
   font: 700 12.5px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
-  color: #ffffff;
+  color: #2b5488;
 }
 
 .voiceBubble {

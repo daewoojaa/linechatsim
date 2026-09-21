@@ -173,7 +173,9 @@ export default function LiveChatSimulator({ roomId, defaultRoomName }: { roomId:
   const panelOpen = voiceStage !== "closed";
   const [pickerOpen, setPickerOpen] = useState(false);
   const dark = isDarkColor(bgColor);
-  const iconColor = dark ? "#ffffff" : "#1c1c1e";
+  // Room-name bar text and icons; flips to white only on a dark background
+  // colour, where the blue would vanish.
+  const iconColor = dark ? "#ffffff" : "#2b5488";
 
   return (
     <div
