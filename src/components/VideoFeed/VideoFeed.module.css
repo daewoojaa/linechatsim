@@ -325,31 +325,20 @@
   font: 400 16px/1.35 system-ui, -apple-system, "Noto Sans Thai", sans-serif;
 }
 
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.chip {
+.songChip {
+  align-self: stretch;
   display: inline-flex;
   align-items: center;
   gap: 5px;
   max-width: 100%;
-  padding: 6px 12px;
+  padding: 6px 6px 6px 12px;
   border: 0;
   border-radius: 999px;
   background: rgba(30, 26, 28, 0.5);
   backdrop-filter: blur(4px);
   color: #ffffff;
   font: 400 13.5px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
-  text-shadow: none;
   cursor: pointer;
-}
-
-.songChip {
-  align-self: stretch;
-  padding: 6px 6px 6px 12px;
 }
 
 .songText {

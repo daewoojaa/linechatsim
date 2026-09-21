@@ -6,9 +6,6 @@ import { idbGetImage, idbGetMeta, idbSetImage, idbSetMeta } from "@/lib/idbStore
 export type ClipField =
   | "name"
   | "caption"
-  | "tag0"
-  | "tag1"
-  | "tag2"
   | "song"
   | "likes"
   | "comments"
@@ -19,21 +16,39 @@ export type ClipInfo = Record<ClipField, string>;
 
 export const CLIP_COUNT = 3;
 
-const DEFAULT_CLIP: ClipInfo = {
-  name: "sleepyy.y",
-  caption: "เตรียมของ ทริปหน้าแล้ววว ☂️",
-  tag0: "กระเป๋า",
-  tag1: "เดินทาง",
-  tag2: "ไลฟ์สไตล์",
-  song: "good days - trees and lucy",
-  likes: "1,449",
-  comments: "72",
-  shares: "153",
-  saves: "439",
-};
+const DEFAULT_CLIPS: ClipInfo[] = [
+  {
+    name: "เรื่องเล่าสตอรี่",
+    caption: "“หน้ากากผี” #หนังสั้น #เอไอ #jintok #ละครสั้น",
+    song: "เรื่องเล่าสตอรี่ - ผีหน้ากาก",
+    likes: "39.2k",
+    comments: "313",
+    shares: "4,579",
+    saves: "398",
+  },
+  {
+    name: "ม่วนเฟรม",
+    caption: "กะหยุดคือกัน #คลิปai #ละครสั้น #หนังไทย",
+    song: "ม่วนเฟรม - รถมอไซ",
+    likes: "19.4k",
+    comments: "145",
+    shares: "1,975",
+    saves: "1,441",
+  },
+  {
+    name: "จินซีรี่ย์",
+    caption: "EP.1 เอ้ายาย!",
+    song: "จินซีรี่ย์ - ยายยยยยยย",
+    likes: "5,699",
+    comments: "312",
+    shares: "1,523",
+    saves: "290",
+  },
+];
 
-const META_KEY = "room5:clips";
+const META_KEY = "room5:clips2";
 const avatarKey = (clip: number) => `room5:avatar${clip}`;
+const videoKey = (clip: number) => `room5:video${clip}`;
 
 /**
  * Per-clip editable overlay data for the TikTok feed (room 5): account name,
@@ -42,10 +57,13 @@ const avatarKey = (clip: number) => `room5:avatar${clip}`;
  * The rotating record disc reuses the same picture as the account avatar.
  */
 export function useVideoFeedClips() {
-  const [clips, setClips] = useState<ClipInfo[]>(() => Array.from({ length: CLIP_COUNT }, () => ({ ...DEFAULT_CLIP })));
+  const [clips, setClips] = useState<ClipInfo[]>(() => DEFAULT_CLIPS.map((c) => ({ ...c })));
   const [avatars, setAvatars] = useState<(string | null)[]>(() => Array.from({ length: CLIP_COUNT }, () => null));
+  const [videos, setVideos] = useState<(string | null)[]>(() => Array.from({ length: CLIP_COUNT }, () => null));
   const avatarInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
   const pendingAvatarClip = useRef(0);
+  const pendingVideoClip = useRef(0);
   const clipsRef = useRef(clips);
 
   useEffect(() => {
@@ -53,14 +71,17 @@ export function useVideoFeedClips() {
     Promise.all([
       idbGetMeta<Partial<ClipInfo>[]>(META_KEY),
       ...Array.from({ length: CLIP_COUNT }, (_, i) => idbGetImage(avatarKey(i))),
+      ...Array.from({ length: CLIP_COUNT }, (_, i) => idbGetImage(videoKey(i))),
     ]).then(([saved, ...blobs]) => {
       if (cancelled) return;
       if (Array.isArray(saved)) {
-        const merged = Array.from({ length: CLIP_COUNT }, (_, i) => ({ ...DEFAULT_CLIP, ...(saved[i] ?? {}) }));
+        const merged = Array.from({ length: CLIP_COUNT }, (_, i) => ({ ...DEFAULT_CLIPS[i], ...(saved[i] ?? {}) }));
         clipsRef.current = merged;
         setClips(merged);
       }
-      setAvatars(blobs.map((b) => (b ? URL.createObjectURL(b) : null)));
+      const urls = blobs.map((b) => (b ? URL.createObjectURL(b) : null));
+      setAvatars(urls.slice(0, CLIP_COUNT));
+      setVideos(urls.slice(CLIP_COUNT));
     });
     return () => {
       cancelled = true;
@@ -92,5 +113,23 @@ export function useVideoFeedClips() {
     setAvatars((prev) => prev.map((a, i) => (i === clip ? url : a)));
   }, []);
 
-  return { clips, avatars, setField, requestPickAvatar, avatarInputRef, handleAvatarChange };
+  const requestPickVideo = useCallback((clip: number) => {
+    pendingVideoClip.current = clip;
+    const el = videoInputRef.current;
+    if (el) {
+      el.value = "";
+      el.click();
+    }
+  }, []);
+
+  const handleVideoChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const clip = pendingVideoClip.current;
+    await idbSetImage(videoKey(clip), file);
+    const url = URL.createObjectURL(file);
+    setVideos((prev) => prev.map((v, i) => (i === clip ? url : v)));
+  }, []);
+
+  return { clips, avatars, videos, requestPickVideo, videoInputRef, handleVideoChange, setField, requestPickAvatar, avatarInputRef, handleAvatarChange };
 }

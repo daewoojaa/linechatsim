@@ -21,10 +21,7 @@ const WHEEL_THRESHOLD_PX = 30;
 
 const FIELD_LABELS: Record<ClipField, string> = {
   name: "ชื่อแอคเค้าท์",
-  caption: "แคปชั่น",
-  tag0: "แฮชแท็ก 1",
-  tag1: "แฮชแท็ก 2",
-  tag2: "แฮชแท็ก 3",
+  caption: "แคปชั่น / แฮชแท็ก",
   song: "ชื่อเพลง",
   likes: "ยอดไลค์",
   comments: "ยอดคอมเม้นท์",
@@ -72,32 +69,6 @@ function NoteIcon({ size = 16 }: { size?: number }) {
     </svg>
   );
 }
-function BagIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" {...stroke}>
-      <path d="M6 8h12l1 12H5L6 8Z" />
-      <path d="M9 8V6a3 3 0 0 1 6 0v2" />
-    </svg>
-  );
-}
-function PinIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" {...stroke}>
-      <path d="M12 21s6-5.6 6-10.5a6 6 0 0 0-12 0C6 15.4 12 21 12 21Z" />
-      <circle cx={12} cy={10.5} r={2.2} />
-    </svg>
-  );
-}
-function CameraSmallIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" {...stroke}>
-      <path d="M4 8h3l1.6-2.5h6.8L17 8h3v11H4V8Z" />
-      <circle cx={12} cy={13} r={3.2} />
-    </svg>
-  );
-}
-const TAG_ICONS = [BagIcon, PinIcon, CameraSmallIcon];
-
 function LiveIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" {...stroke} strokeWidth={1.8}>
@@ -196,18 +167,7 @@ function ClipOverlay({ info, avatar, onEdit, onPickAvatar }: OverlayProps) {
         <button type="button" className={styles.infoCaption} onClick={() => onEdit("caption")}>
           {info.caption}
         </button>
-        <div className={styles.tags}>
-          {(["tag0", "tag1", "tag2"] as const).map((field, i) => {
-            const Icon = TAG_ICONS[i];
-            return (
-              <button type="button" key={field} className={styles.chip} onClick={() => onEdit(field)}>
-                <Icon />
-                <span>{info[field]}</span>
-              </button>
-            );
-          })}
-        </div>
-        <button type="button" className={`${styles.chip} ${styles.songChip}`} onClick={() => onEdit("song")}>
+        <button type="button" className={styles.songChip} onClick={() => onEdit("song")}>
           <NoteIcon />
           <span className={styles.songText}>{info.song}</span>
           <span className={styles.songArrow}>›</span>
@@ -219,8 +179,9 @@ function ClipOverlay({ info, avatar, onEdit, onPickAvatar }: OverlayProps) {
 
 /**
  * TikTok-style vertical video feed (room 5 / "815 TikTok"). Three clips loop
- * with a CSS slide-up transform on .track, one clip per screen; swipe or tap
- * the "+" in the bottom bar to advance. The top bar and bottom bar are
+ * with a CSS slide-up transform on .track, one clip per screen; swipe to
+ * advance. The "+" in the bottom bar uploads a video that replaces the
+ * clip on screen (kept in IndexedDB, so it is remembered). The top and bottom bars are
  * siblings of .track so they stay locked in place through every transition,
  * while the side rail and caption block live inside each slide and slide
  * away with the clip. Every piece of text (and the account picture) is
@@ -235,7 +196,7 @@ export default function VideoFeed() {
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const touchStartY = useRef<number | null>(null);
   const lockedRef = useRef(false);
-  const { clips, avatars, setField, requestPickAvatar, avatarInputRef, handleAvatarChange } = useVideoFeedClips();
+  const { clips, avatars, videos, requestPickVideo, videoInputRef, handleVideoChange, setField, requestPickAvatar, avatarInputRef, handleAvatarChange } = useVideoFeedClips();
 
   useEffect(() => {
     videoRefs.current.forEach((video, i) => {
@@ -250,7 +211,7 @@ export default function VideoFeed() {
         video.pause();
       }
     });
-  }, [index]);
+  }, [index, videos]);
 
   const goTo = (next: number) => {
     if (lockedRef.current || next < 0 || next >= SLIDES.length || next === index) return;
@@ -321,7 +282,7 @@ export default function VideoFeed() {
                     videoRefs.current[i] = el;
                   }}
                   className={styles.video}
-                  src={src}
+                  src={videos[clip] ?? src}
                   muted
                   loop
                   playsInline
@@ -367,7 +328,7 @@ export default function VideoFeed() {
             <CompassIcon />
             <span className={styles.navLabel}>ค้นหา</span>
           </div>
-          <button type="button" className={styles.navItem} onClick={() => goTo(index + 1)} aria-label="คลิปถัดไป">
+          <button type="button" className={styles.navItem} onClick={() => requestPickVideo(index % CLIP_COUNT)} aria-label="อัพโหลดคลิปแทนคลิปนี้">
             <span className={styles.plusPill}>
               <svg width="22" height="22" viewBox="0 0 24 24" {...stroke} strokeWidth={2.6}>
                 <path d="M12 5v14M5 12h14" />
@@ -377,7 +338,6 @@ export default function VideoFeed() {
           </button>
           <div className={styles.navItem}>
             <MessageNavIcon />
-            <i className={styles.navDot} />
             <span className={styles.navLabel}>ข้อความ</span>
           </div>
           <div className={styles.navItem}>
@@ -411,6 +371,7 @@ export default function VideoFeed() {
         </div>
       )}
 
+      <input type="file" accept="video/*" ref={videoInputRef} onChange={handleVideoChange} className={styles.hidden} />
       <input type="file" accept="image/*" ref={avatarInputRef} onChange={handleAvatarChange} className={styles.hidden} />
     </div>
   );
