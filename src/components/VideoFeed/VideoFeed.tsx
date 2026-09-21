@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { CLIP_COUNT, useVideoFeedClips, type ClipField, type ClipInfo } from "@/hooks/useVideoFeedClips";
 import styles from "./VideoFeed.module.css";
 
-const CLIPS = ["/videos/TT-demo1.mp4", "/videos/TT-demo2.mp4", "/videos/TT-demo3.mp4"];
+const CLIPS = ["/videos/jintok-1.mp4", "/videos/jintok-2.mp4", "/videos/jintok-3.mp4"];
 
 // A duplicate of clip 1 appended after the real last clip. Swiping past
 // the last clip slides up onto this phantom slide (looks identical to

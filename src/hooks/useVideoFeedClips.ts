@@ -65,6 +65,8 @@ function mergeSaved(base: ClipInfo, saved: Partial<ClipInfo> | undefined): ClipI
   return merged;
 }
 
+const DEFAULT_AVATARS = ["/room5-avatar1.jpg", "/room5-avatar2.webp", "/room5-avatar3.webp"];
+
 const META_KEY = "room5:clips2";
 const avatarKey = (clip: number) => `room5:avatar${clip}`;
 const videoKey = (clip: number) => `room5:video${clip}`;
@@ -77,7 +79,7 @@ const videoKey = (clip: number) => `room5:video${clip}`;
  */
 export function useVideoFeedClips() {
   const [clips, setClips] = useState<ClipInfo[]>(() => DEFAULT_CLIPS.map((c) => ({ ...c })));
-  const [avatars, setAvatars] = useState<(string | null)[]>(() => Array.from({ length: CLIP_COUNT }, () => null));
+  const [avatars, setAvatars] = useState<string[]>(DEFAULT_AVATARS);
   const [videos, setVideos] = useState<(string | null)[]>(() => Array.from({ length: CLIP_COUNT }, () => null));
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -99,7 +101,7 @@ export function useVideoFeedClips() {
         setClips(merged);
       }
       const urls = blobs.map((b) => (b ? URL.createObjectURL(b) : null));
-      setAvatars(urls.slice(0, CLIP_COUNT));
+      setAvatars(urls.slice(0, CLIP_COUNT).map((u, i) => u ?? DEFAULT_AVATARS[i]));
       setVideos(urls.slice(CLIP_COUNT));
     });
     return () => {
