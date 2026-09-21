@@ -106,7 +106,7 @@ function MessageRow({
       <div className={styles.leftCol}>
         {msg.kind === "image" ? (
           <div className={styles.imageLine}>
-            <div className={styles.imageCard}>
+            <div className={`${styles.imageCard} ${photoSrc ? "" : styles.imageCardEmpty}`}>
               {photoSrc ? (
                 // eslint-disable-next-line @next/next/no-img-element -- IndexedDB blob URL, no next/image optimization applicable
                 <img src={photoSrc} className={styles.photo} alt="" />

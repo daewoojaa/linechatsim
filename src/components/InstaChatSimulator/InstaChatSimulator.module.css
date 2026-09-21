@@ -153,8 +153,6 @@
 }
 
 .imageCard {
-  width: 230px;
-  height: 220px;
   border-radius: 22px;
   background: #8e8e93;
   color: #ffffff;
@@ -167,11 +165,22 @@
   font: 400 14px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
 }
 
+/* Whole picture at its own aspect ratio — never cropped. */
+/* Empty placeholder card. */
+.imageCardEmpty {
+  width: 230px;
+  height: 220px;
+}
+
 .photo {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
   display: block;
+  width: auto;
+  height: auto;
+  max-width: 230px;
+  /* Tallest the picture can be while the whole card still fits between the
+     header and the lifted input bar (keyboard reserve, header, input bar,
+     time label and paddings). */
+  max-height: max(140px, calc(100dvh - var(--keyboard-reserve) - 190px));
 }
 
 .sendCircle {
