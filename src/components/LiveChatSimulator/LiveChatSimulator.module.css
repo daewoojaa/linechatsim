@@ -1,0 +1,433 @@
+.appShell {
+  /* Pinned to the viewport's initial bounds (not dvh) so the OS keyboard
+     can't shove the header off-screen — same approach as the other rooms. */
+  position: fixed;
+  inset: 0;
+  min-height: 520px;
+  overflow: hidden;
+  background: #ffffff;
+  user-select: none;
+  font-family: var(--font-body), system-ui, -apple-system, sans-serif;
+  --bubble: #3f78b8;
+  --bubble-dark: #33659f;
+  /* Footprint of whatever sits below the input bar (real keyboard, or the
+     voice-record panel standing in for it) — measured on the real phone. */
+  --keyboard-reserve: 40.9dvh;
+}
+
+.contentColumn {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-top: calc(56px + env(safe-area-inset-top));
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: var(--keyboard-reserve);
+}
+
+.contentColumn[data-panel-open] {
+  padding-bottom: 0;
+}
+
+/* ---- header ---- */
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  box-sizing: border-box;
+  height: calc(56px + env(safe-area-inset-top));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: env(safe-area-inset-top) calc(12px + env(safe-area-inset-right)) 0 calc(6px + env(safe-area-inset-left));
+  background: #ffffff;
+  z-index: 20;
+}
+
+.backButton {
+  width: 26px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
+  flex: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.roomNameText {
+  flex: 1;
+  min-width: 0;
+  font: 700 21px/1.2 system-ui, -apple-system, sans-serif;
+  color: #1c1c1e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.roomNameInput {
+  flex: 1;
+  min-width: 0;
+  font: 700 20px system-ui, -apple-system, sans-serif;
+  color: #111;
+  background: #f1f1f3;
+  border: 0;
+  border-radius: 8px;
+  padding: 6px 10px;
+  outline: 2px solid rgba(0, 0, 0, 0.2);
+}
+
+.headerIcons {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: none;
+}
+
+.iconButton {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badgeDot {
+  position: absolute;
+  top: 2px;
+  right: 1px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #2fbf5e;
+}
+
+/* ---- conversation ---- */
+
+.feed {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* margin-top:auto pins the messages to the bottom while there are few of
+   them, yet still lets the feed scroll once they overflow. */
+.feedInner {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 10px 14px 12px;
+}
+
+.row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.time {
+  flex: none;
+  font: 400 13px system-ui, -apple-system, sans-serif;
+  color: #6f6f76;
+  padding-bottom: 2px;
+}
+
+.bubble {
+  position: relative;
+  max-width: 76%;
+  padding: 10px 18px;
+  border-radius: 22px;
+  background: var(--bubble);
+  color: #ffffff;
+  font: 400 20px/1.35 system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Little tail poking out of the top-right corner, like LINE's own bubbles. */
+.bubble::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -7px;
+  width: 14px;
+  height: 14px;
+  background: var(--bubble);
+  clip-path: polygon(0 0, 55% 0, 100% 45%, 0 100%);
+}
+
+.callCard {
+  padding: 0;
+  width: min(300px, 76%);
+  overflow: visible;
+}
+
+.callTop {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.callCircle {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.callTitle {
+  font: 700 19px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+}
+
+.callFooter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+}
+
+.callFooterText {
+  flex: 1;
+  min-width: 0;
+  font: 700 14px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  color: #dbe9fb;
+}
+
+.voiceBubble {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  width: min(300px, 76%);
+}
+
+.wave {
+  flex: 1;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.wave i {
+  display: block;
+  width: 3px;
+  border-radius: 2px;
+  background: #1f4577;
+}
+
+.voiceTime {
+  flex: none;
+  font: 400 17px system-ui, -apple-system, sans-serif;
+}
+
+.dateRow {
+  display: flex;
+  justify-content: center;
+}
+
+.datePill {
+  padding: 5px 22px;
+  border-radius: 999px;
+  background: rgba(60, 70, 100, 0.55);
+  color: #ffffff;
+  font: 600 15px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+}
+
+/* ---- input bar ---- */
+
+.inputBar {
+  position: relative;
+  flex: none;
+  background: #ffffff;
+  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chevronButton {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.inputPill {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f1f1f3;
+  border-radius: 999px;
+  padding: 0 8px 0 16px;
+  height: 44px;
+}
+
+.textInput {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  outline: none;
+  font: 400 17px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Thai", sans-serif;
+  color: #111;
+  white-space: pre-wrap;
+  word-break: break-word;
+  user-select: text;
+}
+
+.emojiButton {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sendButton {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64b5fa;
+}
+
+/* ---- voice-record panel ---- */
+
+.recordPanel {
+  flex: none;
+  height: var(--keyboard-reserve);
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  overflow: hidden;
+}
+
+.recordHint {
+  font: 700 17px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  color: #b4b4b9;
+}
+
+.recordRing {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  border: 4px solid #e8e8ea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.recordDot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #ff2d4f;
+}
+
+.recordClock {
+  font: 700 22px system-ui, -apple-system, sans-serif;
+  color: #4cc36a;
+  font-variant-numeric: tabular-nums;
+}
+
+.recordControls {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.sideCircle {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid #ececef;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.stopCircle {
+  position: relative;
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  border: 0;
+  padding: 0;
+  background: #34c759;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.stopSquare {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+/* Soft halo breathing around the stop button while recording. */
+.pulsing::before {
+  content: "";
+  position: absolute;
+  inset: -22px;
+  border-radius: 50%;
+  background: rgba(52, 199, 89, 0.14);
+  animation: halo 1.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes halo {
+  0%,
+  100% {
+    transform: scale(0.82);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
