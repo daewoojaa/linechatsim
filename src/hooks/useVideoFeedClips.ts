@@ -41,7 +41,7 @@ const DEFAULT_CLIPS: ClipInfo[] = [
   {
     name: "จินซีรี่ย์",
     caption: "EP.1 เอ้ายาย!",
-    tags: "",
+    tags: "#ละครสั้น",
     song: "จินซีรี่ย์ - ยายยยยยยย",
     likes: "5,699",
     comments: "312",
