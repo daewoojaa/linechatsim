@@ -23,15 +23,20 @@ type Props = {
 /**
  * Video-call simulator (room 4) — a FaceTime/Instagram-call-style screen.
  * The big frame loops an MP4 standing in for the other person (picked via
- * "Activities"); the picture-in-picture box in the corner is the device's
- * own live front camera, so an actor can perform alongside the clip in
- * real time. Every other control (mute, camera effects, the top-right
- * icons) is decorative chrome for visual authenticity, not wired up.
+ * "Activities"), playing with its own sound; the picture-in-picture box in
+ * the corner is the device's own live front camera, so an actor can perform
+ * alongside the clip in real time. Every other control (mute, camera
+ * effects, the top-right icons) is decorative chrome for visual
+ * authenticity, not wired up.
  */
 export default function VideoCallSimulator({ roomId }: Props) {
   const { clipSrc, exitImageSrc, fileInputRef, requestPickClip, handleClipFileChange } = useVideoCallSim(roomId);
   const { stream: cameraStream, error: cameraError, retry: retryCamera } = useFrontCamera();
   const pipVideoRef = useRef<HTMLVideoElement>(null);
+  const mainVideoRef = useRef<HTMLVideoElement>(null);
+  // Browsers often refuse to autoplay a freshly picked clip with sound;
+  // play it muted in that case and turn the sound on at the next tap.
+  const soundBlockedRef = useRef(false);
   // A real app can't be closed from a web page in any browser (installed
   // PWA or not) — this simulates the visual instead: a still that reads
   // as "the app is gone", set on the incoming-call alert screen (see
@@ -45,6 +50,32 @@ export default function VideoCallSimulator({ roomId }: Props) {
   useEffect(() => {
     if (pipVideoRef.current) pipVideoRef.current.srcObject = cameraStream;
   }, [cameraStream]);
+
+  // (Re)start the clip with sound whenever it changes; fall back to muted
+  // playback if the browser blocks that, and unmute on the next tap.
+  useEffect(() => {
+    const video = mainVideoRef.current;
+    if (!video || !clipSrc) return;
+    video.muted = false;
+    video.play().catch(() => {
+      soundBlockedRef.current = true;
+      video.muted = true;
+      video.play().catch(() => {
+        // Still blocked (e.g. low-power mode) — nothing more to do.
+      });
+    });
+  }, [clipSrc]);
+
+  useEffect(() => {
+    const unmute = () => {
+      if (!soundBlockedRef.current) return;
+      soundBlockedRef.current = false;
+      const video = mainVideoRef.current;
+      if (video) video.muted = false;
+    };
+    window.addEventListener("pointerdown", unmute);
+    return () => window.removeEventListener("pointerdown", unmute);
+  }, []);
 
   if (showExitImage) {
     return (
@@ -62,7 +93,7 @@ export default function VideoCallSimulator({ roomId }: Props) {
       {/* Main frame — the other person's video clip */}
       <div className={styles.mainVideoWrap}>
         {clipSrc ? (
-          <video className={styles.mainVideo} src={clipSrc} autoPlay loop muted playsInline />
+          <video ref={mainVideoRef} className={styles.mainVideo} src={clipSrc} autoPlay loop playsInline />
         ) : (
           <div className={styles.mainVideoPlaceholder} />
         )}
