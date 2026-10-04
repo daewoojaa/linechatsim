@@ -88,7 +88,16 @@ function PlaneIcon() {
   );
 }
 
-function MessageRow({ msg, dayLabel }: { msg: LiveMessage; dayLabel: string }) {
+function MessageRow({
+  msg,
+  dayLabel,
+  onViewImage,
+}: {
+  msg: LiveMessage;
+  dayLabel: string;
+  /** Tap on a picture in the chat: open it full screen. */
+  onViewImage: (src: string) => void;
+}) {
   if (msg.kind === "dateLabel") {
     return (
       <div className={styles.dateRow}>
@@ -106,7 +115,15 @@ function MessageRow({ msg, dayLabel }: { msg: LiveMessage; dayLabel: string }) {
           <div className={`${styles.bubble} ${styles.bubbleLeft}`}>{msg.text}</div>
         ) : (
           // eslint-disable-next-line @next/next/no-img-element -- static public/ asset
-          <img src={msg.src} className={`${styles.imageBubble} ${styles.imageBubbleLeft}`} alt="" />
+          <img
+            src={msg.src}
+            className={`${styles.imageBubble} ${styles.imageBubbleLeft}`}
+            alt=""
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewImage(msg.src);
+            }}
+          />
         )}
         <span className={styles.time}>{msg.time}</span>
       </div>
@@ -133,7 +150,15 @@ function MessageRow({ msg, dayLabel }: { msg: LiveMessage; dayLabel: string }) {
       )}
       {msg.kind === "image" && (
         // eslint-disable-next-line @next/next/no-img-element -- static public/ asset
-        <img src={msg.src} className={styles.imageBubble} alt="" />
+        <img
+          src={msg.src}
+          className={styles.imageBubble}
+          alt=""
+          onClick={(e) => {
+            e.stopPropagation();
+            onViewImage(msg.src);
+          }}
+        />
       )}
       {msg.kind === "voice" && (
         <div className={`${styles.bubble} ${styles.voiceBubble}`}>
@@ -198,6 +223,18 @@ export default function LiveChatSimulator({
   }, [feed, voiceStage]);
 
   const panelOpen = voiceStage !== "closed";
+
+  // Full-screen picture: the keyboard comes down while it is up and returns
+  // when it closes.
+  const [viewing, setViewing] = useState<string | null>(null);
+  const openViewer = (src: string) => {
+    textInputRef.current?.blur();
+    setViewing(src);
+  };
+  const closeViewer = () => {
+    setViewing(null);
+    textInputRef.current?.focus();
+  };
   const [pickerOpen, setPickerOpen] = useState(false);
   const dark = isDarkColor(bgColor);
   // Room-name bar text and icons; flips to white only on a dark background
@@ -286,7 +323,7 @@ export default function LiveChatSimulator({
         <div className={styles.feed} ref={feedRef} onClick={() => !panelOpen && textInputRef.current?.focus()}>
           <div className={styles.feedInner}>
             {feed.map((m) => (
-              <MessageRow key={m.id} msg={m} dayLabel={dayLabel} />
+              <MessageRow key={m.id} msg={m} dayLabel={dayLabel} onViewImage={openViewer} />
             ))}
           </div>
         </div>
@@ -358,6 +395,18 @@ export default function LiveChatSimulator({
           </div>
         )}
       </div>
+
+      {viewing && (
+        <div className={styles.viewer} onClick={closeViewer}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- static public/ asset */}
+          <img src={viewing} className={styles.viewerImage} alt="" />
+          <button type="button" className={styles.viewerClose} onClick={closeViewer} aria-label="ปิด">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round">
+              <path d="M6 6l12 12M18 6 6 18" />
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
