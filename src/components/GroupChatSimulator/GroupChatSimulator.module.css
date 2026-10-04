@@ -58,6 +58,12 @@
   text-align: right;
 }
 
+/* Beside a left-side bubble the stack sits to its right, left-aligned. */
+.metaLeft {
+  align-items: flex-start;
+  text-align: left;
+}
+
 /* ---- max-read dialog ---- */
 
 .dialogBackdrop {

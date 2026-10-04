@@ -3,12 +3,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export type GroupMessage =
-  | { id: string; side: "left"; sender: string; kind: "image"; src: string; time: string }
-  | { id: string; side: "right"; kind: "image"; src: string; time: string }
+  | { id: string; side: "left"; sender: string; kind: "image"; src: string; time: string; baseRead: number }
+  | { id: string; side: "right"; kind: "image"; src: string; time: string; readable?: boolean }
   | { id: string; side: "right"; kind: "text"; text: string; time: string; readable?: boolean };
 
+// The old slip already shows this many readers; once the count starts
+// running it grows by the same amount as the two newer messages.
+const OLD_READ_BASE = 847;
+
 const SCRIPT: GroupMessage[] = [
-  { id: "slip", side: "left", sender: "พรชัย", kind: "image", src: "/room2-slip.webp", time: "18.28 น." },
+  { id: "slip", side: "left", sender: "พรชัย", kind: "image", src: "/room2-slip.webp", time: "18.28 น.", baseRead: OLD_READ_BASE },
 ];
 
 const FIRST_IMAGE_TIME = "19.25 น.";
@@ -22,6 +26,29 @@ const READ_TICK_MS = 100;
 export const DEFAULT_MAX_READ = "589";
 const MAX_READ_KEY = "linechatsim-room2-maxread-v1";
 
+/**
+ * Cumulative progress (0..1) at each tick of the read-count run. Stretches
+ * of fast climbing alternate with slow ones (a few ticks each, uneven
+ * inside), so the number surges and stalls instead of rising steadily; the
+ * last tick always lands on exactly 1.
+ */
+function randomSchedule(totalTicks: number): number[] {
+  const weights: number[] = [];
+  let fast = Math.random() < 0.5;
+  let left = 0;
+  for (let i = 0; i < totalTicks; i++) {
+    if (left <= 0) {
+      fast = !fast;
+      left = 4 + Math.floor(Math.random() * 10);
+    }
+    left -= 1;
+    weights.push((fast ? 3 : 0.25) * (0.2 + Math.random() * 1.6));
+  }
+  const total = weights.reduce((a, b) => a + b, 0);
+  let sum = 0;
+  return weights.map((w) => (sum += w) / total);
+}
+
 function nowLabel() {
   const d = new Date();
   return `${d.getHours().toString().padStart(2, "0")}.${d.getMinutes().toString().padStart(2, "0")} น.`;
@@ -31,9 +58,11 @@ function nowLabel() {
  * Backs room 2: a LINE group chat ("ลูกหนี้ไม่หนีไปไหน"). A bank slip from
  * "พรชัย" is already in the chat. The operator's first send is a picture
  * (the ">" in the input bar picks it); the first text send, whatever is
- * typed, goes out as the fixed announcement, and 3 seconds later its "อ่านแล้ว"
- * count runs from 1 up to the configured maximum over 10 seconds. Anything
- * sent after that is plain.
+ * typed, goes out as the fixed announcement, and 3 seconds later the "อ่านแล้ว"
+ * count of the two new messages (same number on both) runs from 1 up to the
+ * configured maximum over 10 seconds, in uneven surges and stalls. The old
+ * slip shows 847 from the start and climbs by the same amount. Anything sent
+ * after that is plain.
  */
 export function useGroupChatSim() {
   const [feed, setFeed] = useState<GroupMessage[]>(SCRIPT);
@@ -83,14 +112,15 @@ export function useGroupChatSim() {
   const startReadRun = useCallback(() => {
     const max = Math.max(parseInt(maxReadRef.current, 10) || 1, 1);
     const totalTicks = READ_RUN_MS / READ_TICK_MS;
+    const schedule = randomSchedule(totalTicks);
     let ticks = 0;
     setReadCount(1);
     if (runTimerRef.current) clearInterval(runTimerRef.current);
     runTimerRef.current = setInterval(() => {
       ticks += 1;
-      const progress = Math.min(ticks / totalTicks, 1);
+      const progress = schedule[Math.min(ticks, totalTicks) - 1];
       setReadCount(1 + Math.round((max - 1) * progress));
-      if (progress >= 1 && runTimerRef.current) {
+      if (ticks >= totalTicks && runTimerRef.current) {
         clearInterval(runTimerRef.current);
         runTimerRef.current = null;
       }
@@ -154,7 +184,10 @@ export function useGroupChatSim() {
     sentImageRef.current += 1;
     const time = sentImageRef.current === 1 ? FIRST_IMAGE_TIME : nowLabel();
     const src = URL.createObjectURL(file);
-    setFeed((prev) => [...prev, { id: `i${idRef.current}`, side: "right", kind: "image", src, time }]);
+    setFeed((prev) => [
+      ...prev,
+      { id: `i${idRef.current}`, side: "right", kind: "image", src, time, readable: sentImageRef.current === 1 },
+    ]);
     textInputRef.current?.focus();
   }, []);
 

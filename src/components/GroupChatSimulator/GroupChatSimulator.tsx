@@ -75,7 +75,10 @@ export default function GroupChatSimulator() {
             <div className={base.row}>
               {/* eslint-disable-next-line @next/next/no-img-element -- static public/ asset */}
               <img src={m.src} className={`${extra.bubbleImage} ${extra.leftImage}`} alt="" />
-              <span className={base.time}>{m.time}</span>
+              <div className={`${extra.meta} ${extra.metaLeft}`}>
+                <span className={base.time}>อ่านแล้ว {m.baseRead + (readCount ?? 0)}</span>
+                <span className={base.time}>{m.time}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -83,7 +86,7 @@ export default function GroupChatSimulator() {
     }
     const meta = (
       <div className={extra.meta}>
-        {m.kind === "text" && m.readable && readCount !== null && <span className={base.time}>อ่านแล้ว {readCount}</span>}
+        {m.readable && readCount !== null && <span className={base.time}>อ่านแล้ว {readCount}</span>}
         <span className={base.time}>{m.time}</span>
       </div>
     );
