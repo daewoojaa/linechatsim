@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useKakaoChatSim, type KakaoMessage } from "@/hooks/useKakaoChatSim";
+import KakaoCallsScreen from "./KakaoCallsScreen";
 import styles from "./KakaoChatSimulator.module.css";
 
 const stroke = { fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round" } as const;
@@ -158,6 +159,18 @@ export default function KakaoChatSimulator() {
   const router = useRouter();
   const { feed, hasText, mirrored, textInputRef, onInput, onKeyDown, send, onFeedTap, toggleMirrored, reset } =
     useKakaoChatSim();
+  // The recent-calls page (☰ icon's neighbour, the phone) sits over the chat,
+  // which stays mounted so its state survives the round trip.
+  const [showCalls, setShowCalls] = useState(false);
+  const openCalls = () => {
+    // Drop the keyboard while the other page is up.
+    textInputRef.current?.blur();
+    setShowCalls(true);
+  };
+  const closeCalls = () => {
+    setShowCalls(false);
+    textInputRef.current?.focus();
+  };
 
   const feedRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -174,7 +187,14 @@ export default function KakaoChatSimulator() {
         <div className={styles.title}>{mirrored ? "Harry" : "지훈"}</div>
         <div className={styles.headerIcons}>
           <SearchIcon />
-          <PhoneIcon />
+          <button
+            type="button"
+            className={styles.menuButton}
+            onClick={openCalls}
+            title="ไปหน้าโทร (최근 통화)"
+          >
+            <PhoneIcon />
+          </button>
           <button
             type="button"
             className={styles.menuButton}
@@ -243,6 +263,7 @@ export default function KakaoChatSimulator() {
           )}
         </div>
       </div>
+      {showCalls && <KakaoCallsScreen onBackToChat={closeCalls} onMore={() => router.push("/")} />}
     </div>
   );
 }
