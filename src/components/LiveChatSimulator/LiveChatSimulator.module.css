@@ -146,6 +146,28 @@ button.iconButton {
   gap: 8px;
 }
 
+/* Received (left-side) messages, used by room 8. */
+.leftRow {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.avatar {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+  background: #ffffff center / contain no-repeat;
+}
+
+.leftRow .bubbleLeft {
+  background: #eceff4;
+}
+
 .time {
   flex: none;
   font: 400 12px system-ui, -apple-system, sans-serif;
@@ -220,6 +242,10 @@ button.iconButton {
   box-sizing: border-box;
   border-radius: 18px;
   background: var(--bubble);
+}
+
+.imageBubbleLeft {
+  background: #eceff4;
 }
 
 .voiceBubble {

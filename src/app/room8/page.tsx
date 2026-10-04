@@ -1,10 +1,13 @@
 import LiveChatSimulator from "@/components/LiveChatSimulator/LiveChatSimulator";
 import type { LiveMessage } from "@/hooks/useLiveChatSim";
 
-// What is already in the chat on entering: a line of text, then a picture.
+// What is already in the chat on entering: two messages received from บุษบา
+// (left side, with her avatar), a line of text and then a picture.
+const AVATAR = "/room2-busaba.png";
+
 const SCRIPT: LiveMessage[] = [
-  { id: "s1", kind: "text", text: "มีคนเพิ่ง เจอ ไอ่แก่น ถ่าย สดๆร้อนๆ อันนี้ ของจริง", time: "18:00 น." },
-  { id: "s2", kind: "image", src: "/room8-photo.jpg", time: "18:00 น." },
+  { id: "s1", kind: "text", text: "มีคนเพิ่ง เจอ ไอ่แก่น ถ่าย สดๆร้อนๆ อันนี้ ของจริง", time: "18:00 น.", side: "left", avatar: AVATAR },
+  { id: "s2", kind: "image", src: "/room8-photo.jpg", time: "18:00 น.", side: "left", avatar: AVATAR },
 ];
 
 export default function Room8Page() {

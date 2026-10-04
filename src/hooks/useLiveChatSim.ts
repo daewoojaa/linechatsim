@@ -4,10 +4,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { idbGetMeta, idbSetMeta } from "@/lib/idbStore";
 
 export type LiveMessage =
-  | { id: string; kind: "text"; text: string; time: string }
+  | { id: string; kind: "text"; text: string; time: string; side?: "left"; avatar?: string }
   | { id: string; kind: "missedCall"; time: string }
   | { id: string; kind: "voice"; seconds: number; time: string }
-  | { id: string; kind: "image"; src: string; time: string }
+  | { id: string; kind: "image"; src: string; time: string; side?: "left"; avatar?: string }
   | { id: string; kind: "dateLabel" };
 
 const DAY_LABELS = ["วันนี้", "เมื่อวาน", "จ. 12 ก.ย."];

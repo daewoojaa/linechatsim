@@ -75,7 +75,7 @@ export const INITIAL_ROOMS: ChatRoom[] = [
   {
     id: "8",
     name: "บุษบา",
-    message: "คุณได้ส่งรูปภาพ",
+    message: "บุษบา ได้ส่งรูปภาพ",
     time: "22/3",
     color: "#f5b7b1",
     href: "/room8",

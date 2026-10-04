@@ -96,6 +96,22 @@ function MessageRow({ msg, dayLabel }: { msg: LiveMessage; dayLabel: string }) {
       </div>
     );
   }
+  // Messages marked side:"left" are received ones: the other person's
+  // avatar, a grey bubble, the time on the bubble's right.
+  if ((msg.kind === "text" || msg.kind === "image") && msg.side === "left") {
+    return (
+      <div className={styles.leftRow}>
+        {msg.avatar && <div className={styles.avatar} style={{ backgroundImage: `url(${msg.avatar})` }} />}
+        {msg.kind === "text" ? (
+          <div className={`${styles.bubble} ${styles.bubbleLeft}`}>{msg.text}</div>
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element -- static public/ asset
+          <img src={msg.src} className={`${styles.imageBubble} ${styles.imageBubbleLeft}`} alt="" />
+        )}
+        <span className={styles.time}>{msg.time}</span>
+      </div>
+    );
+  }
   return (
     <div className={styles.row}>
       <span className={styles.time}>{msg.time}</span>
