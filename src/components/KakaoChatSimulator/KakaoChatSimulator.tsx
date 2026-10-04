@@ -99,7 +99,7 @@ function MissedCallIcon() {
   );
 }
 
-function MessageRow({ msg }: { msg: KakaoMessage }) {
+function MessageRow({ msg, mirrored }: { msg: KakaoMessage; mirrored: boolean }) {
   if (msg.kind === "dateLabel") {
     return (
       <div className={styles.dateRow}>
@@ -110,28 +110,37 @@ function MessageRow({ msg }: { msg: KakaoMessage }) {
       </div>
     );
   }
-  if (msg.kind === "mine") {
+  // Side "a" is the operator's own end of the conversation; mirroring swaps
+  // which screen side (and so which colour) each end gets.
+  const right = (msg.owner === "a") !== mirrored;
+  const content =
+    msg.kind === "text" ? (
+      msg.text
+    ) : (
+      <>
+        {msg.variant === "voice" ? <VoiceCallIcon /> : <MissedCallIcon />}
+        <span className={styles.callLabel}>{msg.label}</span>
+      </>
+    );
+  const bubbleClass = `${styles.bubble} ${right ? styles.bubbleMine : styles.bubbleTheirs} ${
+    msg.kind === "call" ? styles.callCard : ""
+  }`;
+
+  if (right) {
     return (
       <div className={`${styles.row} ${styles.rowMine}`}>
         <span className={styles.time}>{msg.time}</span>
-        <div className={`${styles.bubble} ${styles.bubbleMine}`}>{msg.text}</div>
+        <div className={bubbleClass}>{content}</div>
       </div>
     );
   }
   return (
     <div className={styles.theirs}>
-      <div className={styles.avatar} />
+      <div className={`${styles.avatar} ${mirrored ? styles.avatarHarry : ""}`} />
       <div className={styles.theirsCol}>
-        <div className={styles.sender}>지훈</div>
+        <div className={styles.sender}>{mirrored ? "Harry" : "지훈"}</div>
         <div className={styles.row}>
-          {msg.kind === "theirs" ? (
-            <div className={`${styles.bubble} ${styles.bubbleTheirs}`}>{msg.text}</div>
-          ) : (
-            <div className={`${styles.bubble} ${styles.bubbleTheirs} ${styles.callCard}`}>
-              {msg.variant === "voice" ? <VoiceCallIcon /> : <MissedCallIcon />}
-              <span className={styles.callLabel}>{msg.label}</span>
-            </div>
-          )}
+          <div className={bubbleClass}>{content}</div>
           <span className={styles.time}>{msg.time}</span>
         </div>
       </div>
@@ -140,13 +149,15 @@ function MessageRow({ msg }: { msg: KakaoMessage }) {
 }
 
 /**
- * Room 1: a KakaoTalk-style chat (yellow / grey bubbles on white). The
+ * Room 1: a KakaoTalk-style chat (yellow / grey bubbles on white) that the
+ * ☰ icon flips to the other end of the conversation. The
  * input bar works like room 6's — a contentEditable that keeps focus so the
  * device keyboard stays up, with the message area lifted clear of it.
  */
 export default function KakaoChatSimulator() {
   const router = useRouter();
-  const { feed, hasText, textInputRef, onInput, onKeyDown, send, reset } = useKakaoChatSim();
+  const { feed, hasText, mirrored, textInputRef, onInput, onKeyDown, send, onFeedTap, toggleMirrored, reset } =
+    useKakaoChatSim();
 
   const feedRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -160,18 +171,27 @@ export default function KakaoChatSimulator() {
         <button type="button" className={styles.backButton} onClick={() => router.push("/")} title="กลับไปหน้ารวมแชท">
           <BackIcon />
         </button>
-        <div className={styles.title}>지훈</div>
+        <div className={styles.title}>{mirrored ? "Harry" : "지훈"}</div>
         <div className={styles.headerIcons}>
           <SearchIcon />
           <PhoneIcon />
-          <MenuIcon />
+          <button
+            type="button"
+            className={styles.menuButton}
+            // Keep the keyboard up (the tap would otherwise steal focus).
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={toggleMirrored}
+            title="สลับหน้าจอเป็นฝั่งตรงข้าม"
+          >
+            <MenuIcon />
+          </button>
         </div>
       </div>
 
-      <div className={styles.feed} ref={feedRef} onClick={() => textInputRef.current?.focus()}>
+      <div className={styles.feed} ref={feedRef} onClick={onFeedTap}>
         <div className={styles.feedInner}>
           {feed.map((m) => (
-            <MessageRow key={m.id} msg={m} />
+            <MessageRow key={m.id} msg={m} mirrored={mirrored} />
           ))}
         </div>
       </div>

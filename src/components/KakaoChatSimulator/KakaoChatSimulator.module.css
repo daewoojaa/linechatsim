@@ -165,6 +165,21 @@
   background: #e9e4cf url("/room1-avatar.webp") center 18% / cover no-repeat;
 }
 
+/* Mirrored view: the other end of the conversation, "Harry". */
+.avatarHarry {
+  background-image: url("/room1-harry.jpg");
+  background-position: center 22%;
+}
+
+.menuButton {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  display: flex;
+  cursor: pointer;
+}
+
 .theirsCol {
   min-width: 0;
   display: flex;
