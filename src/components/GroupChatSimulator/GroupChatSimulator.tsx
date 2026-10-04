@@ -182,6 +182,10 @@ export default function GroupChatSimulator() {
       style={{
         background: "#2a1d10 url(/room2-bg.webp) center / cover no-repeat",
         ["--time-color" as string]: "#f6ecd2",
+        // Room 6's 43.8dvh left a ~53px gap above the keyboard on the phone (measured
+        // from a screenshot: bar bottom at 1005px, keyboard top at 1058px of 1874px);
+        // 41.3dvh sits the bar just above it. Room 6 itself is left as it is.
+        ["--keyboard-reserve" as string]: "41.3dvh",
       }}
     >
       <div className={base.contentColumn}>
