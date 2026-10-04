@@ -5,6 +5,28 @@ import { useSoundGrid } from "@/hooks/useSoundGrid";
 import styles from "./SoundPage.module.css";
 
 const STORAGE_KEY = "linechatsim-room5-sound-v1";
+const RUN_KEY = "linechatsim-room5-sound-run-v1";
+
+const DEFAULT_RUN = { start: "465.9K", end: "470K", seconds: "20" };
+const POSTS_SUFFIX = " โพสต์";
+const TICK_MS = 100;
+
+/** "465.9K" / "1.2M" / "465,900" -> 465900 etc. null when it isn't a number. */
+function parseCount(input: string): number | null {
+  const m = /^\s*([\d,]*\.?\d+)\s*([kKmM])?\s*$/.exec(input);
+  if (!m) return null;
+  const n = parseFloat(m[1].replace(/,/g, ""));
+  if (Number.isNaN(n)) return null;
+  return n * (m[2] ? (m[2].toLowerCase() === "m" ? 1_000_000 : 1_000) : 1);
+}
+
+/** 465912 -> "465.9K", 1_250_000 -> "1.25M", 950 -> "950". */
+function formatCount(n: number): string {
+  const trim = (x: number, digits: number) => x.toFixed(digits).replace(/\.?0+$/, "");
+  if (n >= 1_000_000) return `${trim(n / 1_000_000, 2)}M`;
+  if (n >= 1_000) return `${trim(n / 1_000, 1)}K`;
+  return String(Math.round(n));
+}
 
 const DEFAULT_TEXT: Record<string, string> = {
   title: "ดงชน รีมิกซ์ 3.1",
@@ -28,22 +50,37 @@ type Props = {
  * clip): sound title and artist, a save button, and nine tiles that each
  * take a picture or a video from the device (videos autoplay, muted, on a loop). "บันทึก" doubles as the edit
  * lock: while unlocked, the title, artist, post count and the two bottom
- * labels can be tapped and retyped (edits are remembered). The other
+ * labels can be tapped and retyped (edits are remembered). The play button
+ * next to the title opens a dialog (start value, end value, seconds) whose
+ * Start button counts the post number up from one to the other. The other
  * buttons are decorative.
  */
 export default function SoundPage({ avatar, onPickAvatar, onBack }: Props) {
   const { slots, pick, inputRef, handleChange } = useSoundGrid();
   const [text, setText] = useState<Record<string, string>>(DEFAULT_TEXT);
+  // Latest text for `change`, which a running counter calls long after the
+  // render that created it.
+  const textRef = useRef(text);
   const [unlocked, setUnlocked] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const textInputRef = useRef<HTMLInputElement>(null);
+
+  // Post-count runner (the play button): a dialog collects start value, end
+  // value and duration; Start counts the number up from one to the other.
+  const [runOpen, setRunOpen] = useState(false);
+  const [run, setRun] = useState(DEFAULT_RUN);
+  const [shownCount, setShownCount] = useState<string | null>(null);
+  const runTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Saved edits (client-only, so the server render stays on the defaults).
   useEffect(() => {
     queueMicrotask(() => {
       try {
         const raw = window.localStorage.getItem(STORAGE_KEY);
-        if (raw) setText((prev) => ({ ...prev, ...(JSON.parse(raw) as Record<string, string>) }));
+        if (raw) {
+          textRef.current = { ...textRef.current, ...(JSON.parse(raw) as Record<string, string>) };
+          setText(textRef.current);
+        }
       } catch {
         // Persistence is best-effort.
       }
@@ -57,8 +94,54 @@ export default function SoundPage({ avatar, onPickAvatar, onBack }: Props) {
     }
   }, [editing]);
 
+  // Last-used run values.
+  useEffect(() => {
+    queueMicrotask(() => {
+      try {
+        const raw = window.localStorage.getItem(RUN_KEY);
+        if (raw) setRun((prev) => ({ ...prev, ...(JSON.parse(raw) as typeof DEFAULT_RUN) }));
+      } catch {
+        // Persistence is best-effort.
+      }
+    });
+    return () => {
+      if (runTimerRef.current) clearInterval(runTimerRef.current);
+    };
+  }, []);
+
+  const startRun = () => {
+    const from = parseCount(run.start);
+    const to = parseCount(run.end);
+    const seconds = Math.max(parseFloat(run.seconds) || 0, 0);
+    if (from === null || to === null) return;
+    try {
+      window.localStorage.setItem(RUN_KEY, JSON.stringify(run));
+    } catch {
+      // Persistence is best-effort.
+    }
+    setRunOpen(false);
+    setEditing(null);
+    if (runTimerRef.current) clearInterval(runTimerRef.current);
+    let ticks = 0;
+    const show = (value: number) => setShownCount(`${formatCount(value)}${POSTS_SUFFIX}`);
+    show(from);
+    runTimerRef.current = setInterval(() => {
+      ticks += 1;
+      const progress = seconds === 0 ? 1 : Math.min((ticks * TICK_MS) / (seconds * 1000), 1);
+      show(from + (to - from) * progress);
+      if (progress >= 1) {
+        if (runTimerRef.current) clearInterval(runTimerRef.current);
+        runTimerRef.current = null;
+        // Rest on the final number and keep it as the page's post count.
+        setShownCount(null);
+        change("count", `${formatCount(to)}${POSTS_SUFFIX}`);
+      }
+    }, TICK_MS);
+  };
+
   const change = (key: string, value: string) => {
-    const next = { ...text, [key]: value };
+    const next = { ...textRef.current, [key]: value };
+    textRef.current = next;
     setText(next);
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
@@ -88,8 +171,12 @@ export default function SoundPage({ avatar, onPickAvatar, onBack }: Props) {
       );
     }
     return (
-      <span className={className} data-editable={unlocked} onClick={unlocked ? () => setEditing(key) : undefined}>
-        {text[key]}
+      <span
+        className={className}
+        data-editable={unlocked && !(key === "count" && shownCount !== null)}
+        onClick={unlocked && !(key === "count" && shownCount !== null) ? () => setEditing(key) : undefined}
+      >
+        {key === "count" && shownCount !== null ? shownCount : text[key]}
       </span>
     );
   };
@@ -123,11 +210,16 @@ export default function SoundPage({ avatar, onPickAvatar, onBack }: Props) {
           <div className={styles.titles}>
             <div className={styles.titleRow}>
               {editable("title", styles.title)}
-              <span className={`${styles.glass} ${styles.circle} ${styles.playCircle}`}>
+              <button
+                type="button"
+                className={`${styles.glass} ${styles.circle} ${styles.playCircle}`}
+                onClick={() => setRunOpen(true)}
+                aria-label="ตั้งค่าการรันเลขโพสต์"
+              >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M7 4.500v15a1 1 0 0 0 1.500.9l12-7.500a1 1 0 0 0 0-1.800l-12-7.500A1 1 0 0 0 7 4.500Z" />
                 </svg>
-              </span>
+              </button>
             </div>
             {editable("artist", styles.artist)}
             {editable("count", styles.count)}
@@ -188,6 +280,62 @@ export default function SoundPage({ avatar, onPickAvatar, onBack }: Props) {
           {editable("useSound", styles.actionLabel)}
         </span>
       </div>
+
+      {runOpen && (
+        <div className={styles.dialogBackdrop} onClick={() => setRunOpen(false)}>
+          <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.dialogTitle}>รันตัวเลขจำนวนโพสต์</div>
+            <label className={styles.dialogField}>
+              <span>ค่าเริ่มต้น</span>
+              <input
+                className={styles.dialogInput}
+                value={run.start}
+                onChange={(e) => setRun((r) => ({ ...r, start: e.target.value }))}
+                placeholder="เช่น 465.9K"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
+              />
+            </label>
+            <label className={styles.dialogField}>
+              <span>ค่าสุดท้าย</span>
+              <input
+                className={styles.dialogInput}
+                value={run.end}
+                onChange={(e) => setRun((r) => ({ ...r, end: e.target.value }))}
+                placeholder="เช่น 470K"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
+              />
+            </label>
+            <label className={styles.dialogField}>
+              <span>ระยะเวลา (วินาที)</span>
+              <input
+                className={styles.dialogInput}
+                value={run.seconds}
+                inputMode="decimal"
+                onChange={(e) => setRun((r) => ({ ...r, seconds: e.target.value }))}
+                placeholder="เช่น 20"
+              />
+            </label>
+            <div className={styles.dialogHint}>ใส่ได้ทั้ง 465900 หรือ 465.9K / 1.2M</div>
+            <div className={styles.dialogActions}>
+              <button type="button" className={styles.dialogCancel} onClick={() => setRunOpen(false)}>
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                className={styles.dialogStart}
+                onClick={startRun}
+                disabled={parseCount(run.start) === null || parseCount(run.end) === null}
+              >
+                Start
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <input type="file" accept="image/*,video/*" ref={inputRef} onChange={handleChange} hidden />
     </div>
