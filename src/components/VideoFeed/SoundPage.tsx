@@ -26,7 +26,7 @@ type Props = {
 /**
  * Room 5's sound page (reached by tapping the spinning record on the LIVE
  * clip): sound title and artist, a save button, and nine tiles that each
- * take a picture or a video from the device. "บันทึก" doubles as the edit
+ * take a picture or a video from the device (videos autoplay, muted, on a loop). "บันทึก" doubles as the edit
  * lock: while unlocked, the title, artist, post count and the two bottom
  * labels can be tapped and retyped (edits are remembered). The other
  * buttons are decorative.
@@ -155,8 +155,8 @@ export default function SoundPage({ avatar, onPickAvatar, onBack }: Props) {
             <button type="button" key={i} className={styles.tile} onClick={() => pick(i)} aria-label={`ช่องที่ ${i + 1}`}>
               {slot ? (
                 slot.kind === "video" ? (
-                  // #t=0.1 shows a still of the first frame without playing it.
-                  <video className={styles.media} src={`${slot.url}#t=0.1`} muted playsInline preload="metadata" />
+                  // Muted so the browser allows autoplay; loops like a thumbnail preview.
+                  <video className={styles.media} src={slot.url} autoPlay muted loop playsInline />
                 ) : (
                   // eslint-disable-next-line @next/next/no-img-element -- IndexedDB blob URL, no next/image optimization applicable
                   <img className={styles.media} src={slot.url} alt="" />
