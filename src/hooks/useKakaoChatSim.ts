@@ -16,10 +16,11 @@ const SCRIPT: KakaoMessage[] = [
   { id: "s5", kind: "call", variant: "missed", label: "부재중", time: "오전 11:57" },
 ];
 
-// Whatever the operator types, the first send brings up this beat instead.
+// Whatever the operator types, the first send puts this message out on the
+// right (their own side) instead, under a fresh date label.
 const FIRST_SEND: KakaoMessage[] = [
   { id: "n1", kind: "dateLabel", text: "2027년 10월 1일 금요일" },
-  { id: "n2", kind: "theirs", text: "서둘러, 나도 더 이상 소영이를 말릴 수는 없을거 같아", time: "오전 7:30" },
+  { id: "n2", kind: "mine", text: "서둘러, 나도 더 이상 소영이를 말릴 수는 없을거 같아", time: "오전 7:30" },
 ];
 
 function nowLabel() {
@@ -30,9 +31,10 @@ function nowLabel() {
 
 /**
  * Backs room 1: a KakaoTalk-style chat with a pre-filled lead-in. The first
- * thing the operator sends (any text) brings up a scripted date label and
- * the other person's line; anything sent after that goes out as a yellow
- * bubble on the right. Starts over on every visit.
+ * thing the operator sends (whatever they type) goes out as a scripted date
+ * label plus a fixed yellow bubble on the right; anything sent after that
+ * goes out as a yellow bubble with the typed text. Starts over on every
+ * visit.
  */
 export function useKakaoChatSim() {
   const [feed, setFeed] = useState<KakaoMessage[]>(SCRIPT);
