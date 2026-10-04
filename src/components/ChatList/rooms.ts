@@ -10,7 +10,7 @@ export type ChatRoom = {
   /** Shows the little pin badge on the profile picture (rooms 1-4). */
   pinned?: boolean;
   /** Where tapping the row (outside the editable parts) navigates. Omit for
-   *  the still-placeholder rooms (2, 8, 9) that don't go anywhere yet. */
+   *  the still-placeholder rooms (8, 9) that don't go anywhere yet. */
   href?: string;
 };
 
@@ -33,6 +33,7 @@ export const INITIAL_ROOMS: ChatRoom[] = [
     unread: 1,
     color: "#7fb3d5",
     pinned: true,
+    href: "/room2",
   },
   {
     id: "3",
