@@ -58,6 +58,14 @@
   cursor: pointer;
 }
 
+/* The "+" doubles as the edit lock/unlock toggle (see ChatList.tsx) — the
+   tinted circle is the cue that rows are currently editable. */
+.headerIconButton[data-unlocked="true"] {
+  background: rgba(59, 130, 246, 0.14);
+  border-radius: 50%;
+  outline: 6px solid rgba(59, 130, 246, 0.14);
+}
+
 .smallDot {
   position: absolute;
   top: -1px;
@@ -105,6 +113,12 @@
   font: 700 18px system-ui, -apple-system, sans-serif;
 }
 
+.avatar[data-editable="true"] {
+  outline: 2px dashed rgba(59, 130, 246, 0.6);
+  outline-offset: 2px;
+  cursor: pointer;
+}
+
 .rowMain {
   flex: 1;
   min-width: 0;
@@ -126,16 +140,18 @@
   max-width: 100%;
 }
 
-/* Only hints "tap to edit" while unlocked (see .navItem[data-unlocked]) —
+/* Only hints "tap to edit" while unlocked (see .headerIconButton) —
    otherwise indistinguishable from plain text, since tapping does nothing. */
 .roomName[data-editable="true"],
-.message[data-editable="true"] {
+.message[data-editable="true"],
+.time[data-editable="true"] {
   text-decoration: underline dashed rgba(59, 130, 246, 0.5);
   text-underline-offset: 3px;
 }
 
 .roomName[data-editable="true"]:active,
-.message[data-editable="true"]:active {
+.message[data-editable="true"]:active,
+.time[data-editable="true"]:active {
   background: rgba(59, 130, 246, 0.1);
 }
 
@@ -181,6 +197,22 @@
 .time {
   font: 400 12px system-ui, -apple-system, sans-serif;
   color: #8e8e93;
+  min-height: 15px;
+  min-width: 20px;
+  text-align: right;
+}
+
+.timeInput {
+  width: 72px;
+  box-sizing: border-box;
+  font: 400 12px system-ui, -apple-system, sans-serif;
+  color: #1c1c1e;
+  background: #f1f1f3;
+  border: 0;
+  border-radius: 6px;
+  padding: 2px 6px;
+  text-align: right;
+  outline: 2px solid #3b82f6;
 }
 
 .unreadBadge {
@@ -194,6 +226,34 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Empty badge spot: shows nothing while locked, but keeps the row height and
+   (unlocked) stays tappable so a number can be typed in. */
+.unreadSlot {
+  min-width: 22px;
+  height: 22px;
+  border-radius: 999px;
+}
+
+.unreadSlot[data-editable="true"],
+.unreadBadge[data-editable="true"] {
+  outline: 1.5px dashed rgba(59, 130, 246, 0.6);
+  outline-offset: 2px;
+}
+
+.unreadInput {
+  width: 56px;
+  height: 22px;
+  box-sizing: border-box;
+  font: 700 12px system-ui, -apple-system, sans-serif;
+  color: #1c1c1e;
+  background: #f1f1f3;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 8px;
+  text-align: center;
+  outline: 2px solid #3b82f6;
 }
 
 /* ---- Bottom nav ---- */
@@ -217,14 +277,6 @@
   align-items: center;
   gap: 3px;
   cursor: pointer;
-}
-
-/* Home doubles as the edit lock/unlock toggle (see ChatList.tsx) — this is
-   the only visual cue that names/messages are currently editable. */
-.navItem[data-unlocked="true"] {
-  background: rgba(59, 130, 246, 0.1);
-  border-radius: 12px;
-  margin: 0 4px;
 }
 
 .navLabel {

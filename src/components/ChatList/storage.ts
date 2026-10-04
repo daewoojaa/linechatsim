@@ -1,6 +1,8 @@
-const STORAGE_KEY = "linechatsim-chatlist-overrides";
+// "-v2": the row defaults were rewritten, so edits saved against the old
+// placeholder rows are deliberately left behind rather than shadowing them.
+const STORAGE_KEY = "linechatsim-chatlist-overrides-v2";
 
-export type RoomOverride = { name?: string; message?: string };
+export type RoomOverride = { name?: string; message?: string; time?: string; unread?: string };
 export type RoomOverrides = Record<string, RoomOverride>;
 
 export function loadRoomOverrides(): RoomOverrides {

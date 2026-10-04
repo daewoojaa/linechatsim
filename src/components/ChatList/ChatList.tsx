@@ -13,35 +13,43 @@ import {
   TodayIcon,
   WalletIcon,
 } from "@/components/icons/ChatListIcons";
+import { idbGetImage, idbSetImage } from "@/lib/idbStore";
 import { INITIAL_ROOMS, type ChatRoom } from "./rooms";
 import { loadRoomOverrides, saveRoomOverride } from "./storage";
 import styles from "./ChatList.module.css";
 
-type EditingField = { id: string; field: "name" | "message" } | null;
+type Field = "name" | "message" | "time" | "unread";
+type EditingField = { id: string; field: Field } | null;
+
+const avatarKey = (id: string) => `chatlist:avatar:${id}`;
+
+function hasBadge(unread: ChatRoom["unread"]) {
+  const v = String(unread ?? "").trim();
+  return v !== "" && v !== "0";
+}
 
 /**
- * LINE-style chat list ("แชท" tab) — the app's new home screen. Design
- * reference: a real LINE screenshot the user provided. Row data is
- * placeholder for now (rooms 2-9 keep their room-number names — the user
- * will fill in real content later); room 1 and room 10 are the two rows
- * with an actual destination wired up.
+ * LINE-style chat list ("แชท" tab) — the app's home screen. Design
+ * reference: a real LINE screenshot the user provided.
  *
- * Room name/message are editable in place, but only while unlocked — the
- * "หน้าหลัก" (Home) button doubles as the lock/unlock toggle for this
- * edit mode, since it doesn't have anywhere to actually navigate yet.
+ * Everything on a row (name, last message, time, unread count, profile
+ * picture) is editable in place, but only while unlocked — the "+" icon at
+ * the top right toggles that edit mode. Each edit is saved the moment it is
+ * committed, and locking saves every row again, so nothing is lost.
  */
 export default function ChatList() {
   const router = useRouter();
   const [rooms, setRooms] = useState<ChatRoom[]>(INITIAL_ROOMS);
+  const [avatars, setAvatars] = useState<Record<string, string>>({});
   const [editing, setEditing] = useState<EditingField>(null);
   const [locked, setLocked] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const pendingAvatarId = useRef<string | null>(null);
 
-  // Load any saved name/message edits once on mount (client-only, so the
-  // server-rendered markup still matches INITIAL_ROOMS and hydrates clean).
-  // Deferred a tick so this doesn't count as a synchronous setState-in-effect
-  // (which can cascade renders) — there's nothing to await, just a mount
-  // hook reading a synchronous browser API once.
+  // Load any saved edits once on mount (client-only, so the server-rendered
+  // markup still matches INITIAL_ROOMS and hydrates clean). Deferred a tick
+  // so this doesn't count as a synchronous setState-in-effect.
   useEffect(() => {
     queueMicrotask(() => {
       const overrides = loadRoomOverrides();
@@ -51,13 +59,29 @@ export default function ChatList() {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+    Promise.all(INITIAL_ROOMS.map((r) => idbGetImage(avatarKey(r.id)))).then((blobs) => {
+      if (cancelled) return;
+      const next: Record<string, string> = {};
+      INITIAL_ROOMS.forEach((r, i) => {
+        const blob = blobs[i];
+        if (blob) next[r.id] = URL.createObjectURL(blob);
+      });
+      setAvatars(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     if (editing) {
       inputRef.current?.focus();
       inputRef.current?.select();
     }
   }, [editing]);
 
-  const startEditing = (e: React.MouseEvent, id: string, field: "name" | "message") => {
+  const startEditing = (e: React.MouseEvent, id: string, field: Field) => {
     if (locked) return;
     e.stopPropagation();
     setEditing({ id, field });
@@ -66,17 +90,89 @@ export default function ChatList() {
   const commitEditing = () => {
     if (!editing) return;
     const room = rooms.find((r) => r.id === editing.id);
-    if (room) saveRoomOverride(room.id, { [editing.field]: room[editing.field] });
+    if (room) saveRoomOverride(room.id, { [editing.field]: String(room[editing.field] ?? "") });
     setEditing(null);
   };
 
-  const updateField = (id: string, field: "name" | "message", value: string) => {
+  const updateField = (id: string, field: Field, value: string) => {
     setRooms((prev) => prev.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
+  };
+
+  const toggleLock = () => {
+    if (!locked) {
+      // Locking: write every row out once more so the whole list is
+      // remembered, including an edit still open in an input.
+      rooms.forEach((r) =>
+        saveRoomOverride(r.id, {
+          name: r.name,
+          message: r.message,
+          time: r.time,
+          unread: String(r.unread ?? ""),
+        })
+      );
+      setEditing(null);
+    }
+    setLocked((l) => !l);
   };
 
   const openRoom = (room: ChatRoom) => {
     if (editing?.id === room.id) return;
     if (room.href) router.push(room.href);
+  };
+
+  const pickAvatar = (e: React.MouseEvent, id: string) => {
+    if (locked) return;
+    e.stopPropagation();
+    pendingAvatarId.current = id;
+    const el = avatarInputRef.current;
+    if (el) {
+      el.value = "";
+      el.click();
+    }
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    const id = pendingAvatarId.current;
+    if (!file || !id) return;
+    await idbSetImage(avatarKey(id), file);
+    const url = URL.createObjectURL(file);
+    setAvatars((prev) => ({ ...prev, [id]: url }));
+  };
+
+  const onInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      commitEditing();
+    }
+  };
+
+  /** Text (or the input replacing it while it is being edited). */
+  const editable = (room: ChatRoom, field: Field, textClass: string, inputClass: string, hint: string) => {
+    if (editing?.id === room.id && editing.field === field) {
+      return (
+        <input
+          ref={inputRef}
+          className={inputClass}
+          value={String(room[field] ?? "")}
+          inputMode={field === "unread" ? "numeric" : undefined}
+          onClick={(e) => e.stopPropagation()}
+          onChange={(e) => updateField(room.id, field, e.target.value)}
+          onBlur={commitEditing}
+          onKeyDown={onInputKeyDown}
+        />
+      );
+    }
+    return (
+      <div
+        className={textClass}
+        data-editable={!locked}
+        onClick={(e) => startEditing(e, room.id, field)}
+        title={locked ? undefined : hint}
+      >
+        {room[field]}
+      </div>
+    );
   };
 
   return (
@@ -96,7 +192,13 @@ export default function ChatList() {
           <button type="button" className={styles.headerIconButton} title="ปฏิทิน">
             <CalendarBadgeIcon day={31} />
           </button>
-          <button type="button" className={styles.headerIconButton} title="เพิ่ม">
+          <button
+            type="button"
+            className={styles.headerIconButton}
+            data-unlocked={!locked}
+            onClick={toggleLock}
+            title={locked ? "แตะเพื่อปลดล็อกการแก้ไข" : "แตะเพื่อล็อกการแก้ไข (บันทึกค่าไว้ให้)"}
+          >
             <PlusIcon />
           </button>
         </div>
@@ -104,85 +206,51 @@ export default function ChatList() {
 
       {/* 2. Room list */}
       <div className={styles.list}>
-        {rooms.map((room) => (
-          <div key={room.id} className={styles.row} data-linked={Boolean(room.href)} onClick={() => openRoom(room)}>
-            <div className={styles.avatar} style={{ backgroundColor: room.color }} />
+        {rooms.map((room) => {
+          const unreadEditing = editing?.id === room.id && editing.field === "unread";
+          return (
+            <div key={room.id} className={styles.row} data-linked={Boolean(room.href)} onClick={() => openRoom(room)}>
+              <div
+                className={styles.avatar}
+                data-editable={!locked}
+                style={{
+                  backgroundColor: room.color,
+                  backgroundImage: avatars[room.id] ? `url(${avatars[room.id]})` : undefined,
+                }}
+                onClick={(e) => pickAvatar(e, room.id)}
+                title={locked ? undefined : "แตะเพื่อเปลี่ยนรูปโปรไฟล์"}
+              />
 
-            <div className={styles.rowMain}>
-              {editing?.id === room.id && editing.field === "name" ? (
-                <input
-                  ref={inputRef}
-                  className={styles.roomNameInput}
-                  value={room.name}
-                  onClick={(e) => e.stopPropagation()}
-                  onChange={(e) => updateField(room.id, "name", e.target.value)}
-                  onBlur={commitEditing}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      commitEditing();
-                    }
-                  }}
-                />
-              ) : (
-                <div
-                  className={styles.roomName}
-                  data-editable={!locked}
-                  onClick={(e) => startEditing(e, room.id, "name")}
-                  title={locked ? undefined : "แตะเพื่อแก้ไขชื่อห้อง"}
-                >
-                  {room.name}
-                </div>
-              )}
+              <div className={styles.rowMain}>
+                {editable(room, "name", styles.roomName, styles.roomNameInput, "แตะเพื่อแก้ไขชื่อห้อง")}
+                {editable(room, "message", styles.message, styles.messageInput, "แตะเพื่อแก้ไขข้อความ")}
+              </div>
 
-              {editing?.id === room.id && editing.field === "message" ? (
-                <input
-                  ref={inputRef}
-                  className={styles.messageInput}
-                  value={room.message}
-                  onClick={(e) => e.stopPropagation()}
-                  onChange={(e) => updateField(room.id, "message", e.target.value)}
-                  onBlur={commitEditing}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      commitEditing();
-                    }
-                  }}
-                />
-              ) : (
-                <div
-                  className={styles.message}
-                  data-editable={!locked}
-                  onClick={(e) => startEditing(e, room.id, "message")}
-                  title={locked ? undefined : "แตะเพื่อแก้ไขข้อความ"}
-                >
-                  {room.message}
-                </div>
-              )}
+              <div className={styles.rowEnd}>
+                {editable(room, "time", styles.time, styles.timeInput, "แตะเพื่อแก้ไขเวลา")}
+                {unreadEditing ? (
+                  editable(room, "unread", styles.unreadBadge, styles.unreadInput, "")
+                ) : (
+                  <div
+                    className={hasBadge(room.unread) ? styles.unreadBadge : styles.unreadSlot}
+                    data-editable={!locked}
+                    onClick={(e) => startEditing(e, room.id, "unread")}
+                    title={locked ? undefined : "แตะเพื่อใส่ตัวเลข"}
+                  >
+                    {hasBadge(room.unread) ? room.unread : null}
+                  </div>
+                )}
+              </div>
             </div>
-
-            <div className={styles.rowEnd}>
-              <div className={styles.time}>{room.time}</div>
-              {room.unread !== undefined && <div className={styles.unreadBadge}>{room.unread}</div>}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* 3. Bottom nav */}
       <div className={styles.bottomNav}>
-        <button
-          type="button"
-          className={styles.navItem}
-          data-unlocked={!locked}
-          onClick={() => setLocked((l) => !l)}
-          title={locked ? "แตะเพื่อปลดล็อกการแก้ไขชื่อ/ข้อความ" : "แตะเพื่อล็อกการแก้ไข"}
-        >
-          <HomeIcon active={!locked} />
-          <span className={styles.navLabel} data-active={!locked}>
-            หน้าหลัก
-          </span>
+        <button type="button" className={styles.navItem}>
+          <HomeIcon />
+          <span className={styles.navLabel}>หน้าหลัก</span>
         </button>
         <button type="button" className={styles.navItem}>
           <ChatBubbleIcon active />
@@ -194,19 +262,21 @@ export default function ChatList() {
         <button type="button" className={styles.navItem}>
           <OpenChatIcon />
           <span className={styles.navDot} />
-          <span className={styles.navLabel}>โอเพนแชท</span>
+          <span className={styles.navLabel}>บริการ</span>
         </button>
         <button type="button" className={styles.navItem}>
           <TodayIcon />
           <span className={styles.navDot} />
-          <span className={styles.navLabel}>TODAY</span>
+          <span className={styles.navLabel}>ข่าวสาร</span>
         </button>
         <button type="button" className={styles.navItem}>
           <WalletIcon />
           <span className={styles.navDot} />
-          <span className={styles.navLabel}>Wallet</span>
+          <span className={styles.navLabel}>กระเป๋าเงิน</span>
         </button>
       </div>
+
+      <input type="file" accept="image/*" ref={avatarInputRef} onChange={handleAvatarChange} hidden />
     </div>
   );
 }
