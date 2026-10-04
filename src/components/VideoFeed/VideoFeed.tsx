@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { EMPTY_CLIP, useVideoFeedClips, type ClipField, type ClipInfo } from "@/hooks/useVideoFeedClips";
+import { EDITABLE_FROM, useLiveClip, type LiveComment } from "@/hooks/useLiveClip";
 import styles from "./VideoFeed.module.css";
 
 // The slide list is the clips followed by a duplicate of clip 1. Swiping past
@@ -119,17 +120,19 @@ function SmileNavIcon() {
   );
 }
 
-type EditTarget = { clip: number; field: ClipField };
+type EditTarget = { clip: number | "live"; field: ClipField };
 
 type OverlayProps = {
   info: ClipInfo;
   avatar: string | null;
   onEdit: (field: ClipField) => void;
   onPickAvatar: () => void;
+  /** Stacked above the caption block (the LIVE clip's floating comments). */
+  aboveInfo?: React.ReactNode;
 };
 
 /** The parts of the interface that ride along with each clip. */
-function ClipOverlay({ info, avatar, onEdit, onPickAvatar }: OverlayProps) {
+function ClipOverlay({ info, avatar, onEdit, onPickAvatar, aboveInfo }: OverlayProps) {
   const avatarStyle = avatar ? { backgroundImage: `url(${avatar})` } : undefined;
   const counters: [ClipField, React.ReactNode][] = [
     ["likes", <HeartIcon key="h" />],
@@ -160,7 +163,9 @@ function ClipOverlay({ info, avatar, onEdit, onPickAvatar }: OverlayProps) {
         </div>
       </div>
 
-      <div className={styles.info}>
+      <div className={aboveInfo ? styles.stack : undefined}>
+        {aboveInfo}
+      <div className={`${styles.info} ${aboveInfo ? styles.infoInStack : ""}`}>
         <button type="button" className={styles.infoName} onClick={() => onEdit("name")}>
           {info.name}
         </button>
@@ -176,7 +181,52 @@ function ClipOverlay({ info, avatar, onEdit, onPickAvatar }: OverlayProps) {
           <span className={styles.songArrow}>›</span>
         </button>
       </div>
+      </div>
     </>
+  );
+}
+
+const COMMENT_EVERY_MS = 2000;
+const VISIBLE_COMMENTS = 5;
+
+/**
+ * Live comments floating up the left side: a new one appears at the bottom
+ * every couple of seconds (cycling through all ten, so edits show up on the
+ * next pass), drifts upward and fades out near the top.
+ */
+function LiveComments({ comments }: { comments: LiveComment[] }) {
+  const [items, setItems] = useState<{ key: number; comment: LiveComment }[]>([]);
+  const commentsRef = useRef(comments);
+  useEffect(() => {
+    commentsRef.current = comments;
+  }, [comments]);
+
+  useEffect(() => {
+    let n = 0;
+    const tick = () => {
+      const list = commentsRef.current;
+      const comment = list[n % list.length];
+      const key = n;
+      n += 1;
+      setItems((prev) => [...prev.slice(-(VISIBLE_COMMENTS - 1)), { key, comment }]);
+    };
+    const first = setTimeout(tick, 400);
+    const timer = setInterval(tick, COMMENT_EVERY_MS);
+    return () => {
+      clearTimeout(first);
+      clearInterval(timer);
+    };
+  }, []);
+
+  return (
+    <div className={styles.comments}>
+      {items.map(({ key, comment }) => (
+        <div key={key} className={styles.liveComment}>
+          <span className={styles.liveCommentName}>{comment.name}</span>
+          <span className={styles.liveCommentText}>{comment.text}</span>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -191,6 +241,10 @@ function ClipOverlay({ info, avatar, onEdit, onPickAvatar }: OverlayProps) {
  * while the side rail and caption block live inside each slide and slide
  * away with the clip. Every piece of text (and the account picture) is
  * editable by tapping it; edits persist per clip.
+ *
+ * The top-left LIVE badge switches to the LIVE clip (its own details, video
+ * and floating comments, separate from the swipe loop); tap it again to go
+ * back. The "ข้อความ" item opens an editor for live comments 6-10.
  */
 export default function VideoFeed() {
   const router = useRouter();
@@ -214,6 +268,11 @@ export default function VideoFeed() {
     avatarInputRef,
     handleAvatarChange,
   } = useVideoFeedClips();
+  // The two file-input refs are pulled out of the object so JSX can take them directly.
+  const { videoInputRef: liveVideoInputRef, avatarInputRef: liveAvatarInputRef, ...live } = useLiveClip();
+  const [liveMode, setLiveMode] = useState(false);
+  const [commentsEditorOpen, setCommentsEditorOpen] = useState(false);
+  const liveVideoRef = useRef<HTMLVideoElement>(null);
   const slides = [...videoSrcs, videoSrcs[0]];
   const clipCount = clips.length;
 
@@ -229,7 +288,7 @@ export default function VideoFeed() {
   useEffect(() => {
     videoRefs.current.forEach((video, i) => {
       if (!video) return;
-      if (i === index) {
+      if (!liveMode && i === index) {
         video.currentTime = 0;
         video.muted = false;
         video.play().catch(() => {
@@ -245,7 +304,22 @@ export default function VideoFeed() {
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- videoSrcs is re-created every render; its joined value is the real dependency
-  }, [index, videoSrcs.join("|")]);
+  }, [index, liveMode, videoSrcs.join("|")]);
+
+  // The LIVE clip plays (with sound) while its layer is up.
+  useEffect(() => {
+    const video = liveVideoRef.current;
+    if (!liveMode || !video) return;
+    video.currentTime = 0;
+    video.muted = false;
+    video.play().catch(() => {
+      soundBlocked.current = true;
+      video.muted = true;
+      video.play().catch(() => {
+        // Still blocked - nothing more to do.
+      });
+    });
+  }, [liveMode, live.videoSrc]);
 
   useEffect(() => {
     const unmute = () => {
@@ -254,13 +328,14 @@ export default function VideoFeed() {
       videoRefs.current.forEach((v) => {
         if (v) v.muted = false;
       });
+      if (liveVideoRef.current) liveVideoRef.current.muted = false;
     };
     window.addEventListener("pointerdown", unmute);
     return () => window.removeEventListener("pointerdown", unmute);
   }, []);
 
   const goTo = (next: number) => {
-    if (lockedRef.current || next < 0 || next >= slides.length || next === index) return;
+    if (liveMode || lockedRef.current || next < 0 || next >= slides.length || next === index) return;
     lockedRef.current = true;
     setIndex(next);
 
@@ -300,12 +375,15 @@ export default function VideoFeed() {
     else if (e.deltaY < -WHEEL_THRESHOLD_PX) goTo(index - 1);
   };
 
-  const startEdit = (clip: number, field: ClipField) => {
-    setDraft(clips[clip][field]);
+  const startEdit = (clip: number | "live", field: ClipField) => {
+    setDraft(clip === "live" ? live.info[field] : clips[clip][field]);
     setEditing({ clip, field });
   };
   const commitEdit = () => {
-    if (editing) setField(editing.clip, editing.field, draft.trim());
+    if (editing) {
+      if (editing.clip === "live") live.setField(editing.field, draft.trim());
+      else setField(editing.clip, editing.field, draft.trim());
+    }
     setEditing(null);
   };
 
@@ -360,13 +438,32 @@ export default function VideoFeed() {
           })}
         </div>
 
+        {liveMode && (
+          <div className={styles.liveLayer}>
+            <video ref={liveVideoRef} className={styles.video} src={live.videoSrc} loop playsInline />
+            <ClipOverlay
+              info={live.info}
+              avatar={live.avatar}
+              onEdit={(field) => startEdit("live", field)}
+              onPickAvatar={live.requestPickAvatar}
+              aboveInfo={<LiveComments comments={live.comments} />}
+            />
+          </div>
+        )}
+
         {/* Locked top bar. */}
         <div className={styles.topBar}>
-          <div className={styles.liveBadge}>
+          <button
+            type="button"
+            className={styles.liveBadge}
+            data-active={liveMode}
+            onClick={() => setLiveMode((m) => !m)}
+            aria-label="LIVE"
+          >
             <LiveIcon />
             <span>LIVE</span>
             <i className={styles.liveDot} />
-          </div>
+          </button>
           <div className={styles.tabPill}>
             <span className={`${styles.tab} ${styles.tabActive}`}>แนะนำ</span>
             <span className={styles.tab}>เพื่อน</span>
@@ -387,7 +484,7 @@ export default function VideoFeed() {
           <button
             type="button"
             className={styles.navItem}
-            onClick={() => requestPickVideo(index % clipCount)}
+            onClick={() => (liveMode ? live.requestPickVideo() : requestPickVideo(index % clipCount))}
             aria-label="เปลี่ยนคลิปนี้ (อัพโหลดคลิปแทน)"
           >
             <CompassIcon />
@@ -401,10 +498,10 @@ export default function VideoFeed() {
             </span>
             <span className={styles.navLabel}>โพสต์</span>
           </button>
-          <div className={styles.navItem}>
+          <button type="button" className={styles.navItem} onClick={() => setCommentsEditorOpen(true)} aria-label="แก้ไขคอมเม้นต์ไลฟ์">
             <MessageNavIcon />
             <span className={styles.navLabel}>ข้อความ</span>
-          </div>
+          </button>
           <div className={styles.navItem}>
             <SmileNavIcon />
             <span className={styles.navLabel}>ฉัน</span>
@@ -431,6 +528,46 @@ export default function VideoFeed() {
             />
             <button type="button" className={styles.editorOk} onClick={commitEdit}>
               ตกลง
+            </button>
+          </div>
+        </div>
+      )}
+
+      {commentsEditorOpen && (
+        <div className={styles.formPage}>
+          <div className={styles.formHeader}>แก้ไขคอมเม้นต์ไลฟ์ 6–10</div>
+          <div className={styles.formFile}>ชื่อผู้คอมเม้นต์ + ข้อความ (จดจำไว้ให้)</div>
+          <div className={styles.formBody}>
+            {live.comments.slice(EDITABLE_FROM).map((c, i) => {
+              const index = EDITABLE_FROM + i;
+              return (
+                <div key={index} className={styles.formField}>
+                  <span>คอมเม้นต์ {index + 1}</span>
+                  <input
+                    className={styles.editorInput}
+                    value={c.name}
+                    placeholder="ชื่อ"
+                    onChange={(e) => live.setComment(index, { name: e.target.value })}
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
+                  />
+                  <input
+                    className={styles.editorInput}
+                    value={c.text}
+                    placeholder="ข้อความ"
+                    onChange={(e) => live.setComment(index, { text: e.target.value })}
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
+                  />
+                </div>
+              );
+            })}
+          </div>
+          <div className={styles.formActions}>
+            <button type="button" className={styles.editorOk} onClick={() => setCommentsEditorOpen(false)}>
+              เสร็จ
             </button>
           </div>
         </div>
@@ -481,6 +618,8 @@ export default function VideoFeed() {
       />
       <input type="file" accept="video/*" ref={videoInputRef} onChange={handleVideoChange} className={styles.hidden} />
       <input type="file" accept="image/*" ref={avatarInputRef} onChange={handleAvatarChange} className={styles.hidden} />
+      <input type="file" accept="video/*" ref={liveVideoInputRef} onChange={live.handleVideoChange} className={styles.hidden} />
+      <input type="file" accept="image/*" ref={liveAvatarInputRef} onChange={live.handleAvatarChange} className={styles.hidden} />
     </div>
   );
 }

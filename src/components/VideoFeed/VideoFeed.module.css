@@ -62,8 +62,10 @@
   pointer-events: none;
 }
 
+/* The bar itself ignores touches (video swipes pass through); its controls opt back in. */
 .liveBadge,
 .searchCircle {
+  pointer-events: auto;
   position: relative;
   flex: none;
   width: 54px;
@@ -80,9 +82,15 @@
 }
 
 .liveBadge {
+  cursor: pointer;
+  padding: 0;
   gap: 0;
   font: 700 9px system-ui, -apple-system, sans-serif;
   letter-spacing: 0.5px;
+}
+
+.liveBadge[data-active="true"] {
+  background: rgba(214, 60, 100, 0.85);
 }
 
 .liveDot {
@@ -324,6 +332,89 @@
 .infoCaption {
   min-height: 1.35em;
   font: 400 16px/1.35 system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+}
+
+/* The LIVE clip: a full-screen layer over the swipe track (under the bars). */
+.liveLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: #000000;
+  overflow: hidden;
+}
+
+/* Floating comments stacked above the caption block. */
+.stack {
+  position: absolute;
+  left: 14px;
+  right: 92px;
+  bottom: var(--nav-space);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.infoInStack {
+  position: static;
+}
+
+.comments {
+  --comments-h: 300px;
+  position: relative;
+  height: var(--comments-h);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.liveComment {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 6px 16px 7px;
+  border-radius: 22px;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  /* ~30px/s upward; with one every 2s that is a 60px pitch, enough for a
+     two-line pill so they never overlap. */
+  animation: commentFloat 8s linear forwards;
+}
+
+.liveCommentName {
+  font: 400 12.5px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  color: rgba(255, 255, 255, 0.65);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.liveCommentText {
+  font: 500 17px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@keyframes commentFloat {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  6% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(calc(-1 * var(--comments-h) + 56px));
+    opacity: 0;
+  }
 }
 
 .songChip {
