@@ -19,10 +19,17 @@ const SCRIPT: KakaoMessage[] = [
   { id: "s5", kind: "call", owner: "b", variant: "missed", label: "부재중", time: "오전 11:57" },
 ];
 
-// The one scripted beat: a new date label and this line from side "a".
-const BEAT: KakaoMessage[] = [
-  { id: "n1", kind: "dateLabel", text: "2027년 10월 1일 금요일" },
-  { id: "n2", kind: "text", owner: "a", text: "서둘러, 나도 더 이상 소영이를 말릴 수는 없을거 같아", time: "오전 7:30" },
+// The scripted beats, in order: each is a new date label plus a line from
+// side "a". Taps (mirrored view) bring them up one at a time.
+const BEATS: KakaoMessage[][] = [
+  [
+    { id: "n1", kind: "dateLabel", text: "2027년 10월 1일 금요일" },
+    { id: "n2", kind: "text", owner: "a", text: "서둘러, 나도 더 이상 소영이를 말릴 수는 없을거 같아", time: "오전 7:30" },
+  ],
+  [
+    { id: "n3", kind: "dateLabel", text: "2027년 10월 3일 일요일" },
+    { id: "n4", kind: "text", owner: "a", text: "소영이 동촌에 거의 다 왔어.", time: "오전 11:50" },
+  ],
 ];
 
 const BEAT_DELAY_MS = 5000;
@@ -38,10 +45,11 @@ function nowLabel() {
  * from either end of the conversation (the ☰ icon flips `mirrored`: sides
  * and colours swap, and the partner becomes "Harry").
  *
- * The scripted beat (date label + "서둘러, ...") shows up one of two ways:
- * in the normal view, the first thing sent (whatever is typed) puts it out
- * on the right; in the mirrored view, tapping the conversation shows it on
- * the left after 5 seconds. Text sent otherwise goes out as a yellow bubble.
+ * The scripted beats (a date label + a line each) show up one of two ways:
+ * in the normal view, the first thing sent (whatever is typed) puts the
+ * first beat out on the right; in the mirrored view, each tap on the
+ * conversation shows the next beat on the left after 5 seconds. Text sent
+ * otherwise goes out as a yellow bubble.
  * The "+" button resets everything for another take.
  */
 export function useKakaoChatSim() {
@@ -49,7 +57,9 @@ export function useKakaoChatSim() {
   const [hasText, setHasText] = useState(false);
   const [mirrored, setMirrored] = useState(false);
   const textInputRef = useRef<HTMLDivElement>(null);
-  const beatStartedRef = useRef(false);
+  // How many beats have been shown or are counting down.
+  const beatsStartedRef = useRef(0);
+  const beatPendingRef = useRef(false);
   const beatTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const idRef = useRef(0);
 
@@ -68,10 +78,10 @@ export function useKakaoChatSim() {
       el?.focus();
       return;
     }
-    if (!mirrored && !beatStartedRef.current) {
-      // First send in the normal view: whatever was typed, the beat goes out.
-      beatStartedRef.current = true;
-      setFeed((prev) => [...prev, ...BEAT]);
+    if (!mirrored && beatsStartedRef.current === 0) {
+      // First send in the normal view: whatever was typed, beat 1 goes out.
+      beatsStartedRef.current = 1;
+      setFeed((prev) => [...prev, ...BEATS[0]]);
     } else {
       idRef.current += 1;
       const owner: Owner = mirrored ? "b" : "a";
@@ -86,14 +96,17 @@ export function useKakaoChatSim() {
   }, [mirrored]);
 
   /** Tap on the conversation: refocus the input, and in the mirrored view
-   *  start the 5-second countdown to the scripted beat (once). */
+   *  start the 5-second countdown to the next scripted beat. */
   const onFeedTap = useCallback(() => {
     textInputRef.current?.focus();
-    if (!mirrored || beatStartedRef.current) return;
-    beatStartedRef.current = true;
+    if (!mirrored || beatPendingRef.current || beatsStartedRef.current >= BEATS.length) return;
+    const beat = BEATS[beatsStartedRef.current];
+    beatsStartedRef.current += 1;
+    beatPendingRef.current = true;
     beatTimerRef.current = setTimeout(() => {
       beatTimerRef.current = null;
-      setFeed((prev) => [...prev, ...BEAT]);
+      beatPendingRef.current = false;
+      setFeed((prev) => [...prev, ...beat]);
     }, BEAT_DELAY_MS);
   }, [mirrored]);
 
@@ -108,7 +121,8 @@ export function useKakaoChatSim() {
       clearTimeout(beatTimerRef.current);
       beatTimerRef.current = null;
     }
-    beatStartedRef.current = false;
+    beatsStartedRef.current = 0;
+    beatPendingRef.current = false;
     setFeed(SCRIPT);
     setHasText(false);
     const el = textInputRef.current;
