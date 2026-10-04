@@ -23,6 +23,10 @@ const HEADER_COLOR = "#ffffff";
 const NAME_MAX_PX = 21;
 const NAME_MIN_PX = 9;
 // The device's own UI font (Thai falls back to whatever the system provides).
+// Space kept free below the input bar when the real keyboard height is not
+// known (browsers without the VirtualKeyboard API): room 6's calibrated value.
+const FALLBACK_KEYBOARD_RESERVE = "43.8dvh";
+
 const SYSTEM_FONT = "system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans Thai', sans-serif";
 
 /**
@@ -54,6 +58,32 @@ export default function GroupChatSimulator() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [draft, setDraft] = useState(maxRead);
   const [viewing, setViewing] = useState<string | null>(null);
+
+  // Sit the input bar exactly on top of the keyboard: where the browser
+  // reports the keyboard (Chrome/Android VirtualKeyboard API) use its real
+  // height, which stays right on any phone, keyboard or toolbar; elsewhere
+  // fall back to a fixed share of the screen.
+  const [keyboardReserve, setKeyboardReserve] = useState(FALLBACK_KEYBOARD_RESERVE);
+  useEffect(() => {
+    const vk = (
+      navigator as Navigator & {
+        virtualKeyboard?: EventTarget & { overlaysContent: boolean; boundingRect: DOMRect };
+      }
+    ).virtualKeyboard;
+    if (!vk) return;
+    const previous = vk.overlaysContent;
+    vk.overlaysContent = true;
+    const update = () => {
+      const h = vk.boundingRect.height;
+      setKeyboardReserve(h > 0 ? `${Math.round(h)}px` : FALLBACK_KEYBOARD_RESERVE);
+    };
+    vk.addEventListener("geometrychange", update);
+    update();
+    return () => {
+      vk.removeEventListener("geometrychange", update);
+      vk.overlaysContent = previous;
+    };
+  }, []);
 
   const feedRef = useRef<HTMLDivElement>(null);
 
@@ -182,10 +212,7 @@ export default function GroupChatSimulator() {
       style={{
         background: "#2a1d10 url(/room2-bg.webp) center / cover no-repeat",
         ["--time-color" as string]: "#f6ecd2",
-        // Room 6's 43.8dvh left a ~53px gap above the keyboard on the phone (measured
-        // from a screenshot: bar bottom at 1005px, keyboard top at 1058px of 1874px);
-        // 41.3dvh sits the bar just above it. Room 6 itself is left as it is.
-        ["--keyboard-reserve" as string]: "41.3dvh",
+        ["--keyboard-reserve" as string]: keyboardReserve,
       }}
     >
       <div className={base.contentColumn}>
