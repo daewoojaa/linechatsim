@@ -7,6 +7,8 @@ export type ChatRoom = {
    *  tappable while the list is unlocked, to type a number in). */
   unread?: number | string;
   color: string;
+  /** Shows the little pin badge on the profile picture (rooms 1-4). */
+  pinned?: boolean;
   /** Where tapping the row (outside the editable parts) navigates. Omit for
    *  the still-placeholder rooms (2, 8, 9) that don't go anywhere yet. */
   href?: string;
@@ -20,6 +22,7 @@ export const INITIAL_ROOMS: ChatRoom[] = [
     time: "18:42",
     unread: 3,
     color: "#f2a65a",
+    pinned: true,
     href: "/room1",
   },
   {
@@ -29,6 +32,7 @@ export const INITIAL_ROOMS: ChatRoom[] = [
     time: "เมื่อวาน",
     unread: 1,
     color: "#7fb3d5",
+    pinned: true,
   },
   {
     id: "3",
@@ -37,6 +41,7 @@ export const INITIAL_ROOMS: ChatRoom[] = [
     time: "20/8",
     unread: 12,
     color: "#a3d9a5",
+    pinned: true,
     href: "/room3",
   },
   {
@@ -45,6 +50,7 @@ export const INITIAL_ROOMS: ChatRoom[] = [
     message: "สิ้นสุดการโทรแบบวิดีโอ",
     time: "18/8",
     color: "#f7b7a3",
+    pinned: true,
     href: "/room4",
   },
   { id: "5", name: "ช่างเอก", message: "ได้เลยครับ", time: "12/8", unread: 5, color: "#c39bd3", href: "/room5" },

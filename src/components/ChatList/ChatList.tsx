@@ -9,6 +9,7 @@ import {
   ChevronDownIcon,
   HomeIcon,
   OpenChatIcon,
+  PinBadgeIcon,
   PlusIcon,
   TodayIcon,
   WalletIcon,
@@ -219,7 +220,13 @@ export default function ChatList() {
                 }}
                 onClick={(e) => pickAvatar(e, room.id)}
                 title={locked ? undefined : "แตะเพื่อเปลี่ยนรูปโปรไฟล์"}
-              />
+              >
+                {room.pinned && (
+                  <span className={styles.pinBadge}>
+                    <PinBadgeIcon />
+                  </span>
+                )}
+              </div>
 
               <div className={styles.rowMain}>
                 {editable(room, "name", styles.roomName, styles.roomNameInput, "แตะเพื่อแก้ไขชื่อห้อง")}

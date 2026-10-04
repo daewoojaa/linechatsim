@@ -44,6 +44,19 @@ export function PlusIcon() {
   );
 }
 
+/** Small pushpin on a white disc — the "pinned chat" mark on a profile picture. */
+export function PinBadgeIcon() {
+  return (
+    <svg width={20} height={20} viewBox="0 0 24 24">
+      <circle cx={12} cy={12} r={11} fill="#ffffff" />
+      <g transform="rotate(35 12 12)" fill="#6b6b73">
+        <path d="M9.2 5.5h5.6l-.7 4.1c1.4.8 2.2 2 2.2 3.4h-9.6c0-1.4.8-2.600 2.200-3.400z" />
+        <rect x={11.300} y={13} width={1.400} height={5.500} rx={0.7} />
+      </g>
+    </svg>
+  );
+}
+
 export function HomeIcon({ active }: { active?: boolean }) {
   const c = active ? "#1c1c1e" : "#8e8e93";
   return (
