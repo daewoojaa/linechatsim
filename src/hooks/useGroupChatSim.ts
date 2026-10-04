@@ -228,40 +228,19 @@ export function useGroupChatSim() {
     [send]
   );
 
-  /** Puts the cursor back in the input and asks for the keyboard, so typing
-   *  can continue right after a picture is sent. Browsers often ignore a
-   *  focus() that isn't inside a tap (the file picker has just closed), so it
-   *  is retried as the page settles, the VirtualKeyboard API (Chrome/Android)
-   *  is asked to show the keyboard explicitly, and the very next touch
-   *  anywhere on the page also puts the cursor back (a real tap, which every
-   *  browser accepts as a reason to open the keyboard). */
-  const refocusInput = useCallback(() => {
-    const vk = (navigator as Navigator & { virtualKeyboard?: { show: () => void } }).virtualKeyboard;
-    const focus = () => {
-      textInputRef.current?.focus();
-      try {
-        vk?.show();
-      } catch {
-        // Not allowed right now - the retries and the next tap cover it.
-      }
-    };
-    focus();
-    [120, 350, 700, 1200, 2000].forEach((ms) => timersRef.current.push(setTimeout(focus, ms)));
-    document.addEventListener("pointerdown", () => textInputRef.current?.focus(), { once: true, capture: true });
-  }, []);
-
   const requestPickImage = useCallback(() => {
+    // Drop the cursor (and the keyboard) while the picker is up; nothing puts
+    // it back afterwards - the keyboard returns only when the input is tapped.
+    textInputRef.current?.blur();
     const el = imageInputRef.current;
     if (el) {
       el.value = "";
       el.click();
     }
-    // Cancelling the picker never fires "change"; the window regaining focus
-    // is the only sign it closed, so refocus on that too (once).
-    window.addEventListener("focus", refocusInput, { once: true });
-  }, [refocusInput]);
+  }, []);
 
-  /** The picked picture goes straight out as a message on the right. */
+  /** The picked picture goes straight out as a message on the right. The
+   *  cursor is deliberately NOT put back in the input afterwards. */
   const handleImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -276,8 +255,7 @@ export function useGroupChatSim() {
       ...prev,
       { id: `i${idRef.current}`, side: "right", kind: "image", src, time, readable: first },
     ]);
-    refocusInput();
-  }, [refocusInput]);
+  }, []);
 
   /** ☰: reset the chat and swap views (see the doc comment above). */
   const toggleMirrored = useCallback(() => {

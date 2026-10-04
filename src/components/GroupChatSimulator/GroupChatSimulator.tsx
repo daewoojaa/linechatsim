@@ -109,6 +109,9 @@ export default function GroupChatSimulator() {
       if (el) el.scrollTop = el.scrollHeight;
     });
     observer.observe(inner);
+    // The chat box itself shrinks/grows as the keyboard comes and goes; keep the
+    // newest message riding just above the input bar through that too.
+    if (feedRef.current) observer.observe(feedRef.current);
     return () => observer.disconnect();
   }, []);
 
@@ -240,7 +243,6 @@ export default function GroupChatSimulator() {
           <button
             type="button"
             className={base.chevronButton}
-            onMouseDown={(e) => e.preventDefault()}
             onClick={requestPickImage}
             title="เลือกรูปภาพเพื่อส่ง"
           >
