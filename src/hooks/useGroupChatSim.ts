@@ -228,13 +228,26 @@ export function useGroupChatSim() {
     [send]
   );
 
-  /** Puts the cursor back in the input so the keyboard stays up. Browsers
-   *  often ignore a focus() that isn't inside a tap (e.g. the moment a file
-   *  picker closes), so it is retried a few times as the page settles. */
+  /** Puts the cursor back in the input and asks for the keyboard, so typing
+   *  can continue right after a picture is sent. Browsers often ignore a
+   *  focus() that isn't inside a tap (the file picker has just closed), so it
+   *  is retried as the page settles, the VirtualKeyboard API (Chrome/Android)
+   *  is asked to show the keyboard explicitly, and the very next touch
+   *  anywhere on the page also puts the cursor back (a real tap, which every
+   *  browser accepts as a reason to open the keyboard). */
   const refocusInput = useCallback(() => {
-    const focus = () => textInputRef.current?.focus();
+    const vk = (navigator as Navigator & { virtualKeyboard?: { show: () => void } }).virtualKeyboard;
+    const focus = () => {
+      textInputRef.current?.focus();
+      try {
+        vk?.show();
+      } catch {
+        // Not allowed right now - the retries and the next tap cover it.
+      }
+    };
     focus();
-    [120, 350, 700].forEach((ms) => timersRef.current.push(setTimeout(focus, ms)));
+    [120, 350, 700, 1200, 2000].forEach((ms) => timersRef.current.push(setTimeout(focus, ms)));
+    document.addEventListener("pointerdown", () => textInputRef.current?.focus(), { once: true, capture: true });
   }, []);
 
   const requestPickImage = useCallback(() => {
