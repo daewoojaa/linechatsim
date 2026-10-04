@@ -1,0 +1,265 @@
+.appShell {
+  /* Pinned to the viewport's initial bounds (not dvh) so the OS keyboard
+     can't shove the header off-screen — same approach as the other rooms. */
+  position: fixed;
+  inset: 0;
+  min-height: 520px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #ffffff;
+  user-select: none;
+  color: #1c1c1e;
+  font-family: var(--font-body), system-ui, -apple-system, "Noto Sans KR", "Noto Sans Thai", sans-serif;
+  --yellow: #ffe55c;
+  --gray: #f1f1f3;
+  /* Footprint of the real keyboard below the input bar, same measured value
+     as room 6 (keyboard incl. toolbar row ≈ 43.5% of the screen). */
+  --keyboard-reserve: 43.8dvh;
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: var(--keyboard-reserve);
+}
+
+/* ---- header ---- */
+
+.header {
+  flex: none;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 8px 14px 6px;
+}
+
+.backButton {
+  justify-self: start;
+  width: 46px;
+  height: 46px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--yellow);
+  color: #1c1c1e;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.title {
+  font: 700 19px system-ui, -apple-system, "Noto Sans KR", sans-serif;
+}
+
+.headerIcons {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* ---- conversation ---- */
+
+.feed {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* margin-top:auto pins the messages to the bottom while there are few of
+   them, yet still lets the feed scroll once they overflow. */
+.feedInner {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 14px 8px;
+}
+
+.dateRow {
+  display: flex;
+  justify-content: center;
+}
+
+.datePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: var(--gray);
+  color: #3a3a40;
+  font: 500 13px system-ui, -apple-system, "Noto Sans KR", sans-serif;
+}
+
+.row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.rowMine {
+  justify-content: flex-end;
+}
+
+.time {
+  flex: none;
+  padding-bottom: 2px;
+  color: #6f6f76;
+  font: 400 12px system-ui, -apple-system, "Noto Sans KR", sans-serif;
+}
+
+.bubble {
+  position: relative;
+  max-width: 84%;
+  padding: 8px 14px;
+  border-radius: 16px;
+  font: 500 16px/1.4 system-ui, -apple-system, "Noto Sans KR", sans-serif;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.bubbleMine {
+  background: var(--yellow);
+}
+
+.bubbleTheirs {
+  background: var(--gray);
+}
+
+/* Little tails at the top outer corner, like the reference bubbles. */
+.bubbleMine::after,
+.bubbleTheirs::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 12px;
+  height: 12px;
+}
+
+.bubbleMine::after {
+  right: -5px;
+  background: var(--yellow);
+  clip-path: polygon(0 0, 60% 0, 100% 40%, 0 100%);
+}
+
+.bubbleTheirs::after {
+  left: -5px;
+  background: var(--gray);
+  clip-path: polygon(40% 0, 100% 0, 100% 100%, 0 40%);
+}
+
+.theirs {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.avatar {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #e9e4cf url("/room1-avatar.webp") center 18% / cover no-repeat;
+}
+
+.theirsCol {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sender {
+  font: 700 13px system-ui, -apple-system, "Noto Sans KR", sans-serif;
+}
+
+.callCard {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-width: 150px;
+  padding: 10px 18px 10px 14px;
+}
+
+.callLabel {
+  flex: 1;
+  text-align: center;
+}
+
+/* ---- input bar ---- */
+
+.inputBar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  background: #ffffff;
+}
+
+.plusButton {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--yellow);
+  color: #1c1c1e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.inputPill {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--gray);
+  border-radius: 999px;
+  padding: 0 12px 0 18px;
+}
+
+.textInput {
+  flex: 1;
+  min-width: 0;
+  max-height: 80px;
+  overflow-y: auto;
+  outline: none;
+  font: 400 17px system-ui, -apple-system, "Noto Sans KR", "Noto Sans Thai", sans-serif;
+  color: #111;
+  white-space: pre-wrap;
+  word-break: break-word;
+  user-select: text;
+}
+
+.textInput:empty:before {
+  content: attr(data-placeholder);
+  color: #8e8e93;
+  pointer-events: none;
+}
+
+.pillIcon {
+  flex: none;
+  display: flex;
+  color: #1c1c1e;
+}
+
+.sendButton {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--yellow);
+  color: #1c1c1e;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
