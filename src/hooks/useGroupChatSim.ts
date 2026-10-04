@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { idbGetImage, idbSetImage } from "@/lib/idbStore";
 
 export type GroupMessage =
   | { id: string; side: "left"; sender: string; avatar: string; kind: "image"; src: string; time: string }
@@ -38,6 +39,8 @@ const MIRROR_GAP_MS = 3000;
 
 export const DEFAULT_MAX_READ = "589";
 const MAX_READ_KEY = "linechatsim-room2-maxread-v1";
+const PHOTO_KEY = "room2:photo";
+const DEFAULT_MIRROR_IMAGE = "/room2-marker.jpg";
 
 /**
  * The displayed read count at every tick of the run, in two stretches:
@@ -99,7 +102,9 @@ function nowLabel() {
  *
  * The ☰ icon flips to the mirrored view: the chat resets, and after 5
  * seconds the two messages arrive on their own, one at a time, from "บุษบา"
- * on the left (the picture first, then the text), with no read counts. Tap
+ * on the left (the picture first, then the text), with no read counts. The
+ * picture is the one the operator last sent (kept in IndexedDB), or the
+ * stock marker picture if none was ever sent. Tap
  * ☰ again to go back to the normal view.
  */
 export function useGroupChatSim() {
@@ -116,6 +121,9 @@ export function useGroupChatSim() {
   const sentTextRef = useRef(0);
   const sentImageRef = useRef(0);
   const idRef = useRef(0);
+  // The last picture the operator sent; the mirrored view replays it as the
+  // first message from บุษบา (falls back to the stock marker picture).
+  const photoRef = useRef<string | null>(null);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const runTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -144,6 +152,16 @@ export function useGroupChatSim() {
     });
     return clearTimers;
   }, [clearTimers]);
+
+  useEffect(() => {
+    let cancelled = false;
+    idbGetImage(PHOTO_KEY).then((blob) => {
+      if (!cancelled && blob && !photoRef.current) photoRef.current = URL.createObjectURL(blob);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const setMaxRead = useCallback((value: string) => {
     maxReadRef.current = value;
@@ -239,6 +257,8 @@ export function useGroupChatSim() {
     const first = sentImageRef.current === 1 && !mirroredRef.current;
     const time = first ? FIRST_IMAGE_TIME : nowLabel();
     const src = URL.createObjectURL(file);
+    photoRef.current = src;
+    idbSetImage(PHOTO_KEY, file);
     setFeed((prev) => [
       ...prev,
       { id: `i${idRef.current}`, side: "right", kind: "image", src, time, readable: first },
@@ -257,11 +277,12 @@ export function useGroupChatSim() {
     sentTextRef.current = 0;
     sentImageRef.current = 0;
     if (next) {
+      const mirrorImage = photoRef.current ?? DEFAULT_MIRROR_IMAGE;
       timersRef.current.push(
         setTimeout(() => {
           setFeed((prev) => [
             ...prev,
-            { id: "m-image", side: "left", sender: SENDER, avatar: SENDER_AVATAR, kind: "image", src: "/room2-marker.jpg", time: FIRST_IMAGE_TIME },
+            { id: "m-image", side: "left", sender: SENDER, avatar: SENDER_AVATAR, kind: "image", src: mirrorImage, time: FIRST_IMAGE_TIME },
           ]);
         }, MIRROR_FIRST_DELAY_MS),
         setTimeout(() => {
