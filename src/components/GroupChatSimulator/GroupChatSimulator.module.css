@@ -38,7 +38,8 @@
   display: block;
   width: auto;
   height: auto;
-  max-width: 230px;
+  /* Never wider than the screen leaves room for (avatar + time on narrow phones). */
+  max-width: min(230px, calc(100vw - 150px));
   /* Leaves room for the message above/below inside the short feed. */
   max-height: 240px;
   object-fit: contain;

@@ -210,13 +210,25 @@ export function useGroupChatSim() {
     [send]
   );
 
+  /** Puts the cursor back in the input so the keyboard stays up. Browsers
+   *  often ignore a focus() that isn't inside a tap (e.g. the moment a file
+   *  picker closes), so it is retried a few times as the page settles. */
+  const refocusInput = useCallback(() => {
+    const focus = () => textInputRef.current?.focus();
+    focus();
+    [120, 350, 700].forEach((ms) => timersRef.current.push(setTimeout(focus, ms)));
+  }, []);
+
   const requestPickImage = useCallback(() => {
     const el = imageInputRef.current;
     if (el) {
       el.value = "";
       el.click();
     }
-  }, []);
+    // Cancelling the picker never fires "change"; the window regaining focus
+    // is the only sign it closed, so refocus on that too (once).
+    window.addEventListener("focus", refocusInput, { once: true });
+  }, [refocusInput]);
 
   /** The picked picture goes straight out as a message on the right. */
   const handleImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -231,8 +243,8 @@ export function useGroupChatSim() {
       ...prev,
       { id: `i${idRef.current}`, side: "right", kind: "image", src, time, readable: first },
     ]);
-    textInputRef.current?.focus();
-  }, []);
+    refocusInput();
+  }, [refocusInput]);
 
   /** ☰: reset the chat and swap views (see the doc comment above). */
   const toggleMirrored = useCallback(() => {

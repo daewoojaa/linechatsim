@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGroupChatSim, type GroupMessage } from "@/hooks/useGroupChatSim";
 import {
@@ -20,6 +20,10 @@ import extra from "./GroupChatSimulator.module.css";
 
 const ROOM_NAME = "ลูกหนี้ไม่หนีไปไหน (10,975)";
 const HEADER_COLOR = "#ffffff";
+const NAME_MAX_PX = 21;
+const NAME_MIN_PX = 9;
+// The device's own UI font (Thai falls back to whatever the system provides).
+const SYSTEM_FONT = "system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans Thai', sans-serif";
 
 /**
  * Room 2: a LINE group chat on a picture background, built from room 6's
@@ -52,6 +56,33 @@ export default function GroupChatSimulator() {
   const [viewing, setViewing] = useState<string | null>(null);
 
   const feedRef = useRef<HTMLDivElement>(null);
+
+  // Room name: shrink the text just enough to show all of it on one line,
+  // whatever the device's font or screen width (re-fit on resize and once
+  // fonts have loaded).
+  const nameRef = useRef<HTMLDivElement>(null);
+  const nameTextRef = useRef<HTMLSpanElement>(null);
+  useLayoutEffect(() => {
+    const el = nameRef.current;
+    const text = nameTextRef.current;
+    if (!el || !text) return;
+    const fit = () => {
+      let size = NAME_MAX_PX;
+      el.style.fontSize = `${size}px`;
+      // The inline span keeps the text's natural width even when it overflows
+      // the (clipped) box, unlike scrollWidth which is integer-rounded and
+      // can't tell "fits exactly" from "fits with room".
+      while (text.getBoundingClientRect().width > el.clientWidth - 1 && size > NAME_MIN_PX) {
+        size -= 0.5;
+        el.style.fontSize = `${size}px`;
+      }
+    };
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(el);
+    document.fonts?.ready.then(fit);
+    return () => observer.disconnect();
+  }, []);
   const showingRead = readCount !== null;
   useEffect(() => {
     const el = feedRef.current;
@@ -158,8 +189,12 @@ export default function GroupChatSimulator() {
           <button type="button" className={base.backButton} onClick={() => router.push("/")} title="กลับไปหน้ารวมแชท">
             <BackArrowIcon color={HEADER_COLOR} />
           </button>
-          <div className={base.roomNameText} style={{ color: HEADER_COLOR, textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>
-            {ROOM_NAME}
+          <div
+            ref={nameRef}
+            className={base.roomNameText}
+            style={{ color: HEADER_COLOR, textShadow: "0 1px 4px rgba(0,0,0,0.5)", fontFamily: SYSTEM_FONT, textOverflow: "clip" }}
+          >
+            <span ref={nameTextRef}>{ROOM_NAME}</span>
           </div>
           <div className={base.headerIcons}>
             <span className={base.iconButton}>
