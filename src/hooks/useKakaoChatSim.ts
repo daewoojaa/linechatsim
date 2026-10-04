@@ -34,7 +34,7 @@ function nowLabel() {
  * thing the operator sends (whatever they type) goes out as a scripted date
  * label plus a fixed yellow bubble on the right; anything sent after that
  * goes out as a yellow bubble with the typed text. Starts over on every
- * visit.
+ * visit, and the "+" button resets it for another take.
  */
 export function useKakaoChatSim() {
   const [feed, setFeed] = useState<KakaoMessage[]>(SCRIPT);
@@ -64,6 +64,18 @@ export function useKakaoChatSim() {
     setHasText(false);
   }, []);
 
+  /** Back to the opening state, ready for another take. */
+  const reset = useCallback(() => {
+    sentCountRef.current = 0;
+    setFeed(SCRIPT);
+    setHasText(false);
+    const el = textInputRef.current;
+    if (el) {
+      el.textContent = "";
+      el.focus();
+    }
+  }, []);
+
   const onInput = useCallback((e: React.FormEvent<HTMLDivElement>) => {
     setHasText((e.currentTarget.textContent ?? "").trim().length > 0);
   }, []);
@@ -78,5 +90,5 @@ export function useKakaoChatSim() {
     [send]
   );
 
-  return { feed, hasText, textInputRef, onInput, onKeyDown, send };
+  return { feed, hasText, textInputRef, onInput, onKeyDown, send, reset };
 }

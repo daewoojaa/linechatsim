@@ -207,6 +207,9 @@
   border-radius: 50%;
   background: var(--yellow);
   color: #1c1c1e;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;

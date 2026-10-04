@@ -146,7 +146,7 @@ function MessageRow({ msg }: { msg: KakaoMessage }) {
  */
 export default function KakaoChatSimulator() {
   const router = useRouter();
-  const { feed, hasText, textInputRef, onInput, onKeyDown, send } = useKakaoChatSim();
+  const { feed, hasText, textInputRef, onInput, onKeyDown, send, reset } = useKakaoChatSim();
 
   const feedRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -177,9 +177,16 @@ export default function KakaoChatSimulator() {
       </div>
 
       <div className={styles.inputBar}>
-        <span className={styles.plusButton}>
+        <button
+          type="button"
+          className={styles.plusButton}
+          // Keep the keyboard up (the tap would otherwise steal focus).
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={reset}
+          title="รีเซ็ตแชท"
+        >
           <PlusIcon />
-        </span>
+        </button>
         <div className={styles.inputPill}>
           <div
             ref={textInputRef}
