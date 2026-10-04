@@ -95,28 +95,39 @@ button.circle {
   min-width: 0;
 }
 
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .title {
+  min-width: 0;
   font: 700 22px/1.25 system-ui, -apple-system, "Noto Sans Thai", sans-serif;
 }
 
 .artist {
+  display: block;
   font: 600 16px/1.35 system-ui, -apple-system, "Noto Sans Thai", sans-serif;
 }
 
 .count {
+  display: block;
+  width: fit-content;
   margin-top: 4px;
   font: 400 13px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
   color: #77727a;
 }
 
 .playCircle {
-  width: 42px;
-  height: 42px;
-  align-self: flex-start;
+  width: 34px;
+  height: 34px;
 }
 
 .saveButton {
+  width: calc(100% - 32px);
   margin: 0 16px 14px;
+  cursor: pointer;
   height: 58px;
   border-radius: 999px;
   display: flex;
@@ -124,6 +135,30 @@ button.circle {
   justify-content: center;
   gap: 10px;
   font: 700 21px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+}
+
+/* Unlocked (editing on): deeper pink + filled bookmark. */
+.saveButton[data-unlocked="true"] {
+  background: linear-gradient(180deg, #f9c9da 0%, #f2a8c3 100%);
+  border-color: #e98aae;
+}
+
+.page [data-editable="true"] {
+  text-decoration: underline dashed rgba(179, 38, 74, 0.55);
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+.textInput {
+  background: #ffffff;
+  border: 0;
+  border-radius: 8px;
+  padding: 2px 8px;
+  outline: 2px solid #3b82f6;
+  color: #1c1c1e;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
 }
 
 .grid {
@@ -177,6 +212,16 @@ button.circle {
   justify-content: center;
   gap: 10px;
   font: 700 20px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+}
+
+.actionLabel {
+  min-width: 0;
+}
+
+.action .textInput {
+  font: inherit;
+  width: 120px;
+  text-align: center;
 }
 
 .actionMuted svg {
