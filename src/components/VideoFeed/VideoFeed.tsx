@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { EMPTY_CLIP, useVideoFeedClips, type ClipField, type ClipInfo } from "@/hooks/useVideoFeedClips";
 import { EDITABLE_FROM, useLiveClip, type LiveComment } from "@/hooks/useLiveClip";
+import SoundPage from "./SoundPage";
 import styles from "./VideoFeed.module.css";
 
 // The slide list is the clips followed by a duplicate of clip 1. Swiping past
@@ -129,10 +130,12 @@ type OverlayProps = {
   onPickAvatar: () => void;
   /** Stacked above the caption block (the LIVE clip's floating comments). */
   aboveInfo?: React.ReactNode;
+  /** If set, the spinning record is tappable (LIVE clip -> sound page). */
+  onDiscTap?: () => void;
 };
 
 /** The parts of the interface that ride along with each clip. */
-function ClipOverlay({ info, avatar, onEdit, onPickAvatar, aboveInfo }: OverlayProps) {
+function ClipOverlay({ info, avatar, onEdit, onPickAvatar, aboveInfo, onDiscTap }: OverlayProps) {
   const avatarStyle = avatar ? { backgroundImage: `url(${avatar})` } : undefined;
   const counters: [ClipField, React.ReactNode][] = [
     ["likes", <HeartIcon key="h" />],
@@ -155,7 +158,12 @@ function ClipOverlay({ info, avatar, onEdit, onPickAvatar, aboveInfo }: OverlayP
             </button>
           ))}
         </div>
-        <div className={styles.disc}>
+        <div
+          className={`${styles.disc} ${onDiscTap ? styles.discTappable : ""}`}
+          onClick={onDiscTap}
+          role={onDiscTap ? "button" : undefined}
+          aria-label={onDiscTap ? "เปิดหน้าเสียง" : undefined}
+        >
           <span className={`${styles.discSpin} ${avatar ? "" : styles.avatarDefault}`} style={avatarStyle} />
           <span className={styles.discNote}>
             <NoteIcon size={13} />
@@ -272,6 +280,7 @@ export default function VideoFeed() {
   const { videoInputRef: liveVideoInputRef, avatarInputRef: liveAvatarInputRef, ...live } = useLiveClip();
   const [liveMode, setLiveMode] = useState(false);
   const [commentsEditorOpen, setCommentsEditorOpen] = useState(false);
+  const [soundOpen, setSoundOpen] = useState(false);
   const liveVideoRef = useRef<HTMLVideoElement>(null);
   const slides = [...videoSrcs, videoSrcs[0]];
   const clipCount = clips.length;
@@ -320,6 +329,14 @@ export default function VideoFeed() {
       });
     });
   }, [liveMode, live.videoSrc]);
+
+  // Hold the LIVE clip while the sound page covers it; pick up where it left off.
+  useEffect(() => {
+    const video = liveVideoRef.current;
+    if (!liveMode || !video) return;
+    if (soundOpen) video.pause();
+    else video.play().catch(() => {});
+  }, [soundOpen, liveMode]);
 
   useEffect(() => {
     const unmute = () => {
@@ -447,6 +464,7 @@ export default function VideoFeed() {
               onEdit={(field) => startEdit("live", field)}
               onPickAvatar={live.requestPickAvatar}
               aboveInfo={<LiveComments comments={live.comments} />}
+              onDiscTap={() => setSoundOpen(true)}
             />
           </div>
         )}
@@ -532,6 +550,8 @@ export default function VideoFeed() {
           </div>
         </div>
       )}
+
+      {soundOpen && <SoundPage avatar={live.avatar} onPickAvatar={live.requestPickAvatar} onBack={() => setSoundOpen(false)} />}
 
       {commentsEditorOpen && (
         <div className={styles.formPage}>
