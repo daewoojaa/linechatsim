@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGroupChatSim, type GroupMessage } from "@/hooks/useGroupChatSim";
+import { useKeyboardReserve } from "@/hooks/useKeyboardReserve";
 import {
   BackArrowIcon,
   ChevronRightIcon,
@@ -23,8 +24,8 @@ const HEADER_COLOR = "#ffffff";
 const NAME_MAX_PX = 21;
 const NAME_MIN_PX = 9;
 // The device's own UI font (Thai falls back to whatever the system provides).
-// Space kept free below the input bar when the real keyboard height is not
-// known (browsers without the VirtualKeyboard API): room 6's calibrated value.
+// Space kept free below the input bar if the input has the cursor but the
+// browser never reports a keyboard height: room 6's calibrated share.
 const FALLBACK_KEYBOARD_RESERVE = "43.8dvh";
 
 const SYSTEM_FONT = "system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans Thai', sans-serif";
@@ -59,31 +60,9 @@ export default function GroupChatSimulator() {
   const [draft, setDraft] = useState(maxRead);
   const [viewing, setViewing] = useState<string | null>(null);
 
-  // Sit the input bar exactly on top of the keyboard: where the browser
-  // reports the keyboard (Chrome/Android VirtualKeyboard API) use its real
-  // height, which stays right on any phone, keyboard or toolbar; elsewhere
-  // fall back to a fixed share of the screen.
-  const [keyboardReserve, setKeyboardReserve] = useState(FALLBACK_KEYBOARD_RESERVE);
-  useEffect(() => {
-    const vk = (
-      navigator as Navigator & {
-        virtualKeyboard?: EventTarget & { overlaysContent: boolean; boundingRect: DOMRect };
-      }
-    ).virtualKeyboard;
-    if (!vk) return;
-    const previous = vk.overlaysContent;
-    vk.overlaysContent = true;
-    const update = () => {
-      const h = vk.boundingRect.height;
-      setKeyboardReserve(h > 0 ? `${Math.round(h)}px` : FALLBACK_KEYBOARD_RESERVE);
-    };
-    vk.addEventListener("geometrychange", update);
-    update();
-    return () => {
-      vk.removeEventListener("geometrychange", update);
-      vk.overlaysContent = previous;
-    };
-  }, []);
+  // The input bar rests at the bottom of the screen; tapping it brings the
+  // keyboard up and the bar rides on top of it.
+  const keyboardReserve = useKeyboardReserve(textInputRef, FALLBACK_KEYBOARD_RESERVE);
 
   const feedRef = useRef<HTMLDivElement>(null);
 
@@ -215,7 +194,7 @@ export default function GroupChatSimulator() {
         ["--keyboard-reserve" as string]: keyboardReserve,
       }}
     >
-      <div className={base.contentColumn}>
+      <div className={`${base.contentColumn} ${extra.contentSmooth}`}>
         <div className={base.header}>
           <button type="button" className={base.backButton} onClick={() => router.push("/")} title="กลับไปหน้ารวมแชท">
             <BackArrowIcon color={HEADER_COLOR} />

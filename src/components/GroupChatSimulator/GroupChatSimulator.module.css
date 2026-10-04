@@ -16,6 +16,11 @@
   background: #ffffff center / cover no-repeat;
 }
 
+/* The bar glides up/down as the keyboard comes and goes. */
+.contentSmooth {
+  transition: padding-bottom 0.2s ease-out;
+}
+
 /* Room 6's .row pushes content to the right; left-side messages hug the left. */
 .leftBubbleRow {
   justify-content: flex-start;
