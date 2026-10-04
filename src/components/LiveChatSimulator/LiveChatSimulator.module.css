@@ -208,6 +208,20 @@ button.iconButton {
   color: #2b5488;
 }
 
+/* A picture sent into the chat (room 8): framed in the bubble colour. */
+.imageBubble {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(230px, calc(100vw - 120px));
+  max-height: 250px;
+  object-fit: contain;
+  padding: 4px;
+  box-sizing: border-box;
+  border-radius: 18px;
+  background: var(--bubble);
+}
+
 .voiceBubble {
   display: flex;
   align-items: center;

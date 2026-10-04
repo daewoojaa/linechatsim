@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useLiveChatSim, type LiveMessage } from "@/hooks/useLiveChatSim";
+import { useLiveChatSim, type LiveChatOptions, type LiveMessage } from "@/hooks/useLiveChatSim";
 import {
   BackArrowIcon,
   ChevronRightIcon,
@@ -115,6 +115,10 @@ function MessageRow({ msg, dayLabel }: { msg: LiveMessage; dayLabel: string }) {
           </div>
         </div>
       )}
+      {msg.kind === "image" && (
+        // eslint-disable-next-line @next/next/no-img-element -- static public/ asset
+        <img src={msg.src} className={styles.imageBubble} alt="" />
+      )}
       {msg.kind === "voice" && (
         <div className={`${styles.bubble} ${styles.voiceBubble}`}>
           <PlayGlyph color="#3f6aa3" />
@@ -131,11 +135,17 @@ function MessageRow({ msg, dayLabel }: { msg: LiveMessage; dayLabel: string }) {
 }
 
 /**
- * Room 6: a simulated LINE conversation on a white background, every bubble
- * on the right in blue. The voice-record panel below the input bar is a real
+ * Rooms 6 and 8: a simulated LINE conversation on a white background, every
+ * bubble on the right in blue (room 8 passes its own opening messages and
+ * time format). The voice-record panel below the input bar is a real
  * working interface (timer, stop, trash, send) instead of a stand-in video.
  */
-export default function LiveChatSimulator({ roomId, defaultRoomName }: { roomId: string; defaultRoomName: string }) {
+export default function LiveChatSimulator({
+  roomId,
+  defaultRoomName,
+  script,
+  timeSuffix,
+}: { roomId: string; defaultRoomName: string } & LiveChatOptions) {
   const router = useRouter();
   const {
     bgColor,
@@ -162,7 +172,7 @@ export default function LiveChatSimulator({ roomId, defaultRoomName }: { roomId:
     stopRecording,
     discardRecording,
     sendVoice,
-  } = useLiveChatSim(roomId, defaultRoomName);
+  } = useLiveChatSim(roomId, defaultRoomName, { script, timeSuffix });
 
   const feedRef = useRef<HTMLDivElement>(null);
   useEffect(() => {

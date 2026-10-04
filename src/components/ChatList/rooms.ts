@@ -10,7 +10,7 @@ export type ChatRoom = {
   /** Shows the little pin badge on the profile picture (rooms 1-4). */
   pinned?: boolean;
   /** Where tapping the row (outside the editable parts) navigates. Omit for
-   *  the still-placeholder rooms (8, 9) that don't go anywhere yet. */
+   *  the still-placeholder room (9) that doesn't go anywhere yet. */
   href?: string;
 };
 
@@ -72,7 +72,14 @@ export const INITIAL_ROOMS: ChatRoom[] = [
     color: "#85c1e9",
     href: "/room7",
   },
-  { id: "8", name: "ห้องที่8(+เพื่อแก้ไข)", message: "+เพื่อแก้ไข", time: "22/3", color: "#f5b7b1" },
+  {
+    id: "8",
+    name: "บุษบา",
+    message: "คุณได้ส่งรูปภาพ",
+    time: "22/3",
+    color: "#f5b7b1",
+    href: "/room8",
+  },
   { id: "9", name: "ห้องที่9(+เพื่อแก้ไข)", message: "+เพื่อแก้ไข", time: "14/2", unread: 8, color: "#aed6f1" },
   {
     id: "10",

@@ -7,6 +7,7 @@ export type LiveMessage =
   | { id: string; kind: "text"; text: string; time: string }
   | { id: string; kind: "missedCall"; time: string }
   | { id: string; kind: "voice"; seconds: number; time: string }
+  | { id: string; kind: "image"; src: string; time: string }
   | { id: string; kind: "dateLabel" };
 
 const DAY_LABELS = ["วันนี้", "เมื่อวาน", "จ. 12 ก.ย."];
@@ -30,9 +31,9 @@ type SentMessage =
   | { kind: "text"; text: string; time: string }
   | { kind: "voice"; seconds: number; time: string };
 
-function nowLabel() {
+function nowLabel(suffix = "") {
   const d = new Date();
-  return `${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
+  return `${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}${suffix}`;
 }
 
 /**
@@ -41,10 +42,18 @@ function nowLabel() {
  * to it — typed text goes out as a bubble, and the voice-record panel sends
  * a voice bubble. The first thing sent is preceded by a "วันนี้" date label.
  */
-export function useLiveChatSim(roomId: string, defaultRoomName: string) {
+export type LiveChatOptions = {
+  /** The messages already in the chat on entering (default: room 6's lead-in). */
+  script?: LiveMessage[];
+  /** Appended to the clock time of messages sent live, e.g. " น." (default none). */
+  timeSuffix?: string;
+};
+
+export function useLiveChatSim(roomId: string, defaultRoomName: string, options: LiveChatOptions = {}) {
+  const { script = SCRIPT, timeSuffix = "" } = options;
   const [roomName, setRoomName] = useState(defaultRoomName);
   const [editingName, setEditingName] = useState(false);
-  const [feed, setFeed] = useState<LiveMessage[]>(SCRIPT);
+  const [feed, setFeed] = useState<LiveMessage[]>(script);
   const [hasText, setHasText] = useState(false);
   const [voiceStage, setVoiceStage] = useState<VoiceStage>("closed");
   const [recordSeconds, setRecordSeconds] = useState(0);
@@ -121,14 +130,14 @@ export function useLiveChatSim(roomId: string, defaultRoomName: string) {
       el?.focus();
       return;
     }
-    append({ kind: "text", text, time: nowLabel() });
+    append({ kind: "text", text, time: nowLabel(timeSuffix) });
     if (el) {
       el.textContent = "";
       // Keep the real keyboard (and cursor) open across sends.
       el.focus();
     }
     setHasText(false);
-  }, [append]);
+  }, [append, timeSuffix]);
 
   const onInput = useCallback((e: React.FormEvent<HTMLDivElement>) => {
     setHasText((e.currentTarget.textContent ?? "").trim().length > 0);
@@ -174,10 +183,10 @@ export function useLiveChatSim(roomId: string, defaultRoomName: string) {
     setVoiceStage("prompt");
   }, []);
   const sendVoice = useCallback(() => {
-    append({ kind: "voice", seconds: Math.max(recordSeconds, 1), time: nowLabel() });
+    append({ kind: "voice", seconds: Math.max(recordSeconds, 1), time: nowLabel(timeSuffix) });
     setRecordSeconds(0);
     setVoiceStage("prompt");
-  }, [append, recordSeconds]);
+  }, [append, recordSeconds, timeSuffix]);
 
   return {
     bgColor,

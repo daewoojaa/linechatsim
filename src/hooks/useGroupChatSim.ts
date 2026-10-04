@@ -16,13 +16,13 @@ const SCRIPT: GroupMessage[] = [
     avatar: "/room2-avatar.webp",
     kind: "image",
     src: "/room2-slip.webp",
-    time: "18.28 น.",
+    time: "18:28 น.",
   },
 ];
 
-const FIRST_IMAGE_TIME = "19.25 น.";
+const FIRST_IMAGE_TIME = "19:25 น.";
 const FIXED_TEXT = "ใครที่แจ้งเบาะแสของแก่นได้ จะยกหนี้ให้หนึ่งหมื่นบาท";
-const FIXED_TEXT_TIME = "19.25 น.";
+const FIXED_TEXT_TIME = "19:25 น.";
 
 const READ_DELAY_MS = 3000;
 const READ_RUN_MS = 15000;
@@ -84,7 +84,7 @@ function readSchedule(max: number, totalTicks: number, startTicks: number): numb
 
 function nowLabel() {
   const d = new Date();
-  return `${d.getHours().toString().padStart(2, "0")}.${d.getMinutes().toString().padStart(2, "0")} น.`;
+  return `${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")} น.`;
 }
 
 /**
