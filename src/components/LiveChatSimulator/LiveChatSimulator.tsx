@@ -92,9 +92,16 @@ function MessageRow({
   msg,
   dayLabel,
   onViewImage,
+  avatar,
+  avatarCustom,
+  onPickAvatar,
 }: {
   msg: LiveMessage;
   dayLabel: string;
+  /** Profile picture for received messages (none = no avatar), and how to change it. */
+  avatar: string | null;
+  avatarCustom: boolean;
+  onPickAvatar: () => void;
   /** Tap on a picture in the chat: open it full screen. */
   onViewImage: (src: string) => void;
 }) {
@@ -110,7 +117,18 @@ function MessageRow({
   if ((msg.kind === "text" || msg.kind === "image") && msg.side === "left") {
     return (
       <div className={styles.leftRow}>
-        {msg.avatar && <div className={styles.avatar} style={{ backgroundImage: `url(${msg.avatar})` }} />}
+        {avatar && (
+          <button
+            type="button"
+            className={styles.avatar}
+            style={{ backgroundImage: `url(${avatar})`, backgroundSize: avatarCustom ? "cover" : "contain" }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onPickAvatar();
+            }}
+            aria-label="เปลี่ยนรูปโปรไฟล์"
+          />
+        )}
         {msg.kind === "text" ? (
           <div className={`${styles.bubble} ${styles.bubbleLeft}`}>{msg.text}</div>
         ) : (
@@ -187,9 +205,15 @@ export default function LiveChatSimulator({
   script,
   timeSuffix,
   focusOnEnter,
+  defaultAvatar,
 }: { roomId: string; defaultRoomName: string } & LiveChatOptions) {
   const router = useRouter();
   const {
+    avatar,
+    avatarCustom,
+    requestPickAvatar,
+    avatarInputRef,
+    handleAvatarChange,
     bgColor,
     setBgColor,
     dayLabel,
@@ -214,7 +238,7 @@ export default function LiveChatSimulator({
     stopRecording,
     discardRecording,
     sendVoice,
-  } = useLiveChatSim(roomId, defaultRoomName, { script, timeSuffix, focusOnEnter });
+  } = useLiveChatSim(roomId, defaultRoomName, { script, timeSuffix, focusOnEnter, defaultAvatar });
 
   const feedRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -323,7 +347,15 @@ export default function LiveChatSimulator({
         <div className={styles.feed} ref={feedRef} onClick={() => !panelOpen && textInputRef.current?.focus()}>
           <div className={styles.feedInner}>
             {feed.map((m) => (
-              <MessageRow key={m.id} msg={m} dayLabel={dayLabel} onViewImage={openViewer} />
+              <MessageRow
+                key={m.id}
+                msg={m}
+                dayLabel={dayLabel}
+                onViewImage={openViewer}
+                avatar={avatar}
+                avatarCustom={avatarCustom}
+                onPickAvatar={requestPickAvatar}
+              />
             ))}
           </div>
         </div>
@@ -395,6 +427,8 @@ export default function LiveChatSimulator({
           </div>
         )}
       </div>
+
+      <input type="file" accept="image/*" ref={avatarInputRef} onChange={handleAvatarChange} hidden />
 
       {viewing && (
         <div className={styles.viewer} onClick={closeViewer}>

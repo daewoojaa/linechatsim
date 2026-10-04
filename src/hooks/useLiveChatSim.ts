@@ -1,13 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { idbGetMeta, idbSetMeta } from "@/lib/idbStore";
+import { idbGetImage, idbGetMeta, idbSetImage, idbSetMeta } from "@/lib/idbStore";
 
 export type LiveMessage =
-  | { id: string; kind: "text"; text: string; time: string; side?: "left"; avatar?: string }
+  | { id: string; kind: "text"; text: string; time: string; side?: "left" }
   | { id: string; kind: "missedCall"; time: string }
   | { id: string; kind: "voice"; seconds: number; time: string }
-  | { id: string; kind: "image"; src: string; time: string; side?: "left"; avatar?: string }
+  | { id: string; kind: "image"; src: string; time: string; side?: "left" }
   | { id: string; kind: "dateLabel" };
 
 const DAY_LABELS = ["วันนี้", "เมื่อวาน", "จ. 12 ก.ย."];
@@ -50,10 +50,13 @@ export type LiveChatOptions = {
   /** Put the cursor in the input on entering, so the device keyboard is up
    *  straight away (room 8; room 6 leaves it off). */
   focusOnEnter?: boolean;
+  /** Profile picture shown beside received (left-side) messages; tap it to
+   *  pick another (kept per room). Omit for no avatar (room 6 has none). */
+  defaultAvatar?: string;
 };
 
 export function useLiveChatSim(roomId: string, defaultRoomName: string, options: LiveChatOptions = {}) {
-  const { script = SCRIPT, timeSuffix = "", focusOnEnter = false } = options;
+  const { script = SCRIPT, timeSuffix = "", focusOnEnter = false, defaultAvatar } = options;
   const [roomName, setRoomName] = useState(defaultRoomName);
   const [editingName, setEditingName] = useState(false);
   const [feed, setFeed] = useState<LiveMessage[]>(script);
@@ -61,6 +64,9 @@ export function useLiveChatSim(roomId: string, defaultRoomName: string, options:
   const [voiceStage, setVoiceStage] = useState<VoiceStage>("closed");
   const [recordSeconds, setRecordSeconds] = useState(0);
   const [bgColor, setBgColorState] = useState(DEFAULT_BG);
+  const [avatar, setAvatar] = useState<string | null>(defaultAvatar ?? null);
+  const [avatarCustom, setAvatarCustom] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
   const [dayLabel, setDayLabel] = useState("วันนี้");
 
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -72,10 +78,18 @@ export function useLiveChatSim(roomId: string, defaultRoomName: string, options:
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([idbGetMeta<string>(`${roomId}:roomName`), idbGetMeta<string>(`${roomId}:bgColor`)]).then(([savedName, savedBg]) => {
+    Promise.all([
+      idbGetMeta<string>(`${roomId}:roomName`),
+      idbGetMeta<string>(`${roomId}:bgColor`),
+      idbGetImage(`${roomId}:avatar`),
+    ]).then(([savedName, savedBg, avatarBlob]) => {
       if (cancelled) return;
       if (savedName) setRoomName(savedName);
       if (savedBg) setBgColorState(savedBg);
+      if (avatarBlob) {
+        setAvatar(URL.createObjectURL(avatarBlob));
+        setAvatarCustom(true);
+      }
     });
     return () => {
       cancelled = true;
@@ -104,6 +118,25 @@ export function useLiveChatSim(roomId: string, defaultRoomName: string, options:
     const retry = setTimeout(focus, 300);
     return () => clearTimeout(retry);
   }, [focusOnEnter]);
+
+  const requestPickAvatar = useCallback(() => {
+    const el = avatarInputRef.current;
+    if (el) {
+      el.value = "";
+      el.click();
+    }
+  }, []);
+  const handleAvatarChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      await idbSetImage(`${roomId}:avatar`, file);
+      setAvatar(URL.createObjectURL(file));
+      setAvatarCustom(true);
+      textInputRef.current?.focus();
+    },
+    [roomId]
+  );
 
   const startEditName = useCallback(() => setEditingName(true), []);
   useEffect(() => {
@@ -203,6 +236,11 @@ export function useLiveChatSim(roomId: string, defaultRoomName: string, options:
   }, [append, recordSeconds, timeSuffix]);
 
   return {
+    avatar,
+    avatarCustom,
+    requestPickAvatar,
+    avatarInputRef,
+    handleAvatarChange,
     bgColor,
     setBgColor,
     dayLabel,
