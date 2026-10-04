@@ -13,9 +13,11 @@
   font-family: var(--font-body), system-ui, -apple-system, "Noto Sans KR", "Noto Sans Thai", sans-serif;
   --yellow: #ffe55c;
   --gray: #f1f1f3;
-  /* Footprint of the real keyboard below the input bar, same measured value
-     as room 6 (keyboard incl. toolbar row ≈ 43.5% of the screen). */
-  --keyboard-reserve: 43.8dvh;
+  /* Footprint of the real keyboard below the input bar. The keyboard
+     (toolbar row included) covers ~43.5% of the screen, but 43.8dvh left a
+     ~55px gap above it on the phone (measured from a screenshot), so it is
+     trimmed to sit the input bar just above the keyboard. */
+  --keyboard-reserve: 41dvh;
   padding-top: env(safe-area-inset-top);
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
