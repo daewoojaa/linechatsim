@@ -25,7 +25,9 @@ const FIXED_TEXT = "ใครที่แจ้งเบาะแสของแ
 const FIXED_TEXT_TIME = "19.25 น.";
 
 const READ_DELAY_MS = 3000;
-const READ_RUN_MS = 10000;
+const READ_RUN_MS = 15000;
+// The first stretch, 1 up to 10, takes about this long (with holds in it).
+const READ_START_MS = 5000;
 const READ_TICK_MS = 100;
 
 // Mirrored view ("☰"): the same two messages arrive from "บุษบา" on the left.
@@ -38,16 +40,32 @@ export const DEFAULT_MAX_READ = "589";
 const MAX_READ_KEY = "linechatsim-room2-maxread-v1";
 
 /**
- * Cumulative progress (0..1) at each tick of the read-count run. Stretches
- * of fast climbing alternate with slow ones (a few ticks each, uneven
- * inside), so the number surges and stalls instead of rising steadily; the
- * last tick always lands on exactly 1.
+ * The displayed read count at every tick of the run, in two stretches:
+ * 1 up to 10 over ~5 seconds (the nine +1 steps land at random moments, so
+ * the number often sits still for a while), then 10 up to the maximum over
+ * the rest. In the second stretch fast climbing alternates with slow
+ * stretches (a few ticks each, uneven inside), so it surges and stalls
+ * instead of rising steadily. The last tick is exactly the maximum.
  */
-function randomSchedule(totalTicks: number): number[] {
+function readSchedule(max: number, totalTicks: number, startTicks: number): number[] {
+  const firstTop = Math.min(10, max);
+  const values: number[] = [];
+
+  // Stretch 1: (firstTop - 1) increments at distinct random ticks.
+  const steps = new Set<number>();
+  while (steps.size < firstTop - 1) steps.add(1 + Math.floor(Math.random() * (startTicks - 2)));
+  let v = 1;
+  for (let t = 1; t <= startTicks; t++) {
+    if (steps.has(t)) v += 1;
+    values.push(t === startTicks ? firstTop : v);
+  }
+
+  // Stretch 2: uneven surges from firstTop to max.
+  const rest = totalTicks - startTicks;
   const weights: number[] = [];
   let fast = Math.random() < 0.5;
   let left = 0;
-  for (let i = 0; i < totalTicks; i++) {
+  for (let i = 0; i < rest; i++) {
     if (left <= 0) {
       fast = !fast;
       left = 4 + Math.floor(Math.random() * 10);
@@ -57,7 +75,11 @@ function randomSchedule(totalTicks: number): number[] {
   }
   const total = weights.reduce((a, b) => a + b, 0);
   let sum = 0;
-  return weights.map((w) => (sum += w) / total);
+  for (const w of weights) {
+    sum += w;
+    values.push(firstTop + Math.round((max - firstTop) * (sum / total)));
+  }
+  return values;
 }
 
 function nowLabel() {
@@ -72,7 +94,8 @@ function nowLabel() {
  * the first text send, whatever is typed, goes out as the fixed
  * announcement, and 3 seconds later the "อ่านแล้ว" count of those two
  * messages (same number on both) runs from 1 up to the configured maximum
- * over 10 seconds, in uneven surges and stalls.
+ * over 15 seconds: 1-10 takes about 5 of them (with holds), then uneven
+ * surges and stalls up to the maximum.
  *
  * The ☰ icon flips to the mirrored view: the chat resets, and after 5
  * seconds the two messages arrive on their own, one at a time, from "บุษบา"
@@ -135,14 +158,13 @@ export function useGroupChatSim() {
   const startReadRun = useCallback(() => {
     const max = Math.max(parseInt(maxReadRef.current, 10) || 1, 1);
     const totalTicks = READ_RUN_MS / READ_TICK_MS;
-    const schedule = randomSchedule(totalTicks);
+    const schedule = readSchedule(max, totalTicks, READ_START_MS / READ_TICK_MS);
     let ticks = 0;
     setReadCount(1);
     if (runTimerRef.current) clearInterval(runTimerRef.current);
     runTimerRef.current = setInterval(() => {
       ticks += 1;
-      const progress = schedule[Math.min(ticks, totalTicks) - 1];
-      setReadCount(1 + Math.round((max - 1) * progress));
+      setReadCount(schedule[Math.min(ticks, totalTicks) - 1]);
       if (ticks >= totalTicks && runTimerRef.current) {
         clearInterval(runTimerRef.current);
         runTimerRef.current = null;

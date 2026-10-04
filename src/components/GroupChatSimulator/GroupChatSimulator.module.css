@@ -16,6 +16,11 @@
   background: #ffffff center / cover no-repeat;
 }
 
+/* Room 6's .row pushes content to the right; left-side messages hug the left. */
+.leftBubbleRow {
+  justify-content: flex-start;
+}
+
 .leftCol {
   min-width: 0;
   display: flex;

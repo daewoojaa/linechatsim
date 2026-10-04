@@ -58,6 +58,20 @@ export default function GroupChatSimulator() {
     if (el) el.scrollTop = el.scrollHeight;
   }, [feed, showingRead]);
 
+  // Pictures load after their message is added, which makes the chat taller
+  // than the scroll that followed the add: keep it pinned to the bottom for
+  // any size change so the newest message (timestamp included) stays in view.
+  useEffect(() => {
+    const inner = feedRef.current?.firstElementChild;
+    if (!inner) return;
+    const observer = new ResizeObserver(() => {
+      const el = feedRef.current;
+      if (el) el.scrollTop = el.scrollHeight;
+    });
+    observer.observe(inner);
+    return () => observer.disconnect();
+  }, []);
+
   const openDialog = () => {
     setDraft(maxRead);
     textInputRef.current?.blur();
@@ -105,7 +119,7 @@ export default function GroupChatSimulator() {
           />
           <div className={extra.leftCol}>
             <div className={extra.sender}>{m.sender}</div>
-            <div className={base.row}>
+            <div className={`${base.row} ${extra.leftBubbleRow}`}>
               {m.kind === "image" ? (
                 picture(m.src, extra.leftImage)
               ) : (
@@ -235,7 +249,7 @@ export default function GroupChatSimulator() {
                 if (e.key === "Enter") saveDialog();
               }}
             />
-            <div className={extra.dialogHint}>ตัวเลขจะวิ่งจาก 1 ถึงค่านี้ ภายใน 10 วินาที</div>
+            <div className={extra.dialogHint}>ตัวเลขจะวิ่งจาก 1 ถึงค่านี้ ภายใน 15 วินาที (1–10 ใช้ราว 5 วินาที)</div>
             <button type="button" className={extra.dialogOk} onClick={saveDialog}>
               ตกลง
             </button>
