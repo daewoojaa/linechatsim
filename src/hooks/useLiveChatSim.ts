@@ -62,7 +62,9 @@ export function useLiveChatSim(roomId: string, defaultRoomName: string, options:
 
   const nameInputRef = useRef<HTMLInputElement>(null);
   const textInputRef = useRef<HTMLDivElement>(null);
-  const hasSentRef = useRef(false);
+  // The "วันนี้" label goes in before the first thing sent, unless the opening
+  // messages already start with one (room 8).
+  const hasSentRef = useRef(script.some((m) => m.kind === "dateLabel"));
   const idRef = useRef(0);
 
   useEffect(() => {
