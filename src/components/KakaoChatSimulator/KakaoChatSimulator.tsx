@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useKakaoChatSim, type KakaoMessage } from "@/hooks/useKakaoChatSim";
+import { useKeyboardReserve } from "@/hooks/useKeyboardReserve";
 import KakaoCallsScreen from "./KakaoCallsScreen";
 import styles from "./KakaoChatSimulator.module.css";
 
@@ -159,6 +160,10 @@ export default function KakaoChatSimulator() {
   const router = useRouter();
   const { feed, hasText, mirrored, textInputRef, onInput, onKeyDown, send, onFeedTap, toggleMirrored, reset } =
     useKakaoChatSim();
+  // Input bar exactly on top of the keyboard: its real height where the
+  // browser reports it, else a fixed share of the screen (41dvh).
+  const keyboardReserve = useKeyboardReserve(textInputRef, "41dvh");
+
   // The recent-calls page (☰ icon's neighbour, the phone) sits over the chat,
   // which stays mounted so its state survives the round trip.
   const [showCalls, setShowCalls] = useState(false);
@@ -179,7 +184,10 @@ export default function KakaoChatSimulator() {
   }, [feed]);
 
   return (
-    <div className={styles.appShell}>
+    <div
+      className={styles.appShell}
+      style={{ ["--keyboard-reserve" as string]: keyboardReserve, transition: "padding-bottom 0.2s ease-out" }}
+    >
       <div className={styles.header}>
         <button type="button" className={styles.backButton} onClick={() => router.push("/")} title="กลับไปหน้ารวมแชท">
           <BackIcon />

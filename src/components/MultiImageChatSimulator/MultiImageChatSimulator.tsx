@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useKeyboardReserve } from "@/hooks/useKeyboardReserve";
 import { useMultiImageChatSim } from "@/hooks/useMultiImageChatSim";
 import {
   BackArrowIcon,
@@ -57,6 +58,9 @@ type Props = {
    *  rather than a setup tool. Landing on neither slot (e.g. a fresh
    *  mount) jumps to the first one. */
   menuToggleIndices?: [number, number];
+  /** Size the space under the input bar from the keyboard's real height
+   *  (input bar rides exactly on top of it) instead of the fixed 40.9dvh. */
+  trackKeyboard?: boolean;
 };
 
 /**
@@ -81,6 +85,7 @@ export default function MultiImageChatSimulator({
   voiceRecordPanelImage,
   headerTint = "light",
   menuToggleIndices,
+  trackKeyboard,
 }: Props) {
   const iconColor = headerTint === "dark" ? "#1c1c1e" : "#ffffff";
   const router = useRouter();
@@ -105,6 +110,8 @@ export default function MultiImageChatSimulator({
 
     onChatImageTap,
   } = useMultiImageChatSim({ roomId, defaultRoomName, slotCount, defaultImages, autoAdvance });
+
+  const keyboardReserve = useKeyboardReserve(textInputRef, "43.8dvh");
 
   const onMenuClick = menuToggleIndices
     ? () => jumpTo(activeIndex === menuToggleIndices[0] ? menuToggleIndices[1] : menuToggleIndices[0])
@@ -165,7 +172,14 @@ export default function MultiImageChatSimulator({
   };
 
   return (
-    <div className={styles.appShell}>
+    <div
+      className={styles.appShell}
+      style={
+        trackKeyboard
+          ? { ["--keyboard-reserve" as string]: keyboardReserve, transition: "padding-bottom 0.2s ease-out" }
+          : undefined
+      }
+    >
       <div className={styles.backgroundLayer}>
         <div
           className={styles.backgroundImage}

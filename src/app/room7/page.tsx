@@ -26,6 +26,7 @@ export default function Room7Page() {
       manageHref="/room7/manage"
       headerBackground="/room7-header-bg.jpg"
       autoAdvance={AUTO_ADVANCE}
+      trackKeyboard
     />
   );
 }
