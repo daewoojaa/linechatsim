@@ -13,5 +13,5 @@ const SCRIPT: LiveMessage[] = [
 ];
 
 export default function Room8Page() {
-  return <LiveChatSimulator roomId="room8" defaultRoomName="บุษบา" script={SCRIPT} timeSuffix=" น." />;
+  return <LiveChatSimulator roomId="room8" defaultRoomName="บุษบา" script={SCRIPT} timeSuffix=" น." focusOnEnter />;
 }

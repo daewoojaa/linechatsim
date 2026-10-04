@@ -161,6 +161,7 @@ export default function LiveChatSimulator({
   defaultRoomName,
   script,
   timeSuffix,
+  focusOnEnter,
 }: { roomId: string; defaultRoomName: string } & LiveChatOptions) {
   const router = useRouter();
   const {
@@ -188,7 +189,7 @@ export default function LiveChatSimulator({
     stopRecording,
     discardRecording,
     sendVoice,
-  } = useLiveChatSim(roomId, defaultRoomName, { script, timeSuffix });
+  } = useLiveChatSim(roomId, defaultRoomName, { script, timeSuffix, focusOnEnter });
 
   const feedRef = useRef<HTMLDivElement>(null);
   useEffect(() => {

@@ -47,10 +47,13 @@ export type LiveChatOptions = {
   script?: LiveMessage[];
   /** Appended to the clock time of messages sent live, e.g. " น." (default none). */
   timeSuffix?: string;
+  /** Put the cursor in the input on entering, so the device keyboard is up
+   *  straight away (room 8; room 6 leaves it off). */
+  focusOnEnter?: boolean;
 };
 
 export function useLiveChatSim(roomId: string, defaultRoomName: string, options: LiveChatOptions = {}) {
-  const { script = SCRIPT, timeSuffix = "" } = options;
+  const { script = SCRIPT, timeSuffix = "", focusOnEnter = false } = options;
   const [roomName, setRoomName] = useState(defaultRoomName);
   const [editingName, setEditingName] = useState(false);
   const [feed, setFeed] = useState<LiveMessage[]>(script);
@@ -92,6 +95,15 @@ export function useLiveChatSim(roomId: string, defaultRoomName: string, options:
     () => setDayLabel((d) => DAY_LABELS[(DAY_LABELS.indexOf(d) + 1) % DAY_LABELS.length]),
     []
   );
+
+  useEffect(() => {
+    if (!focusOnEnter) return;
+    const focus = () => textInputRef.current?.focus();
+    focus();
+    // A second try once the page has settled; some browsers drop the first.
+    const retry = setTimeout(focus, 300);
+    return () => clearTimeout(retry);
+  }, [focusOnEnter]);
 
   const startEditName = useCallback(() => setEditingName(true), []);
   useEffect(() => {
