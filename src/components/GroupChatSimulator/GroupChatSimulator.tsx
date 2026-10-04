@@ -24,7 +24,9 @@ const HEADER_COLOR = "#ffffff";
 /**
  * Room 2: a LINE group chat on a picture background, built from room 6's
  * design. The ">" at the left of the input bar picks a picture to send; the
- * phone icon at the top right sets how high the "อ่านแล้ว" count runs.
+ * phone icon at the top right sets how high the "อ่านแล้ว" count runs; the ☰
+ * icon flips the scripted messages to the other side (see useGroupChatSim).
+ * Tapping any picture in the chat opens it full screen.
  */
 export default function GroupChatSimulator() {
   const router = useRouter();
@@ -34,6 +36,8 @@ export default function GroupChatSimulator() {
     readCount,
     maxRead,
     setMaxRead,
+    mirrored,
+    toggleMirrored,
     textInputRef,
     imageInputRef,
     onInput,
@@ -45,6 +49,7 @@ export default function GroupChatSimulator() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [draft, setDraft] = useState(maxRead);
+  const [viewing, setViewing] = useState<string | null>(null);
 
   const feedRef = useRef<HTMLDivElement>(null);
   const showingRead = readCount !== null;
@@ -65,20 +70,48 @@ export default function GroupChatSimulator() {
     textInputRef.current?.focus();
   };
 
+  // Full-screen picture: the keyboard comes down while it is up and returns
+  // when it closes.
+  const openViewer = (src: string) => {
+    textInputRef.current?.blur();
+    setViewing(src);
+  };
+  const closeViewer = () => {
+    setViewing(null);
+    textInputRef.current?.focus();
+  };
+
+  const picture = (src: string, className: string) => (
+    // eslint-disable-next-line @next/next/no-img-element -- static public/ asset or blob URL of a picked picture
+    <img
+      src={src}
+      className={`${extra.bubbleImage} ${className}`}
+      alt=""
+      onClick={(e) => {
+        e.stopPropagation();
+        openViewer(src);
+      }}
+    />
+  );
+
   const row = (m: GroupMessage) => {
     if (m.side === "left") {
       return (
         <div key={m.id} className={extra.leftRow}>
-          <div className={extra.avatar} />
+          <div
+            className={extra.avatar}
+            // The logo avatar (a PNG) is shown whole; photos fill the circle.
+            style={{ backgroundImage: `url(${m.avatar})`, backgroundSize: m.avatar.endsWith(".png") ? "contain" : "cover" }}
+          />
           <div className={extra.leftCol}>
             <div className={extra.sender}>{m.sender}</div>
             <div className={base.row}>
-              {/* eslint-disable-next-line @next/next/no-img-element -- static public/ asset */}
-              <img src={m.src} className={`${extra.bubbleImage} ${extra.leftImage}`} alt="" />
-              <div className={`${extra.meta} ${extra.metaLeft}`}>
-                <span className={base.time}>อ่านแล้ว {m.baseRead + (readCount ?? 0)}</span>
-                <span className={base.time}>{m.time}</span>
-              </div>
+              {m.kind === "image" ? (
+                picture(m.src, extra.leftImage)
+              ) : (
+                <div className={`${base.bubble} ${extra.leftBubble}`}>{m.text}</div>
+              )}
+              <span className={base.time}>{m.time}</span>
             </div>
           </div>
         </div>
@@ -93,12 +126,7 @@ export default function GroupChatSimulator() {
     return (
       <div key={m.id} className={base.row}>
         {meta}
-        {m.kind === "text" ? (
-          <div className={base.bubble}>{m.text}</div>
-        ) : (
-          // eslint-disable-next-line @next/next/no-img-element -- blob URL of the picked picture
-          <img src={m.src} className={`${extra.bubbleImage} ${extra.rightImage}`} alt="" />
-        )}
+        {m.kind === "text" ? <div className={base.bubble}>{m.text}</div> : picture(m.src, extra.rightImage)}
       </div>
     );
   };
@@ -132,10 +160,16 @@ export default function GroupChatSimulator() {
             >
               <PhoneIcon color={HEADER_COLOR} />
             </button>
-            <span className={base.iconButton}>
+            <button
+              type="button"
+              className={base.iconButton}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={toggleMirrored}
+              title={mirrored ? "กลับมุมมองเดิม" : "สลับข้อความอัตโนมัติไปฝั่งซ้าย"}
+            >
               <MenuIcon color={HEADER_COLOR} />
               <span className={base.badgeDot} />
-            </span>
+            </button>
           </div>
         </div>
 
@@ -206,6 +240,18 @@ export default function GroupChatSimulator() {
               ตกลง
             </button>
           </div>
+        </div>
+      )}
+
+      {viewing && (
+        <div className={extra.viewer} onClick={closeViewer}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- static public/ asset or blob URL */}
+          <img src={viewing} className={extra.viewerImage} alt="" />
+          <button type="button" className={extra.viewerClose} onClick={closeViewer} aria-label="ปิด">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round">
+              <path d="M6 6l12 12M18 6 6 18" />
+            </svg>
+          </button>
         </div>
       )}
 

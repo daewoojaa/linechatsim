@@ -3,16 +3,21 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export type GroupMessage =
-  | { id: string; side: "left"; sender: string; kind: "image"; src: string; time: string; baseRead: number }
+  | { id: string; side: "left"; sender: string; avatar: string; kind: "image"; src: string; time: string }
+  | { id: string; side: "left"; sender: string; avatar: string; kind: "text"; text: string; time: string }
   | { id: string; side: "right"; kind: "image"; src: string; time: string; readable?: boolean }
   | { id: string; side: "right"; kind: "text"; text: string; time: string; readable?: boolean };
 
-// The old slip already shows this many readers; once the count starts
-// running it grows by the same amount as the two newer messages.
-const OLD_READ_BASE = 847;
-
 const SCRIPT: GroupMessage[] = [
-  { id: "slip", side: "left", sender: "พรชัย", kind: "image", src: "/room2-slip.webp", time: "18.28 น.", baseRead: OLD_READ_BASE },
+  {
+    id: "slip",
+    side: "left",
+    sender: "พรชัย",
+    avatar: "/room2-avatar.webp",
+    kind: "image",
+    src: "/room2-slip.webp",
+    time: "18.28 น.",
+  },
 ];
 
 const FIRST_IMAGE_TIME = "19.25 น.";
@@ -22,6 +27,12 @@ const FIXED_TEXT_TIME = "19.25 น.";
 const READ_DELAY_MS = 3000;
 const READ_RUN_MS = 10000;
 const READ_TICK_MS = 100;
+
+// Mirrored view ("☰"): the same two messages arrive from "บุษบา" on the left.
+const SENDER = "บุษบา";
+const SENDER_AVATAR = "/room2-busaba.png";
+const MIRROR_FIRST_DELAY_MS = 5000;
+const MIRROR_GAP_MS = 3000;
 
 export const DEFAULT_MAX_READ = "589";
 const MAX_READ_KEY = "linechatsim-room2-maxread-v1";
@@ -56,28 +67,43 @@ function nowLabel() {
 
 /**
  * Backs room 2: a LINE group chat ("ลูกหนี้ไม่หนีไปไหน"). A bank slip from
- * "พรชัย" is already in the chat. The operator's first send is a picture
- * (the ">" in the input bar picks it); the first text send, whatever is
- * typed, goes out as the fixed announcement, and 3 seconds later the "อ่านแล้ว"
- * count of the two new messages (same number on both) runs from 1 up to the
- * configured maximum over 10 seconds, in uneven surges and stalls. The old
- * slip shows 847 from the start and climbs by the same amount. Anything sent
- * after that is plain.
+ * "พรชัย" is already in the chat (no read count on it). Normal view: the
+ * operator's first send is a picture (the ">" in the input bar picks it);
+ * the first text send, whatever is typed, goes out as the fixed
+ * announcement, and 3 seconds later the "อ่านแล้ว" count of those two
+ * messages (same number on both) runs from 1 up to the configured maximum
+ * over 10 seconds, in uneven surges and stalls.
+ *
+ * The ☰ icon flips to the mirrored view: the chat resets, and after 5
+ * seconds the two messages arrive on their own, one at a time, from "บุษบา"
+ * on the left (the picture first, then the text), with no read counts. Tap
+ * ☰ again to go back to the normal view.
  */
 export function useGroupChatSim() {
   const [feed, setFeed] = useState<GroupMessage[]>(SCRIPT);
   const [hasText, setHasText] = useState(false);
   const [readCount, setReadCount] = useState<number | null>(null);
   const [maxRead, setMaxReadState] = useState(DEFAULT_MAX_READ);
+  const [mirrored, setMirrored] = useState(false);
 
   const textInputRef = useRef<HTMLDivElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const maxReadRef = useRef(DEFAULT_MAX_READ);
+  const mirroredRef = useRef(false);
   const sentTextRef = useRef(0);
   const sentImageRef = useRef(0);
   const idRef = useRef(0);
-  const delayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const runTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const clearTimers = useCallback(() => {
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
+    if (runTimerRef.current) {
+      clearInterval(runTimerRef.current);
+      runTimerRef.current = null;
+    }
+  }, []);
 
   // Keep the real keyboard up (focus on entering) + load the saved maximum.
   useEffect(() => {
@@ -93,11 +119,8 @@ export function useGroupChatSim() {
         // Persistence is best-effort.
       }
     });
-    return () => {
-      if (delayTimerRef.current) clearTimeout(delayTimerRef.current);
-      if (runTimerRef.current) clearInterval(runTimerRef.current);
-    };
-  }, []);
+    return clearTimers;
+  }, [clearTimers]);
 
   const setMaxRead = useCallback((value: string) => {
     maxReadRef.current = value;
@@ -137,12 +160,9 @@ export function useGroupChatSim() {
     idRef.current += 1;
     const id = `t${idRef.current}`;
     sentTextRef.current += 1;
-    if (sentTextRef.current === 1) {
+    if (!mirroredRef.current && sentTextRef.current === 1) {
       setFeed((prev) => [...prev, { id, side: "right", kind: "text", text: FIXED_TEXT, time: FIXED_TEXT_TIME, readable: true }]);
-      delayTimerRef.current = setTimeout(() => {
-        delayTimerRef.current = null;
-        startReadRun();
-      }, READ_DELAY_MS);
+      timersRef.current.push(setTimeout(startReadRun, READ_DELAY_MS));
     } else {
       setFeed((prev) => [...prev, { id, side: "right", kind: "text", text: typed, time: nowLabel() }]);
     }
@@ -182,14 +202,44 @@ export function useGroupChatSim() {
     if (!file) return;
     idRef.current += 1;
     sentImageRef.current += 1;
-    const time = sentImageRef.current === 1 ? FIRST_IMAGE_TIME : nowLabel();
+    const first = sentImageRef.current === 1 && !mirroredRef.current;
+    const time = first ? FIRST_IMAGE_TIME : nowLabel();
     const src = URL.createObjectURL(file);
     setFeed((prev) => [
       ...prev,
-      { id: `i${idRef.current}`, side: "right", kind: "image", src, time, readable: sentImageRef.current === 1 },
+      { id: `i${idRef.current}`, side: "right", kind: "image", src, time, readable: first },
     ]);
     textInputRef.current?.focus();
   }, []);
+
+  /** ☰: reset the chat and swap views (see the doc comment above). */
+  const toggleMirrored = useCallback(() => {
+    clearTimers();
+    const next = !mirroredRef.current;
+    mirroredRef.current = next;
+    setMirrored(next);
+    setFeed(SCRIPT);
+    setReadCount(null);
+    sentTextRef.current = 0;
+    sentImageRef.current = 0;
+    if (next) {
+      timersRef.current.push(
+        setTimeout(() => {
+          setFeed((prev) => [
+            ...prev,
+            { id: "m-image", side: "left", sender: SENDER, avatar: SENDER_AVATAR, kind: "image", src: "/room2-marker.jpg", time: FIRST_IMAGE_TIME },
+          ]);
+        }, MIRROR_FIRST_DELAY_MS),
+        setTimeout(() => {
+          setFeed((prev) => [
+            ...prev,
+            { id: "m-text", side: "left", sender: SENDER, avatar: SENDER_AVATAR, kind: "text", text: FIXED_TEXT, time: FIXED_TEXT_TIME },
+          ]);
+        }, MIRROR_FIRST_DELAY_MS + MIRROR_GAP_MS)
+      );
+    }
+    textInputRef.current?.focus();
+  }, [clearTimers]);
 
   return {
     feed,
@@ -197,6 +247,8 @@ export function useGroupChatSim() {
     readCount,
     maxRead,
     setMaxRead,
+    mirrored,
+    toggleMirrored,
     textInputRef,
     imageInputRef,
     onInput,
