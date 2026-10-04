@@ -68,8 +68,9 @@
   padding: 0 14px 0 28px;
 }
 
-.row[data-highlight="true"] {
-  background: #ffec8e;
+.row[data-highlight="true"] .name {
+  /* Marked rows are picked out by colour: a deep, orange-leaning yellow. */
+  color: #dd9100;
 }
 
 .name {
@@ -95,10 +96,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.row[data-highlight="true"] .actionButton {
-  background: #f6cf45;
 }
 
 /* ---- editing ---- */

@@ -18,7 +18,7 @@ const DEFAULT_TEXT: Record<string, string> = {
   n3: "더보기",
 };
 
-// The two highlighted rows of the reference (selected / unseen calls).
+// The two marked rows (2 and 3): their name and count get the orange-yellow.
 const HIGHLIGHTED = new Set(["r1", "r2"]);
 const ROWS = ["r0", "r1", "r2", "r3", "r4"];
 
