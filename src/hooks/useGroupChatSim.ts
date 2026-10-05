@@ -22,7 +22,7 @@ const SCRIPT: GroupMessage[] = [
 ];
 
 const FIRST_IMAGE_TIME = "19:25 น.";
-const FIXED_TEXT = "ใครที่แจ้งเบาะแสของแก่นได้ จะยกหนี้ให้หนึ่งหมื่นบาท";
+const FIXED_TEXT = "ใครที่แจ้งเบาะแสของแก่นได้ จะยกหนี้ให้ห้าหมื่นบาท";
 const FIXED_TEXT_TIME = "19:25 น.";
 
 const READ_DELAY_MS = 3000;
