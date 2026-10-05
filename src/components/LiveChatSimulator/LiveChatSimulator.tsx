@@ -121,7 +121,7 @@ function MessageRow({
           <button
             type="button"
             className={styles.avatar}
-            style={{ backgroundImage: `url(${avatar})`, backgroundSize: avatarCustom ? "cover" : "contain" }}
+            style={{ backgroundImage: `url(${avatar})`, backgroundSize: "cover", backgroundPosition: avatarCustom ? "center" : "center 30%" }}
             onClick={(e) => {
               e.stopPropagation();
               onPickAvatar();

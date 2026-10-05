@@ -33,7 +33,7 @@ const READ_TICK_MS = 100;
 
 // Mirrored view ("☰"): the same two messages arrive from "บุษบา" on the left.
 const SENDER = "บุษบา";
-const SENDER_AVATAR = "/room2-busaba.png";
+const SENDER_AVATAR = "/busaba-avatar.jpg";
 const MIRROR_FIRST_DELAY_MS = 5000;
 const MIRROR_GAP_MS = 3000;
 

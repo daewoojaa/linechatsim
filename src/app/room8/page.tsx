@@ -19,7 +19,7 @@ export default function Room8Page() {
       script={SCRIPT}
       timeSuffix=" น."
       focusOnEnter
-      defaultAvatar="/room2-busaba.png"
+      defaultAvatar="/busaba-avatar.jpg"
     />
   );
 }
