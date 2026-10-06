@@ -14,6 +14,10 @@ export type ChatRoom = {
   href?: string;
 };
 
+/**
+ * The second chat-list page ("/home2", reached by tapping row 2 of the first
+ * page): the original list, whose rows open the actual chat rooms.
+ */
 export const INITIAL_ROOMS: ChatRoom[] = [
   {
     id: "1",
@@ -91,3 +95,27 @@ export const INITIAL_ROOMS: ChatRoom[] = [
     href: "/tuang",
   },
 ];
+
+/**
+ * The first chat-list page ("/"): an index of the rooms by code. Same rows
+ * (previews, badges, pins) as the second page, with these names; row 2 opens
+ * the second chat-list page instead of a chat.
+ */
+const MAIN_NAMES = [
+  "520-522-617 Harry-JH",
+  "321 ลูกหนี้ไม่หนีไปไหน",
+  "309 ดอกรัก",
+  "820 Ninja Video Call",
+  "815 TikTok",
+  "237-301 Voice Record",
+  "611 วงไข่มุกบารมี",
+  "338 บุษบา",
+  "ว่าง",
+  "อ.ตวง",
+];
+
+export const MAIN_ROOMS: ChatRoom[] = INITIAL_ROOMS.map((room, i) => ({
+  ...room,
+  name: MAIN_NAMES[i],
+  href: room.id === "2" ? "/home2" : room.href,
+}));

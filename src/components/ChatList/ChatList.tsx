@@ -15,14 +15,34 @@ import {
   WalletIcon,
 } from "@/components/icons/ChatListIcons";
 import { idbGetImage, idbSetImage } from "@/lib/idbStore";
-import { INITIAL_ROOMS, type ChatRoom } from "./rooms";
+import { INITIAL_ROOMS, MAIN_ROOMS, type ChatRoom } from "./rooms";
 import { loadRoomOverrides, saveRoomOverride } from "./storage";
 import styles from "./ChatList.module.css";
 
 type Field = "name" | "message" | "time" | "unread";
 type EditingField = { id: string; field: Field } | null;
 
-const avatarKey = (id: string) => `chatlist:avatar:${id}`;
+/**
+ * The app has two chat-list pages with the same design: "main" (the home
+ * page, an index by room code) and "second" (the original list, reached from
+ * row 2 of the first). Each keeps its own edits and profile pictures; the
+ * second page uses the storage keys the app always had, so nothing saved
+ * before the split is lost.
+ */
+export type ListVariant = "main" | "second";
+
+const LISTS = {
+  main: {
+    rooms: MAIN_ROOMS,
+    storageKey: "linechatsim-chatlist-main-v1",
+    avatarPrefix: "chatlist:main:avatar:",
+  },
+  second: {
+    rooms: INITIAL_ROOMS,
+    storageKey: "linechatsim-chatlist-overrides-v2",
+    avatarPrefix: "chatlist:avatar:",
+  },
+} as const;
 
 function hasBadge(unread: ChatRoom["unread"]) {
   const v = String(unread ?? "").trim();
@@ -38,9 +58,11 @@ function hasBadge(unread: ChatRoom["unread"]) {
  * the top right toggles that edit mode. Each edit is saved the moment it is
  * committed, and locking saves every row again, so nothing is lost.
  */
-export default function ChatList() {
+export default function ChatList({ variant = "main" }: { variant?: ListVariant }) {
+  const { rooms: initialRooms, storageKey, avatarPrefix } = LISTS[variant];
+  const avatarKey = (id: string) => `${avatarPrefix}${id}`;
   const router = useRouter();
-  const [rooms, setRooms] = useState<ChatRoom[]>(INITIAL_ROOMS);
+  const [rooms, setRooms] = useState<ChatRoom[]>(initialRooms);
   const [avatars, setAvatars] = useState<Record<string, string>>({});
   const [editing, setEditing] = useState<EditingField>(null);
   const [locked, setLocked] = useState(true);
@@ -53,18 +75,19 @@ export default function ChatList() {
   // so this doesn't count as a synchronous setState-in-effect.
   useEffect(() => {
     queueMicrotask(() => {
-      const overrides = loadRoomOverrides();
+      const overrides = loadRoomOverrides(LISTS[variant].storageKey);
       if (Object.keys(overrides).length === 0) return;
       setRooms((prev) => prev.map((r) => (overrides[r.id] ? { ...r, ...overrides[r.id] } : r)));
     });
-  }, []);
+  }, [variant]);
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all(INITIAL_ROOMS.map((r) => idbGetImage(avatarKey(r.id)))).then((blobs) => {
+    const { rooms: listRooms, avatarPrefix: prefix } = LISTS[variant];
+    Promise.all(listRooms.map((r) => idbGetImage(`${prefix}${r.id}`))).then((blobs) => {
       if (cancelled) return;
       const next: Record<string, string> = {};
-      INITIAL_ROOMS.forEach((r, i) => {
+      listRooms.forEach((r, i) => {
         const blob = blobs[i];
         if (blob) next[r.id] = URL.createObjectURL(blob);
       });
@@ -73,7 +96,7 @@ export default function ChatList() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [variant]);
 
   useEffect(() => {
     if (editing) {
@@ -91,7 +114,7 @@ export default function ChatList() {
   const commitEditing = () => {
     if (!editing) return;
     const room = rooms.find((r) => r.id === editing.id);
-    if (room) saveRoomOverride(room.id, { [editing.field]: String(room[editing.field] ?? "") });
+    if (room) saveRoomOverride(room.id, { [editing.field]: String(room[editing.field] ?? "") }, storageKey);
     setEditing(null);
   };
 
@@ -104,12 +127,16 @@ export default function ChatList() {
       // Locking: write every row out once more so the whole list is
       // remembered, including an edit still open in an input.
       rooms.forEach((r) =>
-        saveRoomOverride(r.id, {
-          name: r.name,
-          message: r.message,
-          time: r.time,
-          unread: String(r.unread ?? ""),
-        })
+        saveRoomOverride(
+          r.id,
+          {
+            name: r.name,
+            message: r.message,
+            time: r.time,
+            unread: String(r.unread ?? ""),
+          },
+          storageKey
+        )
       );
       setEditing(null);
     }
@@ -255,7 +282,7 @@ export default function ChatList() {
 
       {/* 3. Bottom nav */}
       <div className={styles.bottomNav}>
-        <button type="button" className={styles.navItem}>
+        <button type="button" className={styles.navItem} onClick={variant === "second" ? () => router.push("/") : undefined}>
           <HomeIcon />
           <span className={styles.navLabel}>หน้าหลัก</span>
         </button>
