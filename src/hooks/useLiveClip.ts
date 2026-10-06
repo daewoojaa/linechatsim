@@ -20,8 +20,8 @@ const DEFAULT_INFO: ClipInfo = {
   saves: "206.1k",
 };
 
-// Comments 1-5 are fixed; 6-10 are placeholders meant to be retyped (see
-// the "ข้อความ" editor), so only those five are saved.
+// The five comments that always loop. More are added one at a time from the
+// "ข้อความ" editor (comment 6, 7, ...) and kept in IndexedDB.
 const FIXED_COMMENTS: LiveComment[] = [
   { name: "โกโก้", text: "🔥🔥🔥" },
   { name: "peekprae_2003", text: "ม่วนแท้🤣🥰" },
@@ -29,32 +29,39 @@ const FIXED_COMMENTS: LiveComment[] = [
   { name: "บาสคนมักม่วน", text: "ขอชื่อเพลงหน่อยครับ" },
   { name: "K.", text: "พริ้วคัก" },
 ];
-export const EDITABLE_FROM = FIXED_COMMENTS.length; // index of "comment 6"
-const DEFAULT_EDITABLE: LiveComment[] = [6, 7, 8, 9, 10].map((n) => ({
-  name: `เม้น ${n}`,
-  text: "แตะ \"ข้อความ\" เพื่อแก้ไข",
-}));
+export const FIXED_COMMENT_COUNT = FIXED_COMMENTS.length;
 
 const META_KEY = "room5:live";
 const AVATAR_KEY = "room5:liveavatar";
 const VIDEO_KEY = "room5:livevideo";
 
-type Saved = { info?: Partial<ClipInfo>; editable?: Partial<LiveComment>[] };
+type Saved = {
+  info?: Partial<ClipInfo>;
+  /** Comments added by the operator (6th onwards). */
+  extra?: LiveComment[];
+  /** Older saves: five placeholder-or-edited slots standing in for 6-10. */
+  editable?: Partial<LiveComment>[];
+};
+
+/** The 6-10 placeholders of the previous design ("เม้น 6: แตะ ... แก้ไข"). */
+function isLegacyPlaceholder(c: Partial<LiveComment>) {
+  return /^เม้น \d+$/.test(c.name ?? "") && (c.text ?? "").includes("เพื่อแก้ไข");
+}
 
 /**
  * The LIVE clip of room 5 (the top-left LIVE badge): one extra clip outside
- * the swipe loop, with its own details, account picture, video and ten
- * floating comments. Info + comments 6-10 live in IndexedDB as one meta
- * record; the video and account picture are blobs. Defaults: TT-demo3.mp4
- * and the supplied profile picture, replaceable from the app.
+ * the swipe loop, with its own details, account picture, video and floating
+ * comments. Info + added comments live in IndexedDB as one meta record; the
+ * video and account picture are blobs. Defaults: TT-demo3.mp4 and the supplied
+ * profile picture, replaceable from the app.
  */
 export function useLiveClip() {
   const [info, setInfo] = useState<ClipInfo>(DEFAULT_INFO);
-  const [editable, setEditable] = useState<LiveComment[]>(DEFAULT_EDITABLE);
+  const [extra, setExtra] = useState<LiveComment[]>([]);
   const [avatar, setAvatar] = useState<string>(DEFAULT_LIVE_AVATAR);
   const [videoSrc, setVideoSrc] = useState<string>(DEFAULT_LIVE_VIDEO);
   const infoRef = useRef(info);
-  const editableRef = useRef(editable);
+  const extraRef = useRef(extra);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
@@ -68,10 +75,16 @@ export function useLiveClip() {
           infoRef.current = merged;
           setInfo(merged);
         }
-        if (Array.isArray(saved?.editable)) {
-          const merged = DEFAULT_EDITABLE.map((d, i) => ({ ...d, ...(saved.editable?.[i] ?? {}) }));
-          editableRef.current = merged;
-          setEditable(merged);
+        // New saves keep `extra`; an older save contributes the slots that were
+        // actually edited (placeholders are dropped).
+        const restored: LiveComment[] = Array.isArray(saved?.extra)
+          ? saved.extra
+          : (saved?.editable ?? [])
+              .filter((c) => !isLegacyPlaceholder(c) && ((c.name ?? "") !== "" || (c.text ?? "") !== ""))
+              .map((c) => ({ name: c.name ?? "", text: c.text ?? "" }));
+        if (restored.length > 0) {
+          extraRef.current = restored;
+          setExtra(restored);
         }
         if (avatarBlob) setAvatar(URL.createObjectURL(avatarBlob));
         if (videoBlob) setVideoSrc(URL.createObjectURL(videoBlob));
@@ -83,7 +96,7 @@ export function useLiveClip() {
   }, []);
 
   const persist = useCallback(() => {
-    idbSetMeta(META_KEY, { info: infoRef.current, editable: editableRef.current } satisfies Saved);
+    idbSetMeta(META_KEY, { info: infoRef.current, extra: extraRef.current } satisfies Saved);
   }, []);
 
   const setField = useCallback(
@@ -95,13 +108,21 @@ export function useLiveClip() {
     [persist]
   );
 
-  /** Edits comment `index` (0-based over all ten); only 6-10 are editable. */
-  const setComment = useCallback(
-    (index: number, patch: Partial<LiveComment>) => {
-      const i = index - EDITABLE_FROM;
-      if (i < 0 || i >= editableRef.current.length) return;
-      editableRef.current = editableRef.current.map((c, j) => (j === i ? { ...c, ...patch } : c));
-      setEditable(editableRef.current);
+  /** Adds one comment after the existing ones (6th, 7th, ...). */
+  const addComment = useCallback(
+    (comment: LiveComment) => {
+      extraRef.current = [...extraRef.current, comment];
+      setExtra(extraRef.current);
+      persist();
+    },
+    [persist]
+  );
+
+  /** Removes an added comment (index counts from the 6th comment). */
+  const removeComment = useCallback(
+    (index: number) => {
+      extraRef.current = extraRef.current.filter((_, i) => i !== index);
+      setExtra(extraRef.current);
       persist();
     },
     [persist]
@@ -131,13 +152,15 @@ export function useLiveClip() {
     setVideoSrc(URL.createObjectURL(file));
   }, []);
 
-  const comments: LiveComment[] = [...FIXED_COMMENTS, ...editable];
+  const comments: LiveComment[] = [...FIXED_COMMENTS, ...extra];
 
   return {
     info,
     setField,
     comments,
-    setComment,
+    addedComments: extra,
+    addComment,
+    removeComment,
     avatar,
     videoSrc,
     requestPickAvatar,

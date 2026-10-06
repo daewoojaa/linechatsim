@@ -569,3 +569,36 @@
   font: 600 15px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
   cursor: pointer;
 }
+
+/* Comments already added, listed under the add form. */
+.addedRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid #f0f0f2;
+  font: 400 15px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  color: #1c1c1e;
+}
+
+.addedText {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.addedDelete {
+  flex: none;
+  border: 0;
+  border-radius: 999px;
+  padding: 5px 14px;
+  background: #f1f1f3;
+  color: #c0392b;
+  font: 600 13px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  cursor: pointer;
+}
+
+.editorOk:disabled {
+  opacity: 0.4;
+  cursor: default;
+}

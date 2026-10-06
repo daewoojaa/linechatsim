@@ -124,11 +124,11 @@ export const INITIAL_ROOMS: ChatRoom[] = BASE_ROOMS.map((room) => ({ ...room, ..
  * the second chat-list page instead of a chat.
  */
 const MAIN_NAMES = [
-  "520-522-617 Harry-JH",
-  "321 ลูกหนี้ไม่หนีไปไหน",
+  "520-522-617-717 Harry",
+  "321-322 ลูกหนี้ไม่หนีไปไหน",
   "309 ดอกรัก",
   "820 Ninja Video Call",
-  "815 TikTok",
+  "815-523-524 TikTok",
   "237-301 Voice Record",
   "611 วงไข่มุกบารมี",
   "338 บุษบา",

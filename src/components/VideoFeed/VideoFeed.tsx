@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { EMPTY_CLIP, useVideoFeedClips, type ClipField, type ClipInfo } from "@/hooks/useVideoFeedClips";
-import { EDITABLE_FROM, useLiveClip, type LiveComment } from "@/hooks/useLiveClip";
+import { FIXED_COMMENT_COUNT, useLiveClip, type LiveComment } from "@/hooks/useLiveClip";
 import SoundPage from "./SoundPage";
 import styles from "./VideoFeed.module.css";
 
@@ -230,7 +230,7 @@ function LiveComments({ comments }: { comments: LiveComment[] }) {
     <div className={styles.comments}>
       {items.map(({ key, comment }) => (
         <div key={key} className={styles.liveComment}>
-          <span className={styles.liveCommentName}>{comment.name}</span>
+          {comment.name && <span className={styles.liveCommentName}>{comment.name}</span>}
           <span className={styles.liveCommentText}>{comment.text}</span>
         </div>
       ))}
@@ -252,7 +252,8 @@ function LiveComments({ comments }: { comments: LiveComment[] }) {
  *
  * The top-left LIVE badge switches to the LIVE clip (its own details, video
  * and floating comments, separate from the swipe loop); tap it again to go
- * back. The "ข้อความ" item opens an editor for live comments 6-10.
+ * back. The "ข้อความ" item opens a form that adds one more live comment
+ * (the 6th, then the 7th, ...) to the five that always loop.
  */
 export default function VideoFeed() {
   const router = useRouter();
@@ -280,6 +281,7 @@ export default function VideoFeed() {
   const { videoInputRef: liveVideoInputRef, avatarInputRef: liveAvatarInputRef, ...live } = useLiveClip();
   const [liveMode, setLiveMode] = useState(false);
   const [commentsEditorOpen, setCommentsEditorOpen] = useState(false);
+  const [newComment, setNewComment] = useState<LiveComment>({ name: "", text: "" });
   const [soundOpen, setSoundOpen] = useState(false);
   const liveVideoRef = useRef<HTMLVideoElement>(null);
   const slides = [...videoSrcs, videoSrcs[0]];
@@ -555,39 +557,65 @@ export default function VideoFeed() {
 
       {commentsEditorOpen && (
         <div className={styles.formPage}>
-          <div className={styles.formHeader}>แก้ไขคอมเม้นต์ไลฟ์ 6–10</div>
-          <div className={styles.formFile}>ชื่อผู้คอมเม้นต์ + ข้อความ (จดจำไว้ให้)</div>
+          <div className={styles.formHeader}>เพิ่มคอมเม้นต์ไลฟ์</div>
+          <div className={styles.formFile}>
+            คอมเม้นต์ถัดไปคือคอมเม้นต์ที่ {FIXED_COMMENT_COUNT + live.addedComments.length + 1} (จดจำไว้ให้ ไหลวนต่อจาก {FIXED_COMMENT_COUNT} ข้อความเดิม)
+          </div>
           <div className={styles.formBody}>
-            {live.comments.slice(EDITABLE_FROM).map((c, i) => {
-              const index = EDITABLE_FROM + i;
-              return (
-                <div key={index} className={styles.formField}>
-                  <span>คอมเม้นต์ {index + 1}</span>
-                  <input
-                    className={styles.editorInput}
-                    value={c.name}
-                    placeholder="ชื่อ"
-                    onChange={(e) => live.setComment(index, { name: e.target.value })}
-                    autoCorrect="off"
-                    autoCapitalize="off"
-                    spellCheck={false}
-                  />
-                  <input
-                    className={styles.editorInput}
-                    value={c.text}
-                    placeholder="ข้อความ"
-                    onChange={(e) => live.setComment(index, { text: e.target.value })}
-                    autoCorrect="off"
-                    autoCapitalize="off"
-                    spellCheck={false}
-                  />
-                </div>
-              );
-            })}
+            <label className={styles.formField}>
+              <span>ชื่อ</span>
+              <input
+                className={styles.editorInput}
+                value={newComment.name}
+                onChange={(e) => setNewComment((c) => ({ ...c, name: e.target.value }))}
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
+              />
+            </label>
+            <label className={styles.formField}>
+              <span>ข้อความ</span>
+              <input
+                className={styles.editorInput}
+                value={newComment.text}
+                onChange={(e) => setNewComment((c) => ({ ...c, text: e.target.value }))}
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
+              />
+            </label>
+            {live.addedComments.length > 0 && (
+              <div className={styles.formField}>
+                <span>คอมเม้นต์ที่เพิ่มไว้แล้ว</span>
+                {live.addedComments.map((c, i) => (
+                  <div key={i} className={styles.addedRow}>
+                    <span className={styles.addedText}>
+                      {FIXED_COMMENT_COUNT + i + 1}. {c.name ? `${c.name} : ` : ""}
+                      {c.text}
+                    </span>
+                    <button type="button" className={styles.addedDelete} onClick={() => live.removeComment(i)} aria-label="ลบ">
+                      ลบ
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <div className={styles.formActions}>
-            <button type="button" className={styles.editorOk} onClick={() => setCommentsEditorOpen(false)}>
-              เสร็จ
+            <button type="button" className={styles.formCancel} onClick={() => setCommentsEditorOpen(false)}>
+              ปิด
+            </button>
+            <button
+              type="button"
+              className={styles.editorOk}
+              disabled={newComment.text.trim() === ""}
+              onClick={() => {
+                live.addComment({ name: newComment.name.trim(), text: newComment.text.trim() });
+                setNewComment({ name: "", text: "" });
+                setCommentsEditorOpen(false);
+              }}
+            >
+              เพิ่ม
             </button>
           </div>
         </div>
