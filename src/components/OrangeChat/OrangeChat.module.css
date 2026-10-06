@@ -11,7 +11,6 @@
   --orange-dark: #e35a1c;
   /* The peach landscape fills the whole screen behind everything. */
   background: #fbe7cf url("/room10-bg.webp") center bottom / cover no-repeat;
-  padding-top: env(safe-area-inset-top);
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
   transition: padding-bottom 0.2s ease-out;
@@ -24,9 +23,25 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 14px 10px 8px;
+  /* The picture shows through behind the device status bar too: the header's
+     top padding reaches up into the safe area instead of the shell's. */
+  padding: calc(10px + env(safe-area-inset-top)) 14px 10px 8px;
   background: rgba(255, 244, 232, 0.55);
   backdrop-filter: blur(8px);
+}
+
+.dotsButton {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  display: flex;
+  cursor: pointer;
+}
+
+/* Picture hidden: the dots read as switched on. */
+.dotsButton[data-active="true"] {
+  color: var(--orange);
 }
 
 .back {
@@ -235,6 +250,44 @@
   flex: none;
   display: flex;
   color: #6b5444;
+}
+
+/* ---- picture menu ---- */
+
+.menuBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(40, 20, 8, 0.4);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 12px calc(12px + env(safe-area-inset-bottom));
+}
+
+.menu {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.menuItem {
+  border: 0;
+  padding: 16px;
+  background: #ffffff;
+  color: #2b1d14;
+  font: 500 17px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  cursor: pointer;
+}
+
+.menuCancel {
+  color: var(--orange-dark);
+  font-weight: 700;
 }
 
 /* ---- full-screen picture ---- */
