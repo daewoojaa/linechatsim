@@ -119,9 +119,10 @@ const SECOND_LIST_DEFAULTS: Record<string, Pick<ChatRoom, "name" | "message" | "
 export const INITIAL_ROOMS: ChatRoom[] = BASE_ROOMS.map((room) => ({ ...room, ...SECOND_LIST_DEFAULTS[room.id] }));
 
 /**
- * The first chat-list page ("/"): an index of the rooms by code. Same rows
- * (previews, badges, pins) as the second page, with these names; row 2 opens
- * the second chat-list page instead of a chat.
+ * The first chat-list page ("/"): an index of the rooms by code, with the
+ * names below and the badge numbers 1-10 (row 1 also at 19:00) as last set
+ * in the app; previews and pins as in the base rows. Row 2 opens the second
+ * chat-list page instead of a chat, row 9 the social feed.
  */
 const MAIN_NAMES = [
   "520-522-617-717 Harry",
@@ -132,12 +133,14 @@ const MAIN_NAMES = [
   "237-301 Voice Record",
   "611 วงไข่มุกบารมี",
   "338 บุษบา",
-  "ว่าง",
+  "235 Gan_phin",
   "อ.ตวง",
 ];
 
 export const MAIN_ROOMS: ChatRoom[] = BASE_ROOMS.map((room, i) => ({
   ...room,
   name: MAIN_NAMES[i],
-  href: room.id === "2" ? "/home2" : room.href,
+  unread: String(i + 1),
+  time: room.id === "1" ? "19:00" : room.time,
+  href: room.id === "2" ? "/home2" : room.id === "9" ? "/room9" : room.href,
 }));
