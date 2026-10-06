@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useKeyboardReserve } from "@/hooks/useKeyboardReserve";
-import { useThemeColor } from "@/hooks/useThemeColor";
 import { idbDeleteImage, idbGetImage, idbSetImage } from "@/lib/idbStore";
 import styles from "./OrangeChat.module.css";
 
@@ -33,9 +32,6 @@ const SCRIPT: Message[] = [
 ];
 
 const FALLBACK_KEYBOARD_RESERVE = "43.8dvh";
-// Matches the top edge of the background picture, so the device status bar
-// reads as part of it.
-const STATUS_BAR_COLOR = "#fce9d4";
 
 function nowLabel() {
   const d = new Date();
@@ -136,7 +132,6 @@ export default function OrangeChat() {
   const objectUrlRef = useRef<string | null>(null);
   const idRef = useRef(0);
   const keyboardReserve = useKeyboardReserve(textInputRef, FALLBACK_KEYBOARD_RESERVE);
-  useThemeColor(STATUS_BAR_COLOR);
 
   // Cursor in the input on entering, so the device keyboard is up.
   useEffect(() => {

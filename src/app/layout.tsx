@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Noto_Sans_Thai } from "next/font/google";
 import RegisterServiceWorker from "./register-sw";
+import StatusBarTint from "@/components/StatusBarTint/StatusBarTint";
 import "./globals.css";
 
 const notoSansThai = Noto_Sans_Thai({
@@ -51,6 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
         <RegisterServiceWorker />
+        <StatusBarTint />
       </body>
     </html>
   );
