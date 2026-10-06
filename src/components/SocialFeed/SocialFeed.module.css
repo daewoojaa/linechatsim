@@ -262,6 +262,25 @@
   justify-content: center;
 }
 
+/* The create-post tab is a real button now. */
+.tabButton {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* The freshly shared post: Korean text, sits above the older ones. */
+.korean {
+  font-family: system-ui, -apple-system, "Noto Sans KR", "Malgun Gothic", sans-serif;
+}
+
+.newCaption {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 /* Placeholder avatar for other accounts in the mock feed. */
 .avatarPlain {
   background: linear-gradient(160deg, #c9d6e6 0%, #8fa6c4 100%);

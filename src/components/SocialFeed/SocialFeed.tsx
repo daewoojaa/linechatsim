@@ -2,7 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useGrowingCounts } from "@/hooks/useGrowingCounts";
+import { idbGetImage, idbSetImage } from "@/lib/idbStore";
+import CreatePost, { type PostMedia } from "./CreatePost";
 import styles from "./SocialFeed.module.css";
+
+const CREATE_MEDIA_KEY = "room9:create-media";
+
+type NewPost = { id: number; media: PostMedia; caption: string };
 
 const STORAGE_KEY = "linechatsim-room9-text-v2";
 
@@ -130,6 +137,77 @@ function Avatar({ size, ring = true, plain = false }: { size: number; ring?: boo
   );
 }
 
+const formatCount = (n: number) => n.toLocaleString("en-US");
+
+/**
+ * A post shared from the "new post" screen, in the Korean version of the app:
+ * its counters start at zero and then grow by themselves (see
+ * useGrowingCounts). Only the number of comments is shown, never their text.
+ */
+function NewPostCard({ user, post }: { user: string; post: NewPost }) {
+  const counts = useGrowingCounts();
+  const [muted, setMuted] = useState(true);
+  return (
+    <article className={styles.post}>
+      <header className={styles.postHeader}>
+        <Avatar size={44} />
+        <div className={styles.who}>
+          <div className={styles.username}>{user}</div>
+        </div>
+        <span className={styles.dots}>
+          <DotsIcon />
+        </span>
+      </header>
+
+      {post.media.video ? (
+        <video
+          src={post.media.src}
+          className={styles.photo}
+          autoPlay
+          muted={muted}
+          loop
+          playsInline
+          onClick={() => setMuted((m) => !m)}
+        />
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element -- local blob
+        <img src={post.media.src} className={styles.photo} alt="" />
+      )}
+
+      <div className={styles.actions}>
+        <span className={styles.action}>
+          <HeartFilledIcon />
+          <span className={styles.actionNumber}>{formatCount(counts.likes)}</span>
+        </span>
+        <span className={styles.action}>
+          <BubbleIcon />
+          <span className={styles.actionNumber}>{formatCount(counts.comments)}</span>
+        </span>
+        <span className={styles.action}>
+          <PlaneIcon size={28} />
+          <span className={styles.actionNumber}>{formatCount(counts.shares)}</span>
+        </span>
+        <span className={styles.bookmark}>
+          <BookmarkIcon />
+        </span>
+      </div>
+
+      <div className={`${styles.text} ${styles.korean}`}>
+        {counts.likes > 0 && (
+          <div className={styles.likedBy}>
+            <b>좋아요 {formatCount(counts.likes)}개</b>
+          </div>
+        )}
+        <div className={styles.newCaption}>
+          <b>{user}</b> {post.caption}
+        </div>
+        {counts.comments > 0 && <div className={styles.viewAll}>댓글 {formatCount(counts.comments)}개 모두 보기</div>}
+        <div className={styles.time}>방금 전</div>
+      </div>
+    </article>
+  );
+}
+
 /**
  * Room 9: an Instagram-style feed (mock-up) with two posts: Gan_phin's plate
  * of Isan larb and a gold-and-money one. The bookmark icon unlocks / locks
@@ -144,6 +222,38 @@ export default function SocialFeed() {
   const [unlocked, setUnlocked] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const feedRef = useRef<HTMLDivElement>(null);
+  const [creating, setCreating] = useState(false);
+  const [createMedia, setCreateMedia] = useState<PostMedia | null>(null);
+  const [newPost, setNewPost] = useState<NewPost | null>(null);
+  const postCountRef = useRef(0);
+
+  // The picture / clip picked last time is offered again on the new-post screen.
+  useEffect(() => {
+    let cancelled = false;
+    idbGetImage(CREATE_MEDIA_KEY)
+      .then((blob) => {
+        if (blob && !cancelled) setCreateMedia({ src: URL.createObjectURL(blob), video: blob.type.startsWith("video/") });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const pickCreateMedia = (file: File) => {
+    // Not revoked: a post already shared may still be showing the previous one.
+    setCreateMedia({ src: URL.createObjectURL(file), video: file.type.startsWith("video/") });
+    idbSetImage(CREATE_MEDIA_KEY, file).catch(() => {});
+  };
+
+  const share = (caption: string) => {
+    if (!createMedia) return;
+    postCountRef.current += 1;
+    setNewPost({ id: postCountRef.current, media: createMedia, caption });
+    setCreating(false);
+    feedRef.current?.scrollTo({ top: 0 });
+  };
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -283,7 +393,8 @@ export default function SocialFeed() {
         </div>
       </div>
 
-      <div className={styles.feed}>
+      <div className={styles.feed} ref={feedRef}>
+        {newPost && <NewPostCard key={newPost.id} user={text["p1.user"]} post={newPost} />}
         {post("p1", "/room9-post.webp", "", false)}
         {post("p2", "/room9-post2.png", "", true)}
       </div>
@@ -297,14 +408,14 @@ export default function SocialFeed() {
           <SearchIcon size={28} />
           <span className={styles.tabLabel}>ค้นหา</span>
         </span>
-        <span className={styles.tab}>
+        <button type="button" className={`${styles.tab} ${styles.tabButton}`} onClick={() => setCreating(true)}>
           <span className={styles.createCircle}>
             <svg width="22" height="22" viewBox="0 0 24 24" {...stroke} strokeWidth={2.6}>
               <path d="M12 5v14M5 12h14" />
             </svg>
           </span>
           <span className={styles.tabLabel}>สร้างโพสต์</span>
-        </span>
+        </button>
         <span className={styles.tab}>
           <VideoIcon />
           <span className={styles.tabLabel}>วีดีโอ</span>
@@ -314,6 +425,16 @@ export default function SocialFeed() {
           <span className={styles.tabLabel}>โปรไฟล์</span>
         </span>
       </nav>
+
+      {creating && (
+        <CreatePost
+          user={text["p1.user"]}
+          media={createMedia}
+          onPickFile={pickCreateMedia}
+          onClose={() => setCreating(false)}
+          onShare={share}
+        />
+      )}
     </div>
   );
 }
