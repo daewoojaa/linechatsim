@@ -14,11 +14,8 @@ export type ChatRoom = {
   href?: string;
 };
 
-/**
- * The second chat-list page ("/home2", reached by tapping row 2 of the first
- * page): the original list, whose rows open the actual chat rooms.
- */
-export const INITIAL_ROOMS: ChatRoom[] = [
+/** The rows as originally built (pins, colours, links, first-draft text). */
+const BASE_ROOMS: ChatRoom[] = [
   {
     id: "1",
     name: "บอสลูกรัก",
@@ -97,6 +94,31 @@ export const INITIAL_ROOMS: ChatRoom[] = [
 ];
 
 /**
+ * The second chat-list page's default text, i.e. its settings as last left
+ * in the app (names, previews, times, badge numbers; "" = no badge). The
+ * first page keeps the original text above.
+ */
+const SECOND_LIST_DEFAULTS: Record<string, Pick<ChatRoom, "name" | "message" | "time" | "unread">> = {
+  "1": { name: "บอสลูกรัก", message: "คุณได้ส่งสติกเกอร์", time: "19:00", unread: "3" },
+  "2": { name: "ลูกหนี้ไม่หนีไปไหน (10,975)", message: "พรชัย ได้ส่งรูปภาพ", time: "18:28", unread: "1" },
+  "3": { name: "บุษฟอร์แคช ทีม (943)", message: "บุษ ได้ส่งสติกเกอร์", time: "15:47", unread: "12" },
+  "4": { name: "งานกฐินปี 70 (236)", message: "ค่ะ", time: "17:22", unread: "" },
+  "5": { name: "ช่างเอก", message: "ได้เลยครับ", time: "16:47", unread: "5" },
+  "6": { name: "ครูอ้อย โรงเรียนดงชน", message: "เด็กได้ชุดครบแล้วค่ะ", time: "16:21", unread: "" },
+  "7": { name: "น้องจอย บัญชี", message: "น้องจอย บัญชี ได้ส่งรูปภาพ", time: "15:56", unread: "2" },
+  "8": { name: "บุษบา", message: "บุษบา ได้ส่งรูปภาพ", time: "15:08", unread: "" },
+  "9": { name: "ณัฐพงศ์", message: "ณัฐพงศ์ ได้ส่งสติกเกอร์", time: "14:32", unread: "8" },
+  "10": { name: "ข่าวสารบ้านเฮา (459)", message: "จริงเหรอ", time: "13:17", unread: "1" },
+};
+
+/**
+ * The second chat-list page ("/home2", reached by tapping row 2 of the first
+ * page): the original list with the defaults above; its rows open the actual
+ * chat rooms.
+ */
+export const INITIAL_ROOMS: ChatRoom[] = BASE_ROOMS.map((room) => ({ ...room, ...SECOND_LIST_DEFAULTS[room.id] }));
+
+/**
  * The first chat-list page ("/"): an index of the rooms by code. Same rows
  * (previews, badges, pins) as the second page, with these names; row 2 opens
  * the second chat-list page instead of a chat.
@@ -114,7 +136,7 @@ const MAIN_NAMES = [
   "อ.ตวง",
 ];
 
-export const MAIN_ROOMS: ChatRoom[] = INITIAL_ROOMS.map((room, i) => ({
+export const MAIN_ROOMS: ChatRoom[] = BASE_ROOMS.map((room, i) => ({
   ...room,
   name: MAIN_NAMES[i],
   href: room.id === "2" ? "/home2" : room.href,
