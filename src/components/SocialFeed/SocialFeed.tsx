@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useGrowingCounts } from "@/hooks/useGrowingCounts";
 import { idbGetImage, idbSetImage } from "@/lib/idbStore";
 import CreatePost, { type PostMedia } from "./CreatePost";
+import PostVideo from "./PostVideo";
 import styles from "./SocialFeed.module.css";
 
 const CREATE_MEDIA_KEY = "room9:create-media";
@@ -148,7 +149,6 @@ const formatCount = (n: number) => n.toLocaleString("en-US");
  */
 function NewPostCard({ user, post }: { user: string; post: NewPost }) {
   const counts = useGrowingCounts();
-  const [muted, setMuted] = useState(true);
   return (
     <article className={styles.post}>
       <header className={styles.postHeader}>
@@ -162,15 +162,7 @@ function NewPostCard({ user, post }: { user: string; post: NewPost }) {
       </header>
 
       {post.media.video ? (
-        <video
-          src={post.media.src}
-          className={styles.photo}
-          autoPlay
-          muted={muted}
-          loop
-          playsInline
-          onClick={() => setMuted((m) => !m)}
-        />
+        <PostVideo src={post.media.src} />
       ) : (
         // eslint-disable-next-line @next/next/no-img-element -- local blob
         <img src={post.media.src} className={styles.photo} alt="" />

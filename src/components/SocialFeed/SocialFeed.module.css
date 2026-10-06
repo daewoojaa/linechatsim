@@ -271,6 +271,46 @@
   cursor: pointer;
 }
 
+/* The clip of a shared post: tap to pause / play, sound button in the corner. */
+.videoWrap {
+  position: relative;
+  line-height: 0;
+  background: #000000;
+}
+
+.playBadge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 68px;
+  height: 68px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.soundButton {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
 /* The freshly shared post: Korean text, sits above the older ones. */
 .korean {
   font-family: system-ui, -apple-system, "Noto Sans KR", "Malgun Gothic", sans-serif;
