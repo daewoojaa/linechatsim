@@ -8,6 +8,8 @@ import CreatePost, { type PostMedia } from "./CreatePost";
 import styles from "./SocialFeed.module.css";
 
 const CREATE_MEDIA_KEY = "room9:create-media";
+/** Account name shown on the create screen and on the post it shares. */
+const NEW_POST_USER = "real_jihoon";
 
 type NewPost = { id: number; media: PostMedia; caption: string };
 
@@ -394,7 +396,7 @@ export default function SocialFeed() {
       </div>
 
       <div className={styles.feed} ref={feedRef}>
-        {newPost && <NewPostCard key={newPost.id} user={text["p1.user"]} post={newPost} />}
+        {newPost && <NewPostCard key={newPost.id} user={NEW_POST_USER} post={newPost} />}
         {post("p1", "/room9-post.webp", "", false)}
         {post("p2", "/room9-post2.png", "", true)}
       </div>
@@ -428,7 +430,7 @@ export default function SocialFeed() {
 
       {creating && (
         <CreatePost
-          user={text["p1.user"]}
+          user={NEW_POST_USER}
           media={createMedia}
           onPickFile={pickCreateMedia}
           onClose={() => setCreating(false)}
