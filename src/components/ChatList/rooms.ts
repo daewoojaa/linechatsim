@@ -122,7 +122,8 @@ export const INITIAL_ROOMS: ChatRoom[] = BASE_ROOMS.map((room) => ({ ...room, ..
  * The first chat-list page ("/"): an index of the rooms by code, with the
  * names below and the badge numbers 1-10 (row 1 also at 19:00) as last set
  * in the app; previews and pins as in the base rows. Row 2 opens the second
- * chat-list page instead of a chat, row 9 the social feed.
+ * chat-list page instead of a chat, row 9 the social feed, row 10 the
+ * Korean reporter's chat (อ.ตวง stays reachable from the second page).
  */
 const MAIN_NAMES = [
   "520-522-617-717 Harry",
@@ -142,5 +143,5 @@ export const MAIN_ROOMS: ChatRoom[] = BASE_ROOMS.map((room, i) => ({
   name: MAIN_NAMES[i],
   unread: String(i + 1),
   time: room.id === "1" ? "19:00" : room.time,
-  href: room.id === "2" ? "/home2" : room.id === "9" ? "/room9" : room.href,
+  href: room.id === "2" ? "/home2" : room.id === "9" ? "/room9" : room.id === "10" ? "/room10" : room.href,
 }));
