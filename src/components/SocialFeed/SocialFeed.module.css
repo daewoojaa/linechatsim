@@ -62,7 +62,13 @@
 }
 
 .post {
-  padding-bottom: 8px;
+  padding-bottom: 12px;
+}
+
+/* Each post is cut off from the previous one by a light band. */
+.post + .post {
+  border-top: 10px solid #f1f1f4;
+  padding-top: 4px;
 }
 
 .postHeader {
@@ -80,7 +86,7 @@
   border-radius: 50%;
   padding: 2.5px;
   box-sizing: border-box;
-  background: conic-gradient(#8e44d8, #d6409f, #f4a23c, #8e44d8);
+  background: conic-gradient(#1faa6b, #8fd45a, #14a08f, #1faa6b);
 }
 
 .noRing {
@@ -152,14 +158,26 @@
 .bookmark {
   margin-left: auto;
   display: flex;
-}
-
-.editable {
+  border: 0;
+  background: transparent;
+  color: #141414;
+  padding: 4px;
   cursor: pointer;
 }
 
-.countInput {
-  width: 64px;
+/* Unlocked: the bookmark is filled and tinted. */
+.bookmark[data-unlocked="true"] {
+  color: #2b8a7e;
+}
+
+/* Editing (bookmark unlocked): dashed underline on every tappable text. */
+.shell [data-editable="true"] {
+  text-decoration: underline dashed rgba(59, 130, 246, 0.65);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.textInput {
   box-sizing: border-box;
   border: 0;
   border-radius: 6px;
@@ -167,6 +185,17 @@
   padding: 2px 6px;
   outline: 2px solid #3b82f6;
   color: #141414;
+  font: inherit;
+  min-width: 0;
+}
+
+.textInputNarrow {
+  width: 9em;
+}
+
+.textInputWide {
+  width: 100%;
+  margin-top: 2px;
 }
 
 /* ---- caption block ---- */

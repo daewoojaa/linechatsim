@@ -4,22 +4,40 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./SocialFeed.module.css";
 
-const STORAGE_KEY = "linechatsim-room9-counts-v1";
+const STORAGE_KEY = "linechatsim-room9-text-v2";
 
-type CountKey = "likes" | "comments" | "shares";
+/** Every piece of text in the mock feed, by key (p1 = first post, p2 = second). */
+const DEFAULT_TEXT: Record<string, string> = {
+  "p1.user": "Gan_phin",
+  "p1.place": "บ้านนาดี · ขอนแก่น",
+  "p1.likes": "3.8K",
+  "p1.comments": "124",
+  "p1.shares": "215",
+  "p1.likedBy": "kaen.life",
+  "p1.caption": "ลาบหมูน้ำตกแซ่บถึงใจ ข้าวเหนียวร้อนๆ ผักสดกรอบๆ มื้อนี้ไม่มีพลาด 🌿🔥",
+  "p1.c1u": "kaen.life",
+  "p1.c1t": "ลาบแซ่บๆ แบบนี้ต้องเติมข้าวเหนียวอีกสามกระติบ 😋",
+  "p1.c2u": "nong_mai",
+  "p1.c2t": "เห็นแล้วน้ำลายไหล พิกัดร้านไหนคะ 🤤",
+  "p1.c3u": "baan_na_88",
+  "p1.c3t": "แจ่วบองข้างๆ ก็น่ากินมาก 🌶️🔥",
+  "p1.time": "2 ชั่วโมงที่แล้ว",
 
-// Mock numbers - every one can be tapped and retyped (kept on the device).
-const DEFAULT_COUNTS: Record<CountKey, string> = {
-  likes: "3.8K",
-  comments: "124",
-  shares: "215",
+  "p2.user": "bus.for.cash",
+  "p2.place": "กรุงเทพมหานคร",
+  "p2.likes": "12.6K",
+  "p2.comments": "482",
+  "p2.shares": "1.1K",
+  "p2.likedBy": "nong_mai",
+  "p2.caption": "เงินๆ ทองๆ มาแล้ว 💰✨ เก็บไว้ให้เฮง ให้รวย ตลอดปีเลยนะ",
+  "p2.c1u": "ping_ping",
+  "p2.c1t": "ขอให้รวยๆ เฮงๆ ค่ะ 🙏",
+  "p2.c2u": "thong.sai",
+  "p2.c2t": "ทองสวยมาก เห็นแล้วใจฟู ✨",
+  "p2.c3u": "ae_songkran",
+  "p2.c3t": "อยากได้บ้างจัง 😍💸",
+  "p2.time": "5 ชั่วโมงที่แล้ว",
 };
-
-const COMMENTS = [
-  { user: "kaen.life", text: "ลาบแซ่บๆ แบบนี้ต้องเติมข้าวเหนียวอีกสามกระติบ 😋" },
-  { user: "nong_mai", text: "เห็นแล้วน้ำลายไหล พิกัดร้านไหนคะ 🤤" },
-  { user: "baan_na_88", text: "แจ่วบองข้างๆ ก็น่ากินมาก 🌶️🔥" },
-];
 
 const stroke = { fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round" } as const;
 
@@ -61,9 +79,9 @@ function BubbleIcon() {
     </svg>
   );
 }
-function BookmarkIcon() {
+function BookmarkIcon({ filled = false }: { filled?: boolean }) {
   return (
-    <svg width="26" height="26" viewBox="0 0 24 24" {...stroke} strokeWidth={1.9}>
+    <svg width="26" height="26" viewBox="0 0 24 24" {...stroke} strokeWidth={1.9} fill={filled ? "currentColor" : "none"}>
       <path d="M6.500 3.600h11v16.800L12 16.300l-5.500 4.100Z" />
     </svg>
   );
@@ -113,22 +131,28 @@ function Avatar({ size, ring = true, plain = false }: { size: number; ring?: boo
 }
 
 /**
- * Room 9: an Instagram-style feed (mock-up). The first post is Gan_phin's
- * plate of Isan larb; the like / comment / share counts are placeholders that
- * can be tapped and retyped (and are remembered). The icons are original
- * drawings in the spirit of the reference rather than copies.
+ * Room 9: an Instagram-style feed (mock-up) with two posts: Gan_phin's plate
+ * of Isan larb and a gold-and-money one. The bookmark icon unlocks / locks
+ * editing: while unlocked every piece of text (names, places, captions,
+ * comments, counts, times) can be tapped and retyped, and is remembered. The
+ * icons are original drawings in the spirit of the reference, not copies.
  */
 export default function SocialFeed() {
   const router = useRouter();
-  const [counts, setCounts] = useState(DEFAULT_COUNTS);
-  const [editing, setEditing] = useState<CountKey | null>(null);
+  const [text, setText] = useState(DEFAULT_TEXT);
+  const textRef = useRef(text);
+  const [unlocked, setUnlocked] = useState(false);
+  const [editing, setEditing] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     queueMicrotask(() => {
       try {
         const raw = window.localStorage.getItem(STORAGE_KEY);
-        if (raw) setCounts((prev) => ({ ...prev, ...(JSON.parse(raw) as Partial<typeof DEFAULT_COUNTS>) }));
+        if (raw) {
+          textRef.current = { ...textRef.current, ...(JSON.parse(raw) as Record<string, string>) };
+          setText(textRef.current);
+        }
       } catch {
         // Persistence is best-effort.
       }
@@ -142,9 +166,10 @@ export default function SocialFeed() {
     }
   }, [editing]);
 
-  const change = (key: CountKey, value: string) => {
-    const next = { ...counts, [key]: value };
-    setCounts(next);
+  const change = (key: string, value: string) => {
+    const next = { ...textRef.current, [key]: value };
+    textRef.current = next;
+    setText(next);
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     } catch {
@@ -152,13 +177,14 @@ export default function SocialFeed() {
     }
   };
 
-  /** A tappable number: shows the value, becomes an input while editing. */
-  const count = (key: CountKey, className: string) =>
+  /** One piece of text: plain while locked; tappable (dashed underline) when
+   *  unlocked, turning into an input while it is being edited. */
+  const t = (key: string, className = "", wide = false) =>
     editing === key ? (
       <input
         ref={inputRef}
-        className={`${className} ${styles.countInput}`}
-        value={counts[key]}
+        className={`${className} ${styles.textInput} ${wide ? styles.textInputWide : styles.textInputNarrow}`}
+        value={text[key]}
         onChange={(e) => change(key, e.target.value)}
         onBlur={() => setEditing(null)}
         onKeyDown={(e) => {
@@ -169,10 +195,77 @@ export default function SocialFeed() {
         }}
       />
     ) : (
-      <span className={`${className} ${styles.editable}`} onClick={() => setEditing(key)}>
-        {counts[key]}
+      <span
+        className={className}
+        data-editable={unlocked}
+        onClick={unlocked ? () => setEditing(key) : undefined}
+      >
+        {text[key]}
       </span>
     );
+
+  const toggleLock = () => {
+    setEditing(null);
+    setUnlocked((u) => !u);
+  };
+
+  const post = (id: "p1" | "p2", photo: string, photoAlt: string, plainAvatar: boolean) => (
+    <article className={styles.post} key={id}>
+      <header className={styles.postHeader}>
+        <Avatar size={44} plain={plainAvatar} />
+        <div className={styles.who}>
+          <div>{t(`${id}.user`, styles.username)}</div>
+          <div>{t(`${id}.place`, styles.place)}</div>
+        </div>
+        <span className={styles.dots}>
+          <DotsIcon />
+        </span>
+      </header>
+
+      {/* eslint-disable-next-line @next/next/no-img-element -- static public/ asset */}
+      <img src={photo} className={styles.photo} alt={photoAlt} />
+
+      <div className={styles.actions}>
+        <span className={styles.action}>
+          <HeartFilledIcon />
+          {t(`${id}.likes`, styles.actionNumber)}
+        </span>
+        <span className={styles.action}>
+          <BubbleIcon />
+          {t(`${id}.comments`, styles.actionNumber)}
+        </span>
+        <span className={styles.action}>
+          <PlaneIcon size={28} />
+          {t(`${id}.shares`, styles.actionNumber)}
+        </span>
+        <button
+          type="button"
+          className={styles.bookmark}
+          data-unlocked={unlocked}
+          onClick={toggleLock}
+          aria-label={unlocked ? "ล็อกการแก้ไขข้อความ" : "ปลดล็อกการแก้ไขข้อความ"}
+        >
+          <BookmarkIcon filled={unlocked} />
+        </button>
+      </div>
+
+      <div className={styles.text}>
+        <div className={styles.likedBy}>
+          ถูกใจโดย <b>{t(`${id}.likedBy`)}</b> และคนอื่นๆ
+        </div>
+        <div>
+          <b>{t(`${id}.user`)}</b> {t(`${id}.caption`, "", true)}
+        </div>
+        {[1, 2, 3].map((n) => (
+          <div key={n}>
+            <b>{t(`${id}.c${n}u`)}</b> {t(`${id}.c${n}t`, "", true)}
+          </div>
+        ))}
+        <div className={styles.viewAll}>ดูความคิดเห็นทั้งหมด {text[`${id}.comments`]} รายการ</div>
+        <div className={styles.time}>{t(`${id}.time`)}</div>
+      </div>
+    </article>
+  );
 
   return (
     <div className={styles.shell}>
@@ -191,70 +284,8 @@ export default function SocialFeed() {
       </div>
 
       <div className={styles.feed}>
-        <article className={styles.post}>
-          <header className={styles.postHeader}>
-            <Avatar size={44} />
-            <div className={styles.who}>
-              <div className={styles.username}>Gan_phin</div>
-              <div className={styles.place}>บ้านนาดี · ขอนแก่น</div>
-            </div>
-            <span className={styles.dots}>
-              <DotsIcon />
-            </span>
-          </header>
-
-          {/* eslint-disable-next-line @next/next/no-img-element -- static public/ asset */}
-          <img src="/room9-post.webp" className={styles.photo} alt="" />
-
-          <div className={styles.actions}>
-            <span className={styles.action}>
-              <HeartFilledIcon />
-              {count("likes", styles.actionNumber)}
-            </span>
-            <span className={styles.action}>
-              <BubbleIcon />
-              {count("comments", styles.actionNumber)}
-            </span>
-            <span className={styles.action}>
-              <PlaneIcon size={28} />
-              {count("shares", styles.actionNumber)}
-            </span>
-            <span className={styles.bookmark}>
-              <BookmarkIcon />
-            </span>
-          </div>
-
-          <div className={styles.text}>
-            <div className={styles.likedBy}>
-              ถูกใจโดย <b>kaen.life</b> และคนอื่นๆ
-            </div>
-            <div>
-              <b>Gan_phin</b> ลาบหมูน้ำตกแซ่บถึงใจ ข้าวเหนียวร้อนๆ ผักสดกรอบๆ มื้อนี้ไม่มีพลาด 🌿🔥
-            </div>
-            {COMMENTS.map((c) => (
-              <div key={c.user}>
-                <b>{c.user}</b> {c.text}
-              </div>
-            ))}
-            <div className={styles.viewAll}>ดูความคิดเห็นทั้งหมด {counts.comments} รายการ</div>
-            <div className={styles.time}>2 ชั่วโมงที่แล้ว</div>
-          </div>
-        </article>
-
-        {/* A second post, just a taste of what scrolls in below. */}
-        <article className={styles.post}>
-          <header className={styles.postHeader}>
-            <Avatar size={44} plain />
-            <div className={styles.who}>
-              <div className={styles.username}>kaen.life</div>
-              <div className={styles.place}>ทุ่งนา · ขอนแก่น</div>
-            </div>
-            <span className={styles.dots}>
-              <DotsIcon />
-            </span>
-          </header>
-          <div className={styles.photoPlaceholder} />
-        </article>
+        {post("p1", "/room9-post.webp", "", false)}
+        {post("p2", "/room9-post2.png", "", true)}
       </div>
 
       <nav className={styles.tabs}>
