@@ -15,23 +15,26 @@ const NEW_POST_USER = "real_jihoon";
 type NewPost = { id: number; media: PostMedia; caption: string };
 
 const STORAGE_KEY = "linechatsim-room9-text-v2";
+// Texts whose defaults were changed later: saved copies of them are dropped
+// once, so the new defaults show up instead of an older edit.
+const MIGRATION_KEY = "linechatsim-room9-migrated";
+const MIGRATION_VERSION = "3";
+const RESET_ON_MIGRATE = ["p1.caption", "p1.likes", "p1.time"];
 
 /** Every piece of text in the mock feed, by key (p1 = first post, p2 = second). */
 const DEFAULT_TEXT: Record<string, string> = {
   "p1.user": "Gan_phin",
   "p1.place": "บ้านนาดี · ขอนแก่น",
-  "p1.likes": "3.8K",
+  "p1.likes": "19K",
   "p1.comments": "124",
   "p1.shares": "215",
   "p1.likedBy": "kaen.life",
-  "p1.caption": "ลาบหมูน้ำตกแซ่บถึงใจ ข้าวเหนียวร้อนๆ ผักสดกรอบๆ มื้อนี้ไม่มีพลาด 🌿🔥",
+  "p1.caption": "ลาบปลาดุกแซ่บหลาย ข้าวเหนียวฮ้อน ๆ ผักสดกรอบ ๆ คัก ๆ",
   "p1.c1u": "kaen.life",
   "p1.c1t": "ลาบแซ่บๆ แบบนี้ต้องเติมข้าวเหนียวอีกสามกระติบ 😋",
   "p1.c2u": "nong_mai",
   "p1.c2t": "เห็นแล้วน้ำลายไหล พิกัดร้านไหนคะ 🤤",
-  "p1.c3u": "baan_na_88",
-  "p1.c3t": "แจ่วบองข้างๆ ก็น่ากินมาก 🌶️🔥",
-  "p1.time": "2 ชั่วโมงที่แล้ว",
+  "p1.time": "8 ตุลาคม 2570",
 
   "p2.user": "bus.for.cash",
   "p2.place": "กรุงเทพมหานคร",
@@ -129,13 +132,16 @@ function BackIcon() {
   );
 }
 
-function Avatar({ size, ring = true, plain = false }: { size: number; ring?: boolean; plain?: boolean }) {
+function Avatar({ size, ring = true, plain = false, image }: { size: number; ring?: boolean; plain?: boolean; image?: string }) {
   return (
     <span
       className={ring ? styles.ring : styles.noRing}
       style={{ width: size, height: size }}
     >
-      <span className={`${styles.avatarImg} ${plain ? styles.avatarPlain : ""}`} />
+      <span
+        className={`${styles.avatarImg} ${plain ? styles.avatarPlain : ""}`}
+        style={image ? { backgroundImage: `url(${image})`, backgroundPosition: "center 18%" } : undefined}
+      />
     </span>
   );
 }
@@ -254,9 +260,15 @@ export default function SocialFeed() {
       try {
         const raw = window.localStorage.getItem(STORAGE_KEY);
         if (raw) {
-          textRef.current = { ...textRef.current, ...(JSON.parse(raw) as Record<string, string>) };
+          const saved = JSON.parse(raw) as Record<string, string>;
+          if (window.localStorage.getItem(MIGRATION_KEY) !== MIGRATION_VERSION) {
+            RESET_ON_MIGRATE.forEach((k) => delete saved[k]);
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+          }
+          textRef.current = { ...textRef.current, ...saved };
           setText(textRef.current);
         }
+        window.localStorage.setItem(MIGRATION_KEY, MIGRATION_VERSION);
       } catch {
         // Persistence is best-effort.
       }
@@ -360,7 +372,7 @@ export default function SocialFeed() {
         <div>
           <b>{t(`${id}.user`)}</b> {t(`${id}.caption`, "", true)}
         </div>
-        {[1, 2, 3].map((n) => (
+        {(id === "p1" ? [1, 2] : [1, 2, 3]).map((n) => (
           <div key={n}>
             <b>{t(`${id}.c${n}u`)}</b> {t(`${id}.c${n}t`, "", true)}
           </div>
@@ -415,7 +427,7 @@ export default function SocialFeed() {
           <span className={styles.tabLabel}>วีดีโอ</span>
         </span>
         <span className={styles.tab}>
-          <Avatar size={30} />
+          <Avatar size={30} image="/room9-profile.webp" />
           <span className={styles.tabLabel}>โปรไฟล์</span>
         </span>
       </nav>
