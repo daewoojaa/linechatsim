@@ -135,7 +135,7 @@ const MAIN_NAMES = [
   "611 วงไข่มุกบารมี",
   "338 บุษบา",
   "235 Gan_phin - 809 real_JH",
-  "อ.ตวง",
+  "809 miyeon",
 ];
 
 export const MAIN_ROOMS: ChatRoom[] = BASE_ROOMS.map((room, i) => ({
