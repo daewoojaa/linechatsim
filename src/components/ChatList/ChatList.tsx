@@ -16,7 +16,7 @@ import {
 } from "@/components/icons/ChatListIcons";
 import { idbGetImage, idbSetImage } from "@/lib/idbStore";
 import { INITIAL_ROOMS, MAIN_ROOMS, type ChatRoom } from "./rooms";
-import { loadRoomOverrides, saveRoomOverride } from "./storage";
+import { dropSavedFields, loadRoomOverrides, saveRoomOverride } from "./storage";
 import styles from "./ChatList.module.css";
 
 type Field = "name" | "message" | "time" | "unread";
@@ -75,6 +75,13 @@ export default function ChatList({ variant = "main" }: { variant?: ListVariant }
   // so this doesn't count as a synchronous setState-in-effect.
   useEffect(() => {
     queueMicrotask(() => {
+      if (variant === "main") {
+        // Rows 9 and 10 were renamed ("235 ♡" / "809 ♡"): an older saved name must not hide that.
+        dropSavedFields(LISTS.main.storageKey, 1, [
+          { id: "9", field: "name" },
+          { id: "10", field: "name" },
+        ]);
+      }
       const overrides = loadRoomOverrides(LISTS[variant].storageKey);
       if (Object.keys(overrides).length === 0) return;
       setRooms((prev) => prev.map((r) => (overrides[r.id] ? { ...r, ...overrides[r.id] } : r)));
