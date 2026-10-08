@@ -155,8 +155,8 @@ const formatCount = (n: number) => n.toLocaleString("en-US");
  * its counters start at zero and then grow by themselves (see
  * useGrowingCounts). Only the number of comments is shown, never their text.
  */
-function NewPostCard({ user, post }: { user: string; post: NewPost }) {
-  const counts = useGrowingCounts();
+function NewPostCard({ user, post, speedLevel }: { user: string; post: NewPost; speedLevel: number }) {
+  const counts = useGrowingCounts(speedLevel);
   return (
     <article className={`${styles.post} ${styles.fillPost}`}>
       <header className={styles.postHeader}>
@@ -226,6 +226,7 @@ export default function SocialFeed() {
   const [creating, setCreating] = useState(false);
   const [createMedia, setCreateMedia] = useState<PostMedia | null>(null);
   const [newPost, setNewPost] = useState<NewPost | null>(null);
+  const [speedLevel, setSpeedLevel] = useState(0);
   const postCountRef = useRef(0);
 
   // The picture / clip picked last time is offered again on the new-post screen.
@@ -251,6 +252,7 @@ export default function SocialFeed() {
     if (!createMedia) return;
     postCountRef.current += 1;
     setNewPost({ id: postCountRef.current, media: createMedia, caption, filter });
+    setSpeedLevel(0);
     setCreating(false);
     feedRef.current?.scrollTo({ top: 0 });
   };
@@ -408,16 +410,22 @@ export default function SocialFeed() {
         </button>
         <div className={styles.topIcons}>
           <SearchIcon size={26} />
-          <span className={styles.heartWrap}>
+          {/* Secret control: tap once / twice and the new post's numbers speed up. */}
+          <button
+            type="button"
+            className={styles.heartWrap}
+            onClick={() => setSpeedLevel((l) => Math.min(l + 1, 2))}
+            aria-label="활동"
+          >
             <HeartOutlineIcon />
             <i className={styles.redDot} />
-          </span>
+          </button>
           <PlaneIcon size={26} />
         </div>
       </div>
 
       <div className={styles.feed} ref={feedRef}>
-        {newPost && <NewPostCard key={newPost.id} user={NEW_POST_USER} post={newPost} />}
+        {newPost && <NewPostCard key={newPost.id} user={NEW_POST_USER} post={newPost} speedLevel={speedLevel} />}
         {post("p1", "/room9-post1.webp", "", false)}
         {post("p2", "/room9-post2.png", "", true)}
       </div>

@@ -1,12 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export type Counts = { likes: number; comments: number; shares: number };
 
 const START_DELAY_MS = 4000;
 const FIRST_LIKES = 15;
 const FIRST_LIKES_SPAN_MS = 5000;
+
+/** How much faster the counters run at speed level 0 / 1 / 2 (the top heart is tapped once / twice). */
+const SPEEDS = [1, 3, 8];
+/** A new level only starts to take effect after this long, then the pace eases into it. */
+const SPEED_DELAY_MS = 3000;
+const SPEED_EASING = 0.3;
 
 const rand = (min: number, max: number) => min + Math.random() * (max - min);
 
@@ -21,10 +27,19 @@ function firstLikeGaps(): number[] {
  * Counters of a freshly shared post: nothing for 4 seconds, then likes climb
  * 1..15 over about 5 seconds in fits and starts; after that likes, comments and
  * shares keep growing one after another in a random order. Mount the caller
- * with a fresh `key` to restart it.
+ * with a fresh `key` to restart it. `level` (0-2) speeds the counters up:
+ * three seconds after it changes the pace starts easing towards the new speed.
  */
-export function useGrowingCounts(): Counts {
+export function useGrowingCounts(level = 0): Counts {
   const [counts, setCounts] = useState<Counts>({ likes: 0, comments: 0, shares: 0 });
+  const targetSpeed = useRef(SPEEDS[0]);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      targetSpeed.current = SPEEDS[level] ?? SPEEDS[0];
+    }, level === 0 ? 0 : SPEED_DELAY_MS);
+    return () => window.clearTimeout(id);
+  }, [level]);
 
   useEffect(() => {
     let timer: number | undefined;
@@ -38,21 +53,30 @@ export function useGrowingCounts(): Counts {
       }, ms);
     };
 
+    // The pace eases towards the target a little on every step.
+    let speed = SPEEDS[0];
+    const nextSpeed = () => {
+      speed += (targetSpeed.current - speed) * SPEED_EASING;
+      return speed;
+    };
+
     const keepGrowing = () => {
+      const m = nextSpeed();
+      const small = Math.max(1, Math.round(m / 3));
       const roll = Math.random();
-      if (roll < 0.34 && c.comments < c.likes * 0.4) c.comments += 1;
-      else if (roll < 0.6 && c.shares < c.likes * 0.3) c.shares += 1;
-      else c.likes += Math.random() < 0.3 ? 2 : 1;
+      if (roll < 0.34 && c.comments < c.likes * 0.4) c.comments += small;
+      else if (roll < 0.6 && c.shares < c.likes * 0.3) c.shares += small;
+      else c.likes += Math.max(1, Math.round(m * rand(0.6, 1.4)));
       publish();
-      later(rand(450, 1500), keepGrowing);
+      later(rand(450, 1500) / m, keepGrowing);
     };
 
     const gaps = firstLikeGaps();
     const firstLike = (i: number) => {
       c.likes += 1;
       publish();
-      if (i + 1 < gaps.length) later(gaps[i + 1], () => firstLike(i + 1));
-      else later(rand(500, 1000), keepGrowing);
+      if (i + 1 < gaps.length) later(gaps[i + 1] / nextSpeed(), () => firstLike(i + 1));
+      else later(rand(500, 1000) / nextSpeed(), keepGrowing);
     };
     later(START_DELAY_MS, () => firstLike(0));
 
