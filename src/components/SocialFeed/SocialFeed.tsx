@@ -328,7 +328,7 @@ export default function SocialFeed() {
   };
 
   const post = (id: "p1" | "p2", photo: string, photoAlt: string, plainAvatar: boolean) => (
-    <article className={styles.post} key={id}>
+    <article className={id === "p1" ? `${styles.post} ${styles.fillPost}` : styles.post} key={id}>
       <header className={styles.postHeader}>
         <Avatar size={44} plain={plainAvatar} />
         <div className={styles.who}>
@@ -339,8 +339,17 @@ export default function SocialFeed() {
         </span>
       </header>
 
-      {/* eslint-disable-next-line @next/next/no-img-element -- static public/ asset */}
-      <img src={photo} className={styles.photo} alt={photoAlt} />
+      {id === "p1" ? (
+        // The first post always fills the screen: its picture takes whatever
+        // height is left and is cropped (not stretched) to it.
+        <div className={styles.photoFill}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- static public/ asset */}
+          <img src={photo} className={styles.photoCover} alt={photoAlt} />
+        </div>
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element -- static public/ asset
+        <img src={photo} className={styles.photo} alt={photoAlt} />
+      )}
 
       <div className={styles.actions}>
         {id !== "p1" && (

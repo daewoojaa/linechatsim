@@ -130,6 +130,30 @@
   height: auto;
 }
 
+/* First post: exactly one screen tall, so the next post starts below the fold
+   whatever the picture's proportions; the picture is cropped to fit. */
+.fillPost {
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.photoFill {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 180px;
+}
+
+.photoCover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
 .photoPlaceholder {
   width: 100%;
   aspect-ratio: 4 / 3;
