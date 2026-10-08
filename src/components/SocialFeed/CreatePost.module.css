@@ -10,21 +10,26 @@
   padding-top: env(safe-area-inset-top);
 }
 
+/* ---- header ---- */
+
 .header {
   flex: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px 10px 8px;
-  border-bottom: 1px solid #ececec;
+  padding: 10px 14px;
 }
 
-.iconButton {
+.backButton {
+  width: 38px;
+  height: 38px;
   border: 0;
-  background: transparent;
-  color: inherit;
-  padding: 6px;
+  border-radius: 50%;
+  background: #f1f1f3;
+  color: #141414;
   display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
 }
 
@@ -33,35 +38,48 @@
   font-weight: 700;
 }
 
-.share {
+.next {
+  min-width: 38px;
   border: 0;
   background: transparent;
-  color: #9bbcf0;
+  color: #2f7cf6;
   font: 700 17px system-ui, -apple-system, "Noto Sans KR", sans-serif;
-  padding: 6px 4px;
+  padding: 6px 0;
+  text-align: right;
   cursor: pointer;
 }
 
-/* A picture or clip is chosen: the button turns the full blue. */
-.share[data-ready="true"] {
-  color: #2f7cf6;
+.headerSpacer {
+  width: 38px;
 }
 
-.body {
+/* ---- page 1: picture + filters ---- */
+
+.previewArea {
   flex: 1;
-  min-height: 0;
-  overflow-y: auto;
+  min-height: 160px;
+  padding: 4px 10px 8px;
+  display: flex;
 }
 
-.mediaBox {
+.previewBox {
   position: relative;
-  width: 100%;
-  aspect-ratio: 1 / 1;
+  flex: 1;
+  min-width: 0;
+  border-radius: 22px;
+  overflow: hidden;
   background: #f1f1f3;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+}
+
+.preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .placeholder {
@@ -73,65 +91,197 @@
   font-size: 15px;
 }
 
-.preview {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  background: #000000;
+.roundButton {
+  position: absolute;
+  bottom: 12px;
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(30, 30, 34, 0.78);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
 
-.change {
-  position: absolute;
+.roundButton[data-side="left"] {
+  left: 12px;
+}
+
+.roundButton[data-side="right"] {
   right: 12px;
-  bottom: 12px;
-  padding: 6px 14px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.6);
-  color: #ffffff;
-  font-size: 14px;
+}
+
+.filters {
+  flex: none;
+  display: flex;
+  gap: 8px;
+  padding: 4px 14px 10px;
+}
+
+.filter {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  color: #77777e;
+  font: inherit;
+  cursor: pointer;
+}
+
+.filterLabel {
+  align-self: center;
+  padding-bottom: 3px;
+  border-bottom: 2px solid transparent;
+  font-size: 13px;
+}
+
+.filter[data-active="true"] {
+  color: #141414;
+}
+
+.filter[data-active="true"] .filterLabel {
+  font-weight: 700;
+  border-bottom-color: #141414;
+}
+
+.filterThumb {
+  display: block;
+  aspect-ratio: 1 / 1.25;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #e9e9ec;
+}
+
+.filterImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.editTabs {
+  flex: none;
+  display: flex;
+  padding: 6px 0 calc(10px + env(safe-area-inset-bottom));
+  border-top: 1px solid #f1f1f3;
+}
+
+.editTabs span {
+  flex: 1;
+  text-align: center;
+  padding: 10px 0 8px;
+  font-size: 16px;
   font-weight: 600;
+  color: #9a9aa1;
+  border-bottom: 2px solid transparent;
+}
+
+.editTabs span[data-active="true"] {
+  color: #141414;
+  border-bottom-color: #141414;
+}
+
+/* ---- page 2: caption + share ---- */
+
+.page2 {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .captionRow {
+  flex: none;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 12px 14px 8px;
-  border-bottom: 1px solid #ececec;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 6px 14px 14px;
+  border-bottom: 1px solid #ececef;
 }
 
-.user {
-  font-size: 15px;
-  font-weight: 700;
+.captionThumb {
+  flex: none;
+  width: 70px;
+  height: 80px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #e9e9ec;
+}
+
+.captionThumbImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .caption {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   box-sizing: border-box;
   border: 0;
   outline: none;
   resize: none;
-  padding: 0;
+  padding: 2px 0 0;
   background: transparent;
   color: #141414;
   font: 400 16px/1.45 system-ui, -apple-system, "Noto Sans KR", "Malgun Gothic", sans-serif;
 }
 
-.options {
-  display: flex;
-  flex-direction: column;
-}
-
 .option {
+  flex: none;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 15px 14px;
-  border-bottom: 1px solid #f1f1f3;
-  font-size: 16px;
-  color: #141414;
+  gap: 14px;
+  padding: 16px 16px;
+  border-bottom: 1px solid #ececef;
+  font-size: 17px;
 }
 
-.option svg {
-  color: #a0a0a6;
+.optionLabel {
+  flex: 1;
+}
+
+.option svg:last-child {
+  color: #8a8a91;
+}
+
+.chips {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 16px;
+}
+
+.chip {
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: #f1f1f3;
+  font-size: 14px;
+}
+
+.shareBar {
+  margin-top: auto;
+  flex: none;
+  padding: 10px 14px calc(14px + env(safe-area-inset-bottom));
+}
+
+.shareButton {
+  width: 100%;
+  border: 0;
+  border-radius: 14px;
+  padding: 15px 0;
+  background: #3b73f4;
+  color: #ffffff;
+  font: 700 18px system-ui, -apple-system, "Noto Sans KR", sans-serif;
+  cursor: pointer;
 }

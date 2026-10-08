@@ -19,7 +19,7 @@ function SpeakerIcon({ off }: { off: boolean }) {
  * loops, tap to pause / play, and a button for the sound. If the browser
  * refuses to autoplay, a play button is shown instead of a frozen frame.
  */
-export default function PostVideo({ src }: { src: string }) {
+export default function PostVideo({ src, fill = false, filter }: { src: string; fill?: boolean; filter?: string }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [paused, setPaused] = useState(false);
   const [muted, setMuted] = useState(true);
@@ -41,11 +41,12 @@ export default function PostVideo({ src }: { src: string }) {
   };
 
   return (
-    <div className={styles.videoWrap}>
+    <div className={fill ? styles.videoWrapFill : styles.videoWrap}>
       <video
         ref={ref}
         src={src}
-        className={styles.photo}
+        className={fill ? styles.photoCover : styles.photo}
+        style={filter ? { filter } : undefined}
         autoPlay
         loop
         muted

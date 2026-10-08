@@ -12,7 +12,9 @@ const CREATE_MEDIA_KEY = "room9:create-media";
 /** Account name shown on the create screen and on the post it shares. */
 const NEW_POST_USER = "real_jihoon";
 
-type NewPost = { id: number; media: PostMedia; caption: string };
+type NewPost = { id: number; media: PostMedia; caption: string; filter: string };
+
+const PROFILE_IMAGE = "/room9-profile.webp";
 
 const STORAGE_KEY = "linechatsim-room9-text-v2";
 // Texts whose defaults were changed later: saved copies of them are dropped
@@ -156,9 +158,9 @@ const formatCount = (n: number) => n.toLocaleString("en-US");
 function NewPostCard({ user, post }: { user: string; post: NewPost }) {
   const counts = useGrowingCounts();
   return (
-    <article className={styles.post}>
+    <article className={`${styles.post} ${styles.fillPost}`}>
       <header className={styles.postHeader}>
-        <Avatar size={44} />
+        <Avatar size={44} image={PROFILE_IMAGE} />
         <div className={styles.who}>
           <div className={styles.username}>{user}</div>
         </div>
@@ -167,12 +169,15 @@ function NewPostCard({ user, post }: { user: string; post: NewPost }) {
         </span>
       </header>
 
-      {post.media.video ? (
-        <PostVideo src={post.media.src} />
-      ) : (
-        // eslint-disable-next-line @next/next/no-img-element -- local blob
-        <img src={post.media.src} className={styles.photo} alt="" />
-      )}
+      {/* Like the food post: exactly one screen tall, the picture / clip cropped to fit. */}
+      <div className={styles.photoFill}>
+        {post.media.video ? (
+          <PostVideo src={post.media.src} fill filter={post.filter} />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element -- local blob
+          <img src={post.media.src} className={styles.photoCover} style={{ filter: post.filter }} alt="" />
+        )}
+      </div>
 
       <div className={styles.actions}>
         <span className={styles.action}>
@@ -193,11 +198,6 @@ function NewPostCard({ user, post }: { user: string; post: NewPost }) {
       </div>
 
       <div className={`${styles.text} ${styles.korean}`}>
-        {counts.likes > 0 && (
-          <div className={styles.likedBy}>
-            <b>좋아요 {formatCount(counts.likes)}개</b>
-          </div>
-        )}
         <div className={styles.newCaption}>
           <b>{user}</b> {post.caption}
         </div>
@@ -247,10 +247,10 @@ export default function SocialFeed() {
     idbSetImage(CREATE_MEDIA_KEY, file).catch(() => {});
   };
 
-  const share = (caption: string) => {
+  const share = (caption: string, filter: string) => {
     if (!createMedia) return;
     postCountRef.current += 1;
-    setNewPost({ id: postCountRef.current, media: createMedia, caption });
+    setNewPost({ id: postCountRef.current, media: createMedia, caption, filter });
     setCreating(false);
     feedRef.current?.scrollTo({ top: 0 });
   };
@@ -444,14 +444,13 @@ export default function SocialFeed() {
           <span className={styles.tabLabel}>릴스</span>
         </span>
         <span className={styles.tab}>
-          <Avatar size={30} image="/room9-profile.webp" />
+          <Avatar size={30} image={PROFILE_IMAGE} />
           <span className={styles.tabLabel}>프로필</span>
         </span>
       </nav>
 
       {creating && (
         <CreatePost
-          user={NEW_POST_USER}
           media={createMedia}
           onPickFile={pickCreateMedia}
           onClose={() => setCreating(false)}

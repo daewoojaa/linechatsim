@@ -302,6 +302,13 @@
   background: #000000;
 }
 
+/* Filling its box (first screen-tall post): the clip is cropped, not stretched. */
+.videoWrapFill {
+  position: absolute;
+  inset: 0;
+  background: #000000;
+}
+
 .playBadge {
   position: absolute;
   top: 50%;
