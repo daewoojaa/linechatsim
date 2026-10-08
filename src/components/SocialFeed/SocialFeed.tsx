@@ -65,9 +65,9 @@ function SearchIcon({ size = 26 }: { size?: number }) {
     </svg>
   );
 }
-function HeartOutlineIcon() {
+function HeartOutlineIcon({ size = 26 }: { size?: number }) {
   return (
-    <svg width="26" height="26" viewBox="0 0 24 24" {...stroke} strokeWidth={1.9}>
+    <svg width={size} height={size} viewBox="0 0 24 24" {...stroke} strokeWidth={1.9}>
       <path d="M12 20.4s-7.6-4.7-8.9-9.7C2.2 7.2 4.3 4.6 7.2 4.6c1.9 0 3.5 1 4.8 2.9 1.3-1.9 2.9-2.9 4.8-2.9 2.9 0 5 2.6 4.1 6.1-1.3 5-8.9 9.7-8.9 9.7Z" />
     </svg>
   );
@@ -186,7 +186,7 @@ function NewPostCard({ user, post, speedLevel }: { user: string; post: NewPost; 
 
       <div className={styles.actions}>
         <span className={styles.action}>
-          <HeartFilledIcon />
+          <HeartOutlineIcon size={28} />
           <span className={styles.actionNumber}>{formatCount(counts.likes)}</span>
         </span>
         <span className={styles.action}>
@@ -360,7 +360,7 @@ export default function SocialFeed() {
 
       <div className={styles.actions}>
         <span className={styles.action}>
-          <HeartFilledIcon />
+          {id === "p1" ? <HeartOutlineIcon size={28} /> : <HeartFilledIcon />}
           {t(`${id}.likes`, styles.actionNumber)}
         </span>
         <span className={styles.action}>
