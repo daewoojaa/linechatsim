@@ -212,6 +212,18 @@
   margin-bottom: 2px;
 }
 
+/* First post: heart + like count lead the "liked by" line. */
+.likedRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.likedCount {
+  font: 600 16px system-ui, -apple-system, sans-serif;
+}
+
 .viewAll {
   margin-top: 2px;
   color: #77777e;

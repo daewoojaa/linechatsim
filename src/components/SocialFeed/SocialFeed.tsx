@@ -71,9 +71,9 @@ function HeartOutlineIcon() {
     </svg>
   );
 }
-function HeartFilledIcon() {
+function HeartFilledIcon({ size = 30 }: { size?: number }) {
   return (
-    <svg width="30" height="30" viewBox="0 0 24 24" fill="#ff2d4f">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="#ff2d4f">
       <path d="M12 20.8s-8-4.9-9.3-10.1C1.7 6.9 4 4.2 7.1 4.2c1.9 0 3.6 1 4.9 2.8 1.3-1.8 3-2.8 4.9-2.8 3.1 0 5.4 2.7 4.4 6.5-1.3 5.2-9.3 10.1-9.3 10.1Z" />
     </svg>
   );
@@ -343,10 +343,12 @@ export default function SocialFeed() {
       <img src={photo} className={styles.photo} alt={photoAlt} />
 
       <div className={styles.actions}>
-        <span className={styles.action}>
-          <HeartFilledIcon />
-          {t(`${id}.likes`, styles.actionNumber)}
-        </span>
+        {id !== "p1" && (
+          <span className={styles.action}>
+            <HeartFilledIcon />
+            {t(`${id}.likes`, styles.actionNumber)}
+          </span>
+        )}
         <span className={styles.action}>
           <BubbleIcon />
           {t(`${id}.comments`, styles.actionNumber)}
@@ -369,8 +371,12 @@ export default function SocialFeed() {
       <div className={styles.text}>
         <div className={styles.likedBy}>
           {id === "p1" ? (
-            <span className={styles.korean}>
-              <b>{t(`${id}.likedBy`)}</b>님 외 여러 명이 좋아합니다
+            <span className={styles.likedRow}>
+              <HeartFilledIcon size={22} />
+              {t(`${id}.likes`, styles.likedCount)}
+              <span className={styles.korean}>
+                <b>{t(`${id}.likedBy`)}</b>님 외 여러 명이 좋아합니다
+              </span>
             </span>
           ) : (
             <>
