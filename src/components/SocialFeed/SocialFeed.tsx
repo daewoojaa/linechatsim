@@ -18,23 +18,25 @@ const STORAGE_KEY = "linechatsim-room9-text-v2";
 // Texts whose defaults were changed later: saved copies of them are dropped
 // once, so the new defaults show up instead of an older edit.
 const MIGRATION_KEY = "linechatsim-room9-migrated";
-const MIGRATION_VERSION = "3";
-const RESET_ON_MIGRATE = ["p1.caption", "p1.likes", "p1.time"];
+const MIGRATIONS: { version: number; keys: string[] }[] = [
+  { version: 3, keys: ["p1.caption", "p1.likes", "p1.time"] },
+  { version: 4, keys: ["p1.time", "p1.likedBy", "p1.c1u"] },
+];
+const MIGRATION_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;
 
 /** Every piece of text in the mock feed, by key (p1 = first post, p2 = second). */
 const DEFAULT_TEXT: Record<string, string> = {
   "p1.user": "Gan_phin",
-  "p1.place": "บ้านนาดี · ขอนแก่น",
   "p1.likes": "19K",
   "p1.comments": "124",
   "p1.shares": "215",
-  "p1.likedBy": "kaen.life",
+  "p1.likedBy": "gan.life",
   "p1.caption": "ลาบปลาดุกแซ่บหลาย ข้าวเหนียวฮ้อน ๆ ผักสดกรอบ ๆ คัก ๆ",
-  "p1.c1u": "kaen.life",
+  "p1.c1u": "gan.life",
   "p1.c1t": "ลาบแซ่บๆ แบบนี้ต้องเติมข้าวเหนียวอีกสามกระติบ 😋",
   "p1.c2u": "nong_mai",
   "p1.c2t": "เห็นแล้วน้ำลายไหล พิกัดร้านไหนคะ 🤤",
-  "p1.time": "8 ตุลาคม 2570",
+  "p1.time": "8월 19일",
 
   "p2.user": "bus.for.cash",
   "p2.place": "กรุงเทพมหานคร",
@@ -261,14 +263,15 @@ export default function SocialFeed() {
         const raw = window.localStorage.getItem(STORAGE_KEY);
         if (raw) {
           const saved = JSON.parse(raw) as Record<string, string>;
-          if (window.localStorage.getItem(MIGRATION_KEY) !== MIGRATION_VERSION) {
-            RESET_ON_MIGRATE.forEach((k) => delete saved[k]);
+          const done = parseInt(window.localStorage.getItem(MIGRATION_KEY) ?? "0", 10) || 0;
+          if (done < MIGRATION_VERSION) {
+            MIGRATIONS.filter((m) => m.version > done).forEach((m) => m.keys.forEach((k) => delete saved[k]));
             window.localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
           }
           textRef.current = { ...textRef.current, ...saved };
           setText(textRef.current);
         }
-        window.localStorage.setItem(MIGRATION_KEY, MIGRATION_VERSION);
+        window.localStorage.setItem(MIGRATION_KEY, String(MIGRATION_VERSION));
       } catch {
         // Persistence is best-effort.
       }
@@ -331,7 +334,7 @@ export default function SocialFeed() {
         <Avatar size={44} plain={plainAvatar} />
         <div className={styles.who}>
           <div>{t(`${id}.user`, styles.username)}</div>
-          <div>{t(`${id}.place`, styles.place)}</div>
+          {id !== "p1" && <div>{t(`${id}.place`, styles.place)}</div>}
         </div>
         <span className={styles.dots}>
           <DotsIcon />
@@ -367,7 +370,15 @@ export default function SocialFeed() {
 
       <div className={styles.text}>
         <div className={styles.likedBy}>
-          ถูกใจโดย <b>{t(`${id}.likedBy`)}</b> และคนอื่นๆ
+          {id === "p1" ? (
+            <span className={styles.korean}>
+              <b>{t(`${id}.likedBy`)}</b>님 외 여러 명이 좋아합니다
+            </span>
+          ) : (
+            <>
+              ถูกใจโดย <b>{t(`${id}.likedBy`)}</b> และคนอื่นๆ
+            </>
+          )}
         </div>
         <div>
           <b>{t(`${id}.user`)}</b> {t(`${id}.caption`, "", true)}
@@ -377,7 +388,13 @@ export default function SocialFeed() {
             <b>{t(`${id}.c${n}u`)}</b> {t(`${id}.c${n}t`, "", true)}
           </div>
         ))}
-        <div className={styles.viewAll}>ดูความคิดเห็นทั้งหมด {text[`${id}.comments`]} รายการ</div>
+        <div className={styles.viewAll}>
+          {id === "p1" ? (
+            <span className={styles.korean}>댓글 {text[`${id}.comments`]}개 모두 보기</span>
+          ) : (
+            <>ดูความคิดเห็นทั้งหมด {text[`${id}.comments`]} รายการ</>
+          )}
+        </div>
         <div className={styles.time}>{t(`${id}.time`)}</div>
       </div>
     </article>
@@ -408,11 +425,11 @@ export default function SocialFeed() {
       <nav className={styles.tabs}>
         <span className={styles.tab}>
           <HomeIcon />
-          <span className={styles.tabLabelActive}>หน้าแรก</span>
+          <span className={styles.tabLabelActive}>홈</span>
         </span>
         <span className={styles.tab}>
           <SearchIcon size={28} />
-          <span className={styles.tabLabel}>ค้นหา</span>
+          <span className={styles.tabLabel}>검색</span>
         </span>
         <button type="button" className={`${styles.tab} ${styles.tabButton}`} onClick={() => setCreating(true)}>
           <span className={styles.createCircle}>
@@ -420,15 +437,15 @@ export default function SocialFeed() {
               <path d="M12 5v14M5 12h14" />
             </svg>
           </span>
-          <span className={styles.tabLabel}>สร้างโพสต์</span>
+          <span className={styles.tabLabel}>게시물 작성</span>
         </button>
         <span className={styles.tab}>
           <VideoIcon />
-          <span className={styles.tabLabel}>วีดีโอ</span>
+          <span className={styles.tabLabel}>릴스</span>
         </span>
         <span className={styles.tab}>
           <Avatar size={30} image="/room9-profile.webp" />
-          <span className={styles.tabLabel}>โปรไฟล์</span>
+          <span className={styles.tabLabel}>프로필</span>
         </span>
       </nav>
 

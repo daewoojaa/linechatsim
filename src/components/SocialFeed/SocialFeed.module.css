@@ -244,7 +244,7 @@
 
 .tabLabel,
 .tabLabelActive {
-  font: 400 12px system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  font: 400 12px system-ui, -apple-system, "Noto Sans KR", "Malgun Gothic", "Noto Sans Thai", sans-serif;
 }
 
 .tabLabelActive {
