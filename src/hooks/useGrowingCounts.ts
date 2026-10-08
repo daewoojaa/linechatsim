@@ -8,8 +8,8 @@ const START_DELAY_MS = 4000;
 const FIRST_LIKES = 15;
 const FIRST_LIKES_SPAN_MS = 5000;
 
-/** How much faster the counters run at speed level 0 / 1 / 2 (the top heart is tapped once / twice). */
-const SPEEDS = [1, 3, 8];
+/** How much faster the counters run at speed level 0 / 1 / 2 / 3 (the top heart tapped 0 / 1 / 2 / 3 times). */
+const SPEEDS = [1, 3, 8, 25];
 /** A new level only starts to take effect after this long, then the pace eases into it. */
 const SPEED_DELAY_MS = 3000;
 const SPEED_EASING = 0.3;
@@ -27,7 +27,7 @@ function firstLikeGaps(): number[] {
  * Counters of a freshly shared post: nothing for 4 seconds, then likes climb
  * 1..15 over about 5 seconds in fits and starts; after that likes, comments and
  * shares keep growing one after another in a random order. Mount the caller
- * with a fresh `key` to restart it. `level` (0-2) speeds the counters up:
+ * with a fresh `key` to restart it. `level` (0-3) speeds the counters up:
  * three seconds after it changes the pace starts easing towards the new speed.
  */
 export function useGrowingCounts(level = 0): Counts {

@@ -148,7 +148,12 @@ function Avatar({ size, ring = true, plain = false, image }: { size: number; rin
   );
 }
 
-const formatCount = (n: number) => n.toLocaleString("en-US");
+/** 9,999 and below in full, then 12.4K / 1.2M like the other posts (keeps the action row from overflowing). */
+const formatCount = (n: number) => {
+  if (n < 10000) return n.toLocaleString("en-US");
+  if (n < 1_000_000) return `${(n / 1000).toFixed(1).replace(/.0$/, "")}K`;
+  return `${(n / 1_000_000).toFixed(1).replace(/.0$/, "")}M`;
+};
 
 /**
  * A post shared from the "new post" screen, in the Korean version of the app:
@@ -227,6 +232,7 @@ export default function SocialFeed() {
   const [createMedia, setCreateMedia] = useState<PostMedia | null>(null);
   const [newPost, setNewPost] = useState<NewPost | null>(null);
   const [speedLevel, setSpeedLevel] = useState(0);
+  const [restart, setRestart] = useState(0);
   const postCountRef = useRef(0);
 
   // The picture / clip picked last time is offered again on the new-post screen.
@@ -409,12 +415,22 @@ export default function SocialFeed() {
           <BackIcon />
         </button>
         <div className={styles.topIcons}>
-          <SearchIcon size={26} />
-          {/* Secret control: tap once / twice and the new post's numbers speed up. */}
           <button
             type="button"
             className={styles.heartWrap}
-            onClick={() => setSpeedLevel((l) => Math.min(l + 1, 2))}
+            onClick={() => {
+              setRestart((r) => r + 1);
+              setSpeedLevel(0);
+            }}
+            aria-label="검색"
+          >
+            <SearchIcon size={26} />
+          </button>
+          {/* Secret controls: the heart (tap up to 3 times) speeds the new post's numbers up; the magnifier starts them again from 0. */}
+          <button
+            type="button"
+            className={styles.heartWrap}
+            onClick={() => setSpeedLevel((l) => Math.min(l + 1, 3))}
             aria-label="활동"
           >
             <HeartOutlineIcon />
@@ -425,7 +441,7 @@ export default function SocialFeed() {
       </div>
 
       <div className={styles.feed} ref={feedRef}>
-        {newPost && <NewPostCard key={newPost.id} user={NEW_POST_USER} post={newPost} speedLevel={speedLevel} />}
+        {newPost && <NewPostCard key={`${newPost.id}-${restart}`} user={NEW_POST_USER} post={newPost} speedLevel={speedLevel} />}
         {post("p1", "/room9-post1.webp", "", false)}
         {post("p2", "/room9-post2.png", "", true)}
       </div>
