@@ -134,7 +134,7 @@ const MAIN_NAMES = [
   "237-301 Voice Record",
   "611 วงไข่มุกบารมี",
   "338 บุษบา",
-  "235 Gan_phin",
+  "235 Gan_phin - 809 real_JH",
   "อ.ตวง",
 ];
 
