@@ -30,7 +30,6 @@ const DEFAULT_TEXT: Record<string, string> = {
   "p1.likes": "19K",
   "p1.comments": "124",
   "p1.shares": "215",
-  "p1.likedBy": "gan.life",
   "p1.caption": "ลาบปลาดุกแซ่บหลาย ข้าวเหนียวฮ้อน ๆ ผักสดกรอบ ๆ คัก ๆ",
   "p1.c1u": "gan.life",
   "p1.c1t": "ลาบแซ่บๆ แบบนี้ต้องเติมข้าวเหนียวอีกสามกระติบ 😋",
@@ -71,9 +70,9 @@ function HeartOutlineIcon() {
     </svg>
   );
 }
-function HeartFilledIcon({ size = 30 }: { size?: number }) {
+function HeartFilledIcon() {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="#ff2d4f">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="#ff2d4f">
       <path d="M12 20.8s-8-4.9-9.3-10.1C1.7 6.9 4 4.2 7.1 4.2c1.9 0 3.6 1 4.9 2.8 1.3-1.8 3-2.8 4.9-2.8 3.1 0 5.4 2.7 4.4 6.5-1.3 5.2-9.3 10.1-9.3 10.1Z" />
     </svg>
   );
@@ -352,12 +351,10 @@ export default function SocialFeed() {
       )}
 
       <div className={styles.actions}>
-        {id !== "p1" && (
-          <span className={styles.action}>
-            <HeartFilledIcon />
-            {t(`${id}.likes`, styles.actionNumber)}
-          </span>
-        )}
+        <span className={styles.action}>
+          <HeartFilledIcon />
+          {t(`${id}.likes`, styles.actionNumber)}
+        </span>
         <span className={styles.action}>
           <BubbleIcon />
           {t(`${id}.comments`, styles.actionNumber)}
@@ -378,21 +375,11 @@ export default function SocialFeed() {
       </div>
 
       <div className={styles.text}>
-        <div className={styles.likedBy}>
-          {id === "p1" ? (
-            <span className={styles.likedRow}>
-              <HeartFilledIcon size={22} />
-              {t(`${id}.likes`, styles.likedCount)}
-              <span className={styles.korean}>
-                <b>{t(`${id}.likedBy`)}</b>님 외 여러 명이 좋아합니다
-              </span>
-            </span>
-          ) : (
-            <>
-              ถูกใจโดย <b>{t(`${id}.likedBy`)}</b> และคนอื่นๆ
-            </>
-          )}
-        </div>
+        {id !== "p1" && (
+          <div className={styles.likedBy}>
+            ถูกใจโดย <b>{t(`${id}.likedBy`)}</b> และคนอื่นๆ
+          </div>
+        )}
         <div>
           <b>{t(`${id}.user`)}</b> {t(`${id}.caption`, "", true)}
         </div>
@@ -431,7 +418,7 @@ export default function SocialFeed() {
 
       <div className={styles.feed} ref={feedRef}>
         {newPost && <NewPostCard key={newPost.id} user={NEW_POST_USER} post={newPost} />}
-        {post("p1", "/room9-post.webp", "", false)}
+        {post("p1", "/room9-post1.webp", "", false)}
         {post("p2", "/room9-post2.png", "", true)}
       </div>
 
