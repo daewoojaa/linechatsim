@@ -39,7 +39,6 @@ const DEFAULT_TEXT: Record<string, string> = {
   "p1.time": "8월 19일",
 
   "p2.user": "bus.for.cash",
-  "p2.place": "กรุงเทพมหานคร",
   "p2.likes": "12.6K",
   "p2.comments": "482",
   "p2.shares": "1.1K",
@@ -213,7 +212,7 @@ function NewPostCard({ user, post }: { user: string; post: NewPost }) {
 /**
  * Room 9: an Instagram-style feed (mock-up) with two posts: Gan_phin's plate
  * of Isan larb and a gold-and-money one. The bookmark icon unlocks / locks
- * editing: while unlocked every piece of text (names, places, captions,
+ * editing: while unlocked every piece of text (names, captions,
  * comments, counts, times) can be tapped and retyped, and is remembered. The
  * icons are original drawings in the spirit of the reference, not copies.
  */
@@ -334,7 +333,6 @@ export default function SocialFeed() {
         <Avatar size={44} plain={plainAvatar} />
         <div className={styles.who}>
           <div>{t(`${id}.user`, styles.username)}</div>
-          {id !== "p1" && <div>{t(`${id}.place`, styles.place)}</div>}
         </div>
         <span className={styles.dots}>
           <DotsIcon />
