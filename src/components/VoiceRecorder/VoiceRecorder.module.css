@@ -1,0 +1,154 @@
+.shell {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fcfcff;
+  color: #000000;
+  /* The device's own default font, not the app's web font. */
+  font-family: system-ui, -apple-system, sans-serif;
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* ---- big title ---- */
+
+.titleBlock {
+  flex: none;
+  padding: 34px 16px 0;
+  height: 152px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.title {
+  font-size: 31px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.subtitle {
+  margin-top: 4px;
+  font-size: 17px;
+  font-weight: 600;
+  color: #7b7b82;
+}
+
+/* ---- toolbar ---- */
+
+.toolbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px 0 14px;
+  height: 62px;
+}
+
+.toolRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolButton {
+  position: relative;
+  border: 0;
+  background: transparent;
+  color: #111111;
+  padding: 6px;
+  display: flex;
+  cursor: pointer;
+}
+
+/* The orange "something new" dot on the menu icon. */
+.dot {
+  position: absolute;
+  top: 3px;
+  right: 1px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #e8641a;
+}
+
+/* ---- list ---- */
+
+.section {
+  flex: none;
+  padding: 22px 18px 12px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.card {
+  flex: none;
+  margin: 0 16px;
+  padding: 16px 18px 15px;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.06);
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cardTime {
+  font-size: 15px;
+  color: #77777e;
+}
+
+.cardName {
+  margin-top: 12px;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.playPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 4px 14px 4px 5px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f7eef3 0%, #fbdde3 100%);
+}
+
+.playCircle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.playLength {
+  font-size: 17px;
+  color: #b8a0a8;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- record button ---- */
+
+.record {
+  position: absolute;
+  left: 50%;
+  bottom: calc(36px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: 62px;
+  height: 62px;
+  border: 0;
+  border-radius: 50%;
+  background: #d93a35;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}

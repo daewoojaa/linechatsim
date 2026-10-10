@@ -206,6 +206,7 @@ export default function LiveChatSimulator({
   timeSuffix,
   focusOnEnter,
   defaultAvatar,
+  delayedImageMs,
 }: { roomId: string; defaultRoomName: string } & LiveChatOptions) {
   const router = useRouter();
   const {
@@ -218,6 +219,7 @@ export default function LiveChatSimulator({
     setBgColor,
     dayLabel,
     toggleDayLabel,
+    menuRestarts,
     roomName,
     setRoomName,
     editingName,
@@ -238,7 +240,7 @@ export default function LiveChatSimulator({
     stopRecording,
     discardRecording,
     sendVoice,
-  } = useLiveChatSim(roomId, defaultRoomName, { script, timeSuffix, focusOnEnter, defaultAvatar });
+  } = useLiveChatSim(roomId, defaultRoomName, { script, timeSuffix, focusOnEnter, defaultAvatar, delayedImageMs });
 
   const feedRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -305,7 +307,7 @@ export default function LiveChatSimulator({
               type="button"
               className={styles.iconButton}
               onClick={toggleDayLabel}
-              title={`สลับป้ายวันที่ (ตอนนี้: ${dayLabel})`}
+              title={menuRestarts ? "เริ่มใหม่" : `สลับป้ายวันที่ (ตอนนี้: ${dayLabel})`}
             >
               <MenuIcon color={iconColor} />
               <span className={styles.badgeDot} />

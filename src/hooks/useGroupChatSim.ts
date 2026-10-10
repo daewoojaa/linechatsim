@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { idbGetImage, idbSetImage } from "@/lib/idbStore";
 
 export type GroupMessage =
   | { id: string; side: "left"; sender: string; avatar: string; kind: "image"; src: string; time: string }
@@ -22,7 +21,7 @@ const SCRIPT: GroupMessage[] = [
 ];
 
 const FIRST_IMAGE_TIME = "19:25 น.";
-const FIXED_TEXT = "ใครที่แจ้งเบาะแสของแก่นได้ จะยกหนี้ให้ห้าหมื่นบาท";
+const FIXED_TEXT = "ใครที่แจ้ง เบาะแส ของแก่นได้จะยกหนี้ให้ ห้าหมื่นบาท";
 const FIXED_TEXT_TIME = "19:25 น.";
 
 const READ_DELAY_MS = 3000;
@@ -39,8 +38,8 @@ const MIRROR_GAP_MS = 3000;
 
 export const DEFAULT_MAX_READ = "589";
 const MAX_READ_KEY = "linechatsim-room2-maxread-v1";
-const PHOTO_KEY = "room2:photo";
-const DEFAULT_MIRROR_IMAGE = "/room2-marker.jpg";
+// The picture the ">" sends (no picker), and the one replayed in the mirrored view.
+const SENT_PHOTO = "/room2-sent.jpg";
 
 /**
  * The displayed read count at every tick of the run, in two stretches:
@@ -93,7 +92,8 @@ function nowLabel() {
 /**
  * Backs room 2: a LINE group chat ("ลูกหนี้ไม่หนีไปไหน"). A bank slip from
  * "พรชัย" is already in the chat (no read count on it). Normal view: the
- * operator's first send is a picture (the ">" in the input bar picks it);
+ * operator's first send is a picture (the ">" in the input bar sends a fixed
+ * one straight away, nothing to pick);
  * the first text send, whatever is typed, goes out as the fixed
  * announcement, and 3 seconds later the "อ่านแล้ว" count of those two
  * messages (same number on both) runs from 1 up to the configured maximum
@@ -103,8 +103,7 @@ function nowLabel() {
  * The ☰ icon flips to the mirrored view: the chat resets, and after 5
  * seconds the two messages arrive on their own, one at a time, from "บุษบา"
  * on the left (the picture first, then the text), with no read counts. The
- * picture is the one the operator last sent (kept in IndexedDB), or the
- * stock marker picture if none was ever sent. Tap
+ * picture is the same fixed one the ">" sends. Tap
  * ☰ again to go back to the normal view.
  */
 export function useGroupChatSim() {
@@ -115,15 +114,11 @@ export function useGroupChatSim() {
   const [mirrored, setMirrored] = useState(false);
 
   const textInputRef = useRef<HTMLDivElement>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
   const maxReadRef = useRef(DEFAULT_MAX_READ);
   const mirroredRef = useRef(false);
   const sentTextRef = useRef(0);
   const sentImageRef = useRef(0);
   const idRef = useRef(0);
-  // The last picture the operator sent; the mirrored view replays it as the
-  // first message from บุษบา (falls back to the stock marker picture).
-  const photoRef = useRef<string | null>(null);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const runTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -152,16 +147,6 @@ export function useGroupChatSim() {
     });
     return clearTimers;
   }, [clearTimers]);
-
-  useEffect(() => {
-    let cancelled = false;
-    idbGetImage(PHOTO_KEY).then((blob) => {
-      if (!cancelled && blob && !photoRef.current) photoRef.current = URL.createObjectURL(blob);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const setMaxRead = useCallback((value: string) => {
     maxReadRef.current = value;
@@ -228,32 +213,15 @@ export function useGroupChatSim() {
     [send]
   );
 
-  const requestPickImage = useCallback(() => {
-    // Drop the cursor (and the keyboard) while the picker is up; nothing puts
-    // it back afterwards - the keyboard returns only when the input is tapped.
-    textInputRef.current?.blur();
-    const el = imageInputRef.current;
-    if (el) {
-      el.value = "";
-      el.click();
-    }
-  }, []);
-
-  /** The picked picture goes straight out as a message on the right. The
-   *  cursor is deliberately NOT put back in the input afterwards. */
-  const handleImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  /** The ">" sends the fixed picture straight out as a message on the right. */
+  const sendPhoto = useCallback(() => {
     idRef.current += 1;
     sentImageRef.current += 1;
     const first = sentImageRef.current === 1 && !mirroredRef.current;
     const time = first ? FIRST_IMAGE_TIME : nowLabel();
-    const src = URL.createObjectURL(file);
-    photoRef.current = src;
-    idbSetImage(PHOTO_KEY, file);
     setFeed((prev) => [
       ...prev,
-      { id: `i${idRef.current}`, side: "right", kind: "image", src, time, readable: first },
+      { id: `i${idRef.current}`, side: "right", kind: "image", src: SENT_PHOTO, time, readable: first },
     ]);
   }, []);
 
@@ -268,12 +236,11 @@ export function useGroupChatSim() {
     sentTextRef.current = 0;
     sentImageRef.current = 0;
     if (next) {
-      const mirrorImage = photoRef.current ?? DEFAULT_MIRROR_IMAGE;
       timersRef.current.push(
         setTimeout(() => {
           setFeed((prev) => [
             ...prev,
-            { id: "m-image", side: "left", sender: SENDER, avatar: SENDER_AVATAR, kind: "image", src: mirrorImage, time: FIRST_IMAGE_TIME },
+            { id: "m-image", side: "left", sender: SENDER, avatar: SENDER_AVATAR, kind: "image", src: SENT_PHOTO, time: FIRST_IMAGE_TIME },
           ]);
         }, MIRROR_FIRST_DELAY_MS),
         setTimeout(() => {
@@ -296,11 +263,9 @@ export function useGroupChatSim() {
     mirrored,
     toggleMirrored,
     textInputRef,
-    imageInputRef,
     onInput,
     onKeyDown,
     send,
-    requestPickImage,
-    handleImageChange,
+    sendPhoto,
   };
 }

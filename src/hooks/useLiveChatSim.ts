@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { idbGetImage, idbGetMeta, idbSetImage, idbSetMeta } from "@/lib/idbStore";
 
 export type LiveMessage =
@@ -53,13 +53,23 @@ export type LiveChatOptions = {
   /** Profile picture shown beside received (left-side) messages; tap it to
    *  pick another (kept per room). Omit for no avatar (room 6 has none). */
   defaultAvatar?: string;
+  /** The script's pictures do not show on entering: only the rest of the
+   *  script does, and the pictures arrive this many ms later. The header menu
+   *  then restarts that sequence instead of stepping the date label (room 8). */
+  delayedImageMs?: number;
 };
 
 export function useLiveChatSim(roomId: string, defaultRoomName: string, options: LiveChatOptions = {}) {
-  const { script = SCRIPT, timeSuffix = "", focusOnEnter = false, defaultAvatar } = options;
+  const { script = SCRIPT, timeSuffix = "", focusOnEnter = false, defaultAvatar, delayedImageMs } = options;
+  // With a delay, the pictures are held back from the opening feed.
+  const openingFeed = useMemo(
+    () => (delayedImageMs ? script.filter((m) => m.kind !== "image") : script),
+    [script, delayedImageMs]
+  );
   const [roomName, setRoomName] = useState(defaultRoomName);
   const [editingName, setEditingName] = useState(false);
-  const [feed, setFeed] = useState<LiveMessage[]>(script);
+  const [feed, setFeed] = useState<LiveMessage[]>(openingFeed);
+  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [hasText, setHasText] = useState(false);
   const [voiceStage, setVoiceStage] = useState<VoiceStage>("closed");
   const [recordSeconds, setRecordSeconds] = useState(0);
@@ -104,11 +114,35 @@ export function useLiveChatSim(roomId: string, defaultRoomName: string, options:
     [roomId]
   );
 
-  /** The header menu steps the date label through DAY_LABELS. */
-  const toggleDayLabel = useCallback(
-    () => setDayLabel((d) => DAY_LABELS[(DAY_LABELS.indexOf(d) + 1) % DAY_LABELS.length]),
-    []
-  );
+  /** Brings the held-back pictures in after the delay, right after the opening messages. */
+  const scheduleReveal = useCallback(() => {
+    if (!delayedImageMs) return;
+    if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+    revealTimerRef.current = setTimeout(() => {
+      const pictures = script.filter((m) => m.kind === "image");
+      setFeed((prev) => [...prev.slice(0, openingFeed.length), ...pictures, ...prev.slice(openingFeed.length)]);
+    }, delayedImageMs);
+  }, [delayedImageMs, script, openingFeed.length]);
+
+  useEffect(() => {
+    scheduleReveal();
+    return () => {
+      if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+    };
+  }, [scheduleReveal]);
+
+  /** The header menu steps the date label through DAY_LABELS - or, when the
+   *  pictures are delayed, starts the chat over: messages only, pictures again later. */
+  const toggleDayLabel = useCallback(() => {
+    if (delayedImageMs) {
+      setFeed(openingFeed);
+      setDayLabel("วันนี้");
+      scheduleReveal();
+      textInputRef.current?.focus();
+      return;
+    }
+    setDayLabel((d) => DAY_LABELS[(DAY_LABELS.indexOf(d) + 1) % DAY_LABELS.length]);
+  }, [delayedImageMs, openingFeed, scheduleReveal]);
 
   useEffect(() => {
     if (!focusOnEnter) return;
@@ -245,6 +279,7 @@ export function useLiveChatSim(roomId: string, defaultRoomName: string, options:
     setBgColor,
     dayLabel,
     toggleDayLabel,
+    menuRestarts: Boolean(delayedImageMs),
     roomName,
     setRoomName,
     editingName,

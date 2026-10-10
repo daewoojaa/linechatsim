@@ -213,7 +213,12 @@ export default function ChatList({ variant = "main" }: { variant?: ListVariant }
         </button>
         <div className={styles.friendsTab}>เพื่อน</div>
         <div className={styles.headerIcons}>
-          <button type="button" className={styles.headerIconButton} title="อัลบั้ม">
+          <button
+            type="button"
+            className={styles.headerIconButton}
+            title="อัลบั้ม"
+            onClick={variant === "main" ? () => router.push("/recorder") : undefined}
+          >
             <AlbumIcon />
             <span className={styles.smallDot} />
           </button>

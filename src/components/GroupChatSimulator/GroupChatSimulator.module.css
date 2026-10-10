@@ -11,8 +11,6 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.85);
-  box-sizing: border-box;
   background: #ffffff center / cover no-repeat;
 }
 
@@ -49,12 +47,6 @@
   max-height: 240px;
   object-fit: contain;
   border-radius: 14px;
-  padding: 4px;
-  box-sizing: border-box;
-}
-
-.leftImage {
-  background: #ffffff;
 }
 
 .leftBubble {
@@ -64,10 +56,6 @@
 
 .bubbleImage {
   cursor: pointer;
-}
-
-.rightImage {
-  background: #bcd3ef;
 }
 
 /* "อ่านแล้ว N" stacked over the time, beside the bubble. */

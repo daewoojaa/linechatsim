@@ -32,7 +32,7 @@ const SYSTEM_FONT = "system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans Th
 
 /**
  * Room 2: a LINE group chat on a picture background, built from room 6's
- * design. The ">" at the left of the input bar picks a picture to send; the
+ * design. The ">" at the left of the input bar sends a fixed picture; the
  * phone icon at the top right sets how high the "อ่านแล้ว" count runs; the ☰
  * icon flips the scripted messages to the other side (see useGroupChatSim).
  * Tapping any picture in the chat opens it full screen.
@@ -48,12 +48,10 @@ export default function GroupChatSimulator() {
     mirrored,
     toggleMirrored,
     textInputRef,
-    imageInputRef,
     onInput,
     onKeyDown,
     send,
-    requestPickImage,
-    handleImageChange,
+    sendPhoto,
   } = useGroupChatSim();
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -138,11 +136,11 @@ export default function GroupChatSimulator() {
     textInputRef.current?.focus();
   };
 
-  const picture = (src: string, className: string) => (
+  const picture = (src: string) => (
     // eslint-disable-next-line @next/next/no-img-element -- static public/ asset or blob URL of a picked picture
     <img
       src={src}
-      className={`${extra.bubbleImage} ${className}`}
+      className={extra.bubbleImage}
       alt=""
       onClick={(e) => {
         e.stopPropagation();
@@ -168,7 +166,7 @@ export default function GroupChatSimulator() {
             <div className={extra.sender}>{m.sender}</div>
             <div className={`${base.row} ${extra.leftBubbleRow}`}>
               {m.kind === "image" ? (
-                picture(m.src, extra.leftImage)
+                picture(m.src)
               ) : (
                 <div className={`${base.bubble} ${extra.leftBubble}`}>{m.text}</div>
               )}
@@ -187,7 +185,7 @@ export default function GroupChatSimulator() {
     return (
       <div key={m.id} className={base.row}>
         {meta}
-        {m.kind === "text" ? <div className={base.bubble}>{m.text}</div> : picture(m.src, extra.rightImage)}
+        {m.kind === "text" ? <div className={base.bubble}>{m.text}</div> : picture(m.src)}
       </div>
     );
   };
@@ -196,7 +194,7 @@ export default function GroupChatSimulator() {
     <div
       className={base.appShell}
       style={{
-        background: "#2a1d10 url(/room2-bg.webp) center / cover no-repeat",
+        background: "#2a1d10 url(/room2-bg2.webp) center / cover no-repeat",
         ["--time-color" as string]: "#f6ecd2",
         ["--keyboard-reserve" as string]: keyboardReserve,
       }}
@@ -247,8 +245,8 @@ export default function GroupChatSimulator() {
           <button
             type="button"
             className={base.chevronButton}
-            onClick={requestPickImage}
-            title="เลือกรูปภาพเพื่อส่ง"
+            onClick={sendPhoto}
+            title="ส่งรูปภาพ"
           >
             <ChevronRightIcon />
           </button>
@@ -320,7 +318,6 @@ export default function GroupChatSimulator() {
         </div>
       )}
 
-      <input type="file" accept="image/*" ref={imageInputRef} onChange={handleImageChange} hidden />
     </div>
   );
 }
