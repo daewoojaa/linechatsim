@@ -106,7 +106,7 @@ const SECOND_LIST_DEFAULTS: Record<string, Pick<ChatRoom, "name" | "message" | "
   "5": { name: "งานกฐินปี 70 (236)", message: "ค่ะ", time: "16:47", unread: "5" },
   "6": { name: "ครูอ้อย โรงเรียนดงชน", message: "เด็กได้ชุดครบแล้วค่ะ", time: "16:21", unread: "" },
   "7": { name: "น้องจอย บัญชี", message: "น้องจอย บัญชี ได้ส่งรูปภาพ", time: "15:56", unread: "2" },
-  "8": { name: "บุษบา", message: "บุษบา ได้ส่งรูปภาพ", time: "15:08", unread: "" },
+  "8": { name: "แหม่ม", message: "แหม่ม ได้ส่งรูปภาพ", time: "15:08", unread: "" },
   "9": { name: "ณัฐพงศ์", message: "ณัฐพงศ์ ได้ส่งสติกเกอร์", time: "14:32", unread: "8" },
   "10": { name: "ข่าวสารบ้านเฮา (459)", message: "จริงเหรอ", time: "13:17", unread: "1" },
 };
