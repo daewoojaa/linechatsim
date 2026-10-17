@@ -16,6 +16,34 @@ export function loadRoomOverrides(key: string = DEFAULT_KEY): RoomOverrides {
   }
 }
 
+/**
+ * One-time update of a saved value after its default changed: if the saved
+ * `field` of room `id` is still exactly `oldDefault` (never customised), it
+ * is forgotten so the new default shows. A value the user typed themselves
+ * is left alone.
+ */
+export function refreshUntouchedField(
+  key: string,
+  version: number,
+  id: string,
+  field: keyof RoomOverride,
+  oldDefault: string,
+) {
+  if (typeof window === "undefined") return;
+  const marker = `${key}-refresh-${id}-${field}`;
+  try {
+    if ((parseInt(window.localStorage.getItem(marker) ?? "0", 10) || 0) >= version) return;
+    const all = loadRoomOverrides(key);
+    if (all[id]?.[field] === oldDefault) {
+      delete all[id][field];
+      window.localStorage.setItem(key, JSON.stringify(all));
+    }
+    window.localStorage.setItem(marker, String(version));
+  } catch {
+    // Best-effort, like the rest of the persistence.
+  }
+}
+
 export function saveRoomOverride(id: string, override: RoomOverride, key: string = DEFAULT_KEY) {
   if (typeof window === "undefined") return;
   try {

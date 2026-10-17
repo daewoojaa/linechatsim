@@ -22,15 +22,15 @@ type Props = {
 
 /**
  * Video-call simulator (room 4) — a FaceTime/Instagram-call-style screen.
- * The big frame loops an MP4 standing in for the other person (picked via
- * "Activities"), playing with its own sound; the picture-in-picture box in
+ * The big frame loops a clip (or shows a still picture) standing in for the
+ * other person, picked via "Activities" (video or image), playing with its own sound; the picture-in-picture box in
  * the corner is the device's own live front camera, so an actor can perform
  * alongside the clip in real time. Every other control (mute, camera
  * effects, the top-right icons) is decorative chrome for visual
  * authenticity, not wired up.
  */
 export default function VideoCallSimulator({ roomId }: Props) {
-  const { clipSrc, exitImageSrc, fileInputRef, requestPickClip, handleClipFileChange } = useVideoCallSim(roomId);
+  const { clipSrc, clipIsImage, exitImageSrc, fileInputRef, requestPickClip, handleClipFileChange } = useVideoCallSim(roomId);
   const { stream: cameraStream, error: cameraError, retry: retryCamera } = useFrontCamera();
   const pipVideoRef = useRef<HTMLVideoElement>(null);
   const mainVideoRef = useRef<HTMLVideoElement>(null);
@@ -55,7 +55,7 @@ export default function VideoCallSimulator({ roomId }: Props) {
   // playback if the browser blocks that, and unmute on the next tap.
   useEffect(() => {
     const video = mainVideoRef.current;
-    if (!video || !clipSrc) return;
+    if (!video || !clipSrc || clipIsImage) return;
     video.muted = false;
     video.play().catch(() => {
       soundBlockedRef.current = true;
@@ -64,7 +64,7 @@ export default function VideoCallSimulator({ roomId }: Props) {
         // Still blocked (e.g. low-power mode) — nothing more to do.
       });
     });
-  }, [clipSrc]);
+  }, [clipSrc, clipIsImage]);
 
   useEffect(() => {
     const unmute = () => {
@@ -92,7 +92,10 @@ export default function VideoCallSimulator({ roomId }: Props) {
     <div className={styles.appShell}>
       {/* Main frame — the other person's video clip */}
       <div className={styles.mainVideoWrap}>
-        {clipSrc ? (
+        {clipSrc && clipIsImage ? (
+          // eslint-disable-next-line @next/next/no-img-element -- IndexedDB blob URL, no next/image optimization applicable
+          <img className={styles.mainVideo} src={clipSrc} alt="" />
+        ) : clipSrc ? (
           <video ref={mainVideoRef} className={styles.mainVideo} src={clipSrc} autoPlay loop playsInline />
         ) : (
           <div className={styles.mainVideoPlaceholder} />
@@ -148,7 +151,7 @@ export default function VideoCallSimulator({ roomId }: Props) {
 
       <input
         type="file"
-        accept="video/*"
+        accept="video/*,image/*"
         ref={fileInputRef}
         onChange={handleClipFileChange}
         className={styles.hiddenFileInput}
