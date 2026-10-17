@@ -44,3 +44,46 @@ body {
   color: #141414;
   font-family: var(--font-body);
 }
+
+/* ---- page transition: chat list (home2) -> room 2 ----
+   Like a phone's own "push": the new screen slides in from the right edge
+   while the old one drifts a third of the way left and dims. */
+::view-transition-group(.slide-in-right) {
+  z-index: 2;
+}
+::view-transition-group(.slide-out-left) {
+  z-index: 1;
+}
+::view-transition-old(.slide-out-left) {
+  animation: 320ms cubic-bezier(0.32, 0.72, 0, 1) both slide-out-left;
+}
+::view-transition-new(.slide-in-right) {
+  animation: 320ms cubic-bezier(0.32, 0.72, 0, 1) both slide-in-right;
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.35);
+}
+
+@keyframes slide-out-left {
+  from {
+    transform: translateX(0);
+    filter: brightness(1);
+  }
+  to {
+    transform: translateX(-30%);
+    filter: brightness(0.65);
+  }
+}
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(.slide-out-left),
+  ::view-transition-new(.slide-in-right) {
+    animation: none;
+  }
+}

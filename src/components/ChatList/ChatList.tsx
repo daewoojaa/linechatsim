@@ -145,7 +145,10 @@ export default function ChatList({ variant = "main" }: { variant?: ListVariant }
 
   const openRoom = (room: ChatRoom) => {
     if (editing?.id === room.id) return;
-    if (room.href) router.push(room.href);
+    if (!room.href) return;
+    // Second page -> room 2 slides left like a native push (see globals.css).
+    if (variant === "second" && room.href === "/room2") router.push(room.href, { transitionTypes: ["nav-forward"] });
+    else router.push(room.href);
   };
 
   const pickAvatar = (e: React.MouseEvent, id: string) => {
