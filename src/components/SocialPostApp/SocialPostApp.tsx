@@ -15,6 +15,8 @@ const MEDIA_KEY = "room11:media";
 const DEFAULT_TEXT = "ไม่คิดไม่ฝันว่าจะเจอซอจีฮุน รักแรกของชั้น ที่งานเต่างอย #ห่างแค่เพียงเอื้อมมือแต่มันคือแสนไกล";
 const POST_TIME = "21.00 น.";
 const FALLBACK_KEYBOARD_RESERVE = "43.8dvh";
+const TEXT_KEY = "linechatsim-room11-text-v1";
+const AVATAR_PREFIX = "room11:avatar:";
 
 type Comment = { id: string; name: string; text: string; time: string; avatar: "miyeon" | { letter: string; from: string; to: string } };
 
@@ -27,6 +29,16 @@ const COMMENTS: Comment[] = [
   { id: "c4", name: "มินท์", text: "กรี๊ดดดดดดด คนที่มึงเปิดรูปให้กูเบิ่งทุกมื้อแม่นบ่!!!", time: "21.12", avatar: { letter: "ม", from: "#b9b1ee", to: "#7467d6" } },
   { id: "c5", name: "ตุ๊ก บ้านโนน", text: "ตัวจริงมั้ย", time: "21.15", avatar: { letter: "ต", from: "#f5cd7a", to: "#e0993a" } },
 ];
+
+/** Every editable text of the post and its comments (the post's own text is edited in place). */
+const DEFAULT_TEXTS: Record<string, string> = {
+  name: POSTER,
+  postTime: POST_TIME,
+  reactions: "1.2 พัน คนชอบ",
+  commentsCount: "ความคิดเห็น 128 รายการ",
+  shares: "แชร์ 24 ครั้ง",
+  ...Object.fromEntries(COMMENTS.flatMap((c) => [[`${c.id}.name`, c.name], [`${c.id}.text`, c.text], [`${c.id}.time`, c.time]])),
+};
 
 const stroke = { fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round" } as const;
 
@@ -244,19 +256,34 @@ function ReactionBadges() {
 
 /* ---- small pieces ---- */
 
-function Avatar({ size, letter }: { size: number; letter?: string }) {
-  // The poster's profile circle: no photo was given, so a soft pink one.
+type Pickable = { src?: string; editable?: boolean; onPick?: () => void };
+
+function Avatar({ size, src, editable, onPick }: { size: number } & Pickable) {
+  // The poster's profile circle: no photo was given, so a soft pink one -
+  // until a picture is chosen (while editing, tap it).
   return (
-    <span className={styles.posterAvatar} style={{ width: size, height: size, fontSize: size * 0.46 }}>
-      {letter ?? "ป"}
+    <span
+      className={styles.posterAvatar}
+      data-editable={editable}
+      onClick={editable ? onPick : undefined}
+      style={{
+        width: size,
+        height: size,
+        fontSize: size * 0.46,
+        ...(src ? { background: `#e8c9a8 url(${src}) center / cover no-repeat` } : null),
+      }}
+    >
+      {src ? null : "ป"}
     </span>
   );
 }
 
-function CommentAvatar({ avatar }: { avatar: Comment["avatar"] }) {
-  if (avatar === "miyeon") return <span className={styles.miyeonAvatar} />;
+function CommentAvatar({ avatar, src, editable, onPick }: { avatar: Comment["avatar"] } & Pickable) {
+  const common = { "data-editable": editable, onClick: editable ? onPick : undefined };
+  if (src) return <span className={styles.commentAvatar} {...common} style={{ background: `#e8c9a8 url(${src}) center / cover no-repeat` }} />;
+  if (avatar === "miyeon") return <span className={styles.miyeonAvatar} {...common} />;
   return (
-    <span className={styles.commentAvatar} style={{ background: `linear-gradient(140deg, ${avatar.from}, ${avatar.to})` }}>
+    <span className={styles.commentAvatar} {...common} style={{ background: `linear-gradient(140deg, ${avatar.from}, ${avatar.to})` }}>
       {avatar.letter}
     </span>
   );
@@ -332,6 +359,110 @@ export default function SocialPostApp() {
   const fileRef = useRef<HTMLInputElement>(null);
   const textRef = useRef<HTMLTextAreaElement>(null);
   const keyboardReserve = useKeyboardReserve(textRef, FALLBACK_KEYBOARD_RESERVE);
+
+  // Edit mode (the post's ⋯): every text and profile picture can be changed.
+  const [editMode, setEditMode] = useState(false);
+  const [texts, setTexts] = useState(DEFAULT_TEXTS);
+  const textsRef = useRef(texts);
+  const [editing, setEditing] = useState<string | null>(null);
+  const editFieldRef = useRef<HTMLInputElement & HTMLTextAreaElement>(null);
+  const [avatars, setAvatars] = useState<Record<string, string>>({});
+  const avatarFileRef = useRef<HTMLInputElement>(null);
+  const pendingAvatar = useRef<string>("poster");
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      try {
+        const raw = window.localStorage.getItem(TEXT_KEY);
+        if (raw) {
+          textsRef.current = { ...textsRef.current, ...(JSON.parse(raw) as Record<string, string>) };
+          setTexts(textsRef.current);
+        }
+      } catch {
+        // Persistence is best-effort.
+      }
+    });
+    let cancelled = false;
+    const ids = ["poster", ...COMMENTS.map((c) => c.id)];
+    Promise.all(ids.map((id) => idbGetImage(`${AVATAR_PREFIX}${id}`).catch(() => undefined))).then((blobs) => {
+      if (cancelled) return;
+      const next: Record<string, string> = {};
+      ids.forEach((id, i) => {
+        const blob = blobs[i];
+        if (blob) next[id] = URL.createObjectURL(blob);
+      });
+      setAvatars(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (editing) {
+      editFieldRef.current?.focus();
+      editFieldRef.current?.select();
+    }
+  }, [editing]);
+
+  const valueOf = (key: string) => (key === "post.text" ? (posted?.text ?? "") : texts[key]);
+  const changeText = (key: string, value: string) => {
+    if (key === "post.text") {
+      setPosted((p) => (p ? { ...p, text: value } : p));
+      return;
+    }
+    const next = { ...textsRef.current, [key]: value };
+    textsRef.current = next;
+    setTexts(next);
+    try {
+      window.localStorage.setItem(TEXT_KEY, JSON.stringify(next));
+    } catch {
+      // Persistence is best-effort.
+    }
+  };
+
+  /** One piece of text: plain normally; in edit mode tappable (dashed underline) and an input while edited. */
+  const t = (key: string, className = "", multiline = false, render?: (v: string) => ReactNode) => {
+    const value = valueOf(key);
+    if (editMode && editing === key) {
+      const common = {
+        ref: editFieldRef as never,
+        className: `${styles.editInput} ${multiline ? styles.editInputWide : ""}`,
+        value,
+        onChange: (e: { target: { value: string } }) => changeText(key, e.target.value),
+        onBlur: () => setEditing(null),
+        onKeyDown: (e: React.KeyboardEvent) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            setEditing(null);
+          }
+        },
+      };
+      return multiline ? <textarea rows={3} {...common} /> : <input {...common} />;
+    }
+    return (
+      <span className={className} data-editable={editMode} onClick={editMode ? () => setEditing(key) : undefined}>
+        {render ? render(value) : value}
+      </span>
+    );
+  };
+
+  const pickAvatar = (id: string) => {
+    pendingAvatar.current = id;
+    const el = avatarFileRef.current;
+    if (el) {
+      el.value = "";
+      el.click();
+    }
+  };
+  const onAvatarFile = (file: File) => {
+    const id = pendingAvatar.current;
+    setAvatars((prev) => ({ ...prev, [id]: URL.createObjectURL(file) }));
+    idbSetImage(`${AVATAR_PREFIX}${id}`, file).catch(() => {});
+  };
+  const posterAvatar = (size: number) => (
+    <Avatar size={size} src={avatars.poster} editable={editMode} onPick={() => pickAvatar("poster")} />
+  );
 
   // The picture / clip chosen last time.
   useEffect(() => {
@@ -414,9 +545,9 @@ export default function SocialPostApp() {
           </div>
 
           <div className={styles.profileRow}>
-            <Avatar size={54} />
+            {posterAvatar(54)}
             <div className={styles.profileMain}>
-              <div className={styles.profileName}>{POSTER}</div>
+              <div className={styles.profileName}>{texts.name}</div>
               <div className={styles.chips}>
                 <span className={styles.chip}>
                   <LockIcon />
@@ -508,13 +639,13 @@ export default function SocialPostApp() {
               <BellIcon />
               <i>3</i>
             </span>
-            <Avatar size={46} />
+            {posterAvatar(46)}
           </div>
 
           <div className={styles.feedScroll}>
             <div className={styles.composer}>
               <div className={styles.composerTop}>
-                <Avatar size={52} />
+                {posterAvatar(52)}
                 <button type="button" className={styles.composerInput} onClick={() => setScreen("create")}>
                   <span>คุณกำลังคิดอะไรอยู่?</span>
                   <PhotoBadgeInline />
@@ -527,28 +658,37 @@ export default function SocialPostApp() {
             {posted && (
               <article className={styles.postCard}>
                 <header className={styles.postHeader}>
-                  <Avatar size={54} />
+                  {posterAvatar(54)}
                   <div className={styles.postWho}>
-                    <div className={styles.postName}>{POSTER}</div>
+                    <div className={styles.postName}>{t("name")}</div>
                     <div className={styles.postMeta}>
-                      {POST_TIME} · <GlobeIcon />
+                      {t("postTime")} · <GlobeIcon />
                     </div>
                   </div>
-                  <span className={styles.postDots}>
+                  <button
+                    type="button"
+                    className={styles.postDots}
+                    data-active={editMode}
+                    onClick={() => {
+                      setEditing(null);
+                      setEditMode((m) => !m);
+                    }}
+                    aria-label={editMode ? "ปิดการแก้ไข" : "แก้ไขข้อความและรูปโปรไฟล์"}
+                  >
                     <DotsIcon size={24} />
-                  </span>
+                  </button>
                 </header>
                 <div className={styles.postText}>
-                  <PostText text={posted.text} />
+                  {t("post.text", "", true, (v) => <PostText text={v} />)}
                 </div>
                 <PostMediaView media={posted.media} />
                 <div className={styles.counts}>
                   <span className={styles.reactions}>
                     <ReactionBadges />
-                    1.2 พัน คนชอบ
+                    {t("reactions")}
                   </span>
-                  <span>ความคิดเห็น 128 รายการ</span>
-                  <span>แชร์ 24 ครั้ง</span>
+                  {t("commentsCount")}
+                  {t("shares")}
                 </div>
                 <div className={styles.postActions}>
                   <span>
@@ -578,14 +718,14 @@ export default function SocialPostApp() {
                 </div>
                 {COMMENTS.map((c) => (
                   <div key={c.id} className={styles.comment}>
-                    <CommentAvatar avatar={c.avatar} />
+                    <CommentAvatar avatar={c.avatar} src={avatars[c.id]} editable={editMode} onPick={() => pickAvatar(c.id)} />
                     <div className={styles.commentMain}>
                       <div className={styles.commentBubble}>
                         <div className={styles.commentHead}>
-                          <b>{c.name}</b>
-                          <span> · {c.time}</span>
+                          <b>{t(`${c.id}.name`)}</b>
+                          <span> · {t(`${c.id}.time`)}</span>
                         </div>
-                        <div className={styles.commentText}>{c.text}</div>
+                        <div className={styles.commentText}>{t(`${c.id}.text`, "", true)}</div>
                       </div>
                       <div className={styles.commentActions}>
                         <b>ตอบกลับ</b>
@@ -605,6 +745,17 @@ export default function SocialPostApp() {
 
       <BottomNav screen={screen} onHome={() => setScreen("feed")} onCreate={() => setScreen("create")} />
 
+      <input
+        ref={avatarFileRef}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          if (file) onAvatarFile(file);
+        }}
+      />
       <input
         ref={fileRef}
         type="file"
