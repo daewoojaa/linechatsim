@@ -1,0 +1,611 @@
+.shell {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fbf2e8;
+  color: #2a211a;
+  font-family: var(--font-body), system-ui, -apple-system, "Noto Sans Thai", sans-serif;
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  transition: padding-bottom 0.2s ease-out;
+  --orange: #e8621c;
+  --orange-soft: #fde4d0;
+  --muted: #8c7f74;
+}
+
+.screen {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- profile circles ---- */
+
+.posterAvatar {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(140deg, #fbd0dc, #ee8fae);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.commentAvatar {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+/* Miyeon: the same framing as her picture in room 10's header. */
+.miyeonAvatar {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #e8c9a8 url("/room10-avatar.jpg") 38% 32% / 280% auto no-repeat;
+}
+
+/* ---- create-post screen ---- */
+
+.createHeader {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 8px 12px;
+}
+
+.closeButton {
+  border: 0;
+  background: transparent;
+  color: #2a211a;
+  padding: 6px;
+  display: flex;
+  cursor: pointer;
+}
+
+.createTitle {
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.postButton {
+  border: 0;
+  background: transparent;
+  color: var(--orange);
+  font: 700 19px var(--font-body), system-ui, sans-serif;
+  padding: 6px 2px;
+  cursor: pointer;
+}
+
+.profileRow {
+  flex: none;
+  display: flex;
+  gap: 12px;
+  padding: 6px 16px 4px;
+}
+
+.profileMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.profileName {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 6px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 10px;
+  background: var(--orange-soft);
+  color: var(--orange);
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.textRow {
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 16px 10px;
+}
+
+.textArea {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  border: 0;
+  outline: none;
+  resize: none;
+  padding: 0;
+  background: transparent;
+  color: #2a211a;
+  font: 400 17px/1.5 var(--font-body), system-ui, "Noto Sans Thai", sans-serif;
+  max-height: 110px;
+}
+
+.textArea::placeholder {
+  color: #9d9186;
+}
+
+.photoBadge {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.mediaBox {
+  position: relative;
+  flex: 1;
+  min-height: 120px;
+  overflow: hidden;
+  background: #1a1412;
+  cursor: pointer;
+}
+
+.mediaFill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.editPill {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 7px 12px;
+  border-radius: 10px;
+  background: rgba(30, 26, 24, 0.7);
+  color: #ffffff;
+  font-size: 15px;
+  backdrop-filter: blur(4px);
+}
+
+.editPill b {
+  font-weight: 700;
+  margin-right: 3px;
+}
+
+.removeButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(30, 26, 24, 0.7);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.tagButtons {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+.tagButtons button {
+  width: 44px;
+  height: 38px;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #2a211a;
+  font: 600 20px system-ui, sans-serif;
+  cursor: pointer;
+}
+
+/* The row of "photo / video / check in / feeling" shortcuts. */
+.actionRow {
+  flex: none;
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  overflow-x: auto;
+}
+
+.actionChip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 13px;
+  border: 0;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #2a211a;
+  font: 500 15px var(--font-body), system-ui, sans-serif;
+  box-shadow: 0 1px 4px rgba(120, 70, 30, 0.1);
+  cursor: pointer;
+}
+
+span.actionChip {
+  cursor: default;
+}
+
+.actionMore {
+  padding: 9px 12px;
+  color: #4b4036;
+}
+
+/* ---- feed screen ---- */
+
+.feedTop {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px 8px;
+}
+
+.searchPill {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #7a6d62;
+  font-size: 15px;
+  box-shadow: 0 1px 4px rgba(120, 70, 30, 0.08);
+}
+
+.searchPill span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bell {
+  position: relative;
+  flex: none;
+  display: flex;
+  color: #2a211a;
+}
+
+.bell i {
+  position: absolute;
+  top: -5px;
+  right: -7px;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  border-radius: 10px;
+  background: var(--orange);
+  color: #ffffff;
+  font: 700 12px system-ui, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.feedScroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 12px;
+}
+
+.composer {
+  margin: 4px 12px 10px;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 1px 6px rgba(120, 70, 30, 0.08);
+  padding-top: 12px;
+}
+
+.composerTop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+}
+
+.composerInput {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: #f6efe8;
+  color: #6f635a;
+  font: 400 17px var(--font-body), system-ui, sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pillBadge {
+  display: flex;
+}
+
+.composerDivider {
+  height: 1px;
+  margin: 12px 12px 0;
+  background: #f0e6dc;
+}
+
+.composer .actionRow {
+  padding: 8px 8px 12px;
+}
+
+.composer .actionChip {
+  box-shadow: none;
+  background: transparent;
+  padding: 8px 9px;
+}
+
+.composer .actionMore {
+  background: #f6efe8;
+}
+
+.postCard {
+  margin: 0 12px;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 1px 6px rgba(120, 70, 30, 0.08);
+  padding-bottom: 4px;
+  overflow: hidden;
+}
+
+.postHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 14px 8px;
+}
+
+.postWho {
+  flex: 1;
+  min-width: 0;
+}
+
+.postName {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.postMeta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 14.5px;
+}
+
+.postDots {
+  color: #6f635a;
+  display: flex;
+}
+
+.postText {
+  padding: 2px 16px 12px;
+  font-size: 18px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.hashtag {
+  color: #2b6fd0;
+}
+
+.feedMedia {
+  display: block;
+  width: calc(100% - 24px);
+  margin: 0 12px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.feedImage {
+  height: auto;
+  max-height: 430px;
+  object-fit: cover;
+}
+
+.counts {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px 10px;
+  color: #6f635a;
+  font-size: 14.5px;
+}
+
+.reactions {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-right: auto;
+}
+
+.reactionBadges {
+  display: inline-flex;
+}
+
+.reactionBadges i {
+  width: 22px;
+  height: 22px;
+  margin-left: -5px;
+  border: 2px solid #ffffff;
+  box-sizing: content-box;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reactionBadges i:first-child {
+  margin-left: 0;
+}
+
+.postActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px 12px;
+  border-top: 1px solid #f0e6dc;
+  color: #3a3028;
+  font-size: 15.5px;
+}
+
+.postActions span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.comments {
+  padding: 4px 12px 8px;
+}
+
+.commentsHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 4px 12px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.comment {
+  display: flex;
+  gap: 10px;
+  padding: 6px 0;
+}
+
+.commentMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.commentBubble {
+  display: inline-block;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border-radius: 18px;
+  background: #ece5de;
+}
+
+.commentHead {
+  font-size: 15.5px;
+  line-height: 1.35;
+}
+
+.commentHead span {
+  color: var(--muted);
+}
+
+.commentText {
+  margin-top: 2px;
+  font-size: 17px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.commentActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px 0 6px;
+  color: #6f635a;
+  font-size: 15px;
+}
+
+.commentThumbs {
+  display: inline-flex;
+  gap: 18px;
+  color: #6f635a;
+}
+
+/* ---- bottom navigation ---- */
+
+.nav {
+  flex: none;
+  display: flex;
+  align-items: flex-end;
+  padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+  border-top: 1px solid #f0e6dc;
+  background: #fff9f2;
+}
+
+.navItem {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  color: #2a211a;
+  font: 500 14px var(--font-body), system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.navItem[data-active="true"] {
+  color: var(--orange);
+}
+
+.navCreate {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--orange);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

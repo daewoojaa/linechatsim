@@ -123,7 +123,8 @@ export const INITIAL_ROOMS: ChatRoom[] = BASE_ROOMS.map((room) => ({ ...room, ..
  * names below and the badge numbers 1-10 (row 1 also at 19:00) as last set
  * in the app; previews and pins as in the base rows. Row 2 opens the second
  * chat-list page instead of a chat, row 9 the social feed, row 10 the
- * Korean reporter's chat (อ.ตวง stays reachable from the second page).
+ * Korean reporter's chat (อ.ตวง stays reachable from the second page), and
+ * row 11 (this page only) the "create a post" app.
  */
 const MAIN_NAMES = [
   "520-522-617-717 Harry",
@@ -138,10 +139,22 @@ const MAIN_NAMES = [
   "809 miyeon",
 ];
 
-export const MAIN_ROOMS: ChatRoom[] = BASE_ROOMS.map((room, i) => ({
-  ...room,
-  name: MAIN_NAMES[i],
-  unread: String(i + 1),
-  time: room.id === "1" ? "19:00" : room.time,
-  href: room.id === "2" ? "/home2" : room.id === "9" ? "/room9" : room.id === "10" ? "/room10" : room.href,
-}));
+export const MAIN_ROOMS: ChatRoom[] = [
+  ...BASE_ROOMS.map((room, i) => ({
+    ...room,
+    name: MAIN_NAMES[i],
+    unread: String(i + 1),
+    time: room.id === "1" ? "19:00" : room.time,
+    href: room.id === "2" ? "/home2" : room.id === "9" ? "/room9" : room.id === "10" ? "/room10" : room.href,
+  })),
+  // Row 11 exists on this page only: the "create a post" social app (room 11).
+  {
+    id: "11",
+    name: "324 ปูเป้ ซาลอน",
+    message: "+เพื่อแก้ไข",
+    time: "13/2",
+    unread: "11",
+    color: "#f1948a",
+    href: "/room11",
+  },
+];
