@@ -460,6 +460,34 @@ export default function SocialPostApp() {
     setAvatars((prev) => ({ ...prev, [id]: URL.createObjectURL(file) }));
     idbSetImage(`${AVATAR_PREFIX}${id}`, file).catch(() => {});
   };
+  // The likes / comments / shares row always stays on one line: the text is
+  // shrunk, as far as needed, to fit whatever the screen width and font are.
+  const countsRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = countsRef.current;
+    if (!el || editing) return;
+    const fit = () => {
+      el.style.fontSize = "";
+      let size = parseFloat(getComputedStyle(el).fontSize);
+      while (el.scrollWidth > el.clientWidth + 0.5 && size > 9) {
+        size -= 0.5;
+        el.style.fontSize = `${size}px`;
+      }
+    };
+    fit();
+    const observer = new ResizeObserver(fit);
+    if (el.parentElement) observer.observe(el.parentElement);
+    // The web font may arrive (or the window change) after the first measurement.
+    document.fonts?.ready.then(fit).catch(() => {});
+    document.fonts?.addEventListener("loadingdone", fit);
+    window.addEventListener("resize", fit);
+    return () => {
+      observer.disconnect();
+      document.fonts?.removeEventListener("loadingdone", fit);
+      window.removeEventListener("resize", fit);
+    };
+  }, [posted, texts.reactions, texts.commentsCount, texts.shares, editing, screen]);
+
   const posterAvatar = (size: number) => (
     <Avatar size={size} src={avatars.poster} editable={editMode} onPick={() => pickAvatar("poster")} />
   );
@@ -682,7 +710,7 @@ export default function SocialPostApp() {
                   {t("post.text", "", true, (v) => <PostText text={v} />)}
                 </div>
                 <PostMediaView media={posted.media} />
-                <div className={styles.counts}>
+                <div className={styles.counts} ref={countsRef}>
                   <span className={styles.reactions}>
                     <ReactionBadges />
                     {t("reactions")}
