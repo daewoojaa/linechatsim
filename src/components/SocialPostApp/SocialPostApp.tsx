@@ -111,6 +111,13 @@ function Caret() {
     </svg>
   );
 }
+function PlusSmall() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" {...stroke} strokeWidth={2.600}>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
 function SearchIcon() {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" {...stroke} strokeWidth={2}>
@@ -549,6 +556,11 @@ export default function SocialPostApp() {
                 <span className={styles.chip}>
                   <GlobeIcon size={18} />
                   สาธารณะ
+                  <Caret />
+                </span>
+                <span className={styles.chip}>
+                  <PlusSmall />
+                  อัลบั้ม
                   <Caret />
                 </span>
               </div>
