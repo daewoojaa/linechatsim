@@ -104,41 +104,10 @@ function DotsIcon({ size = 22 }: { size?: number }) {
     </svg>
   );
 }
-function LockIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M7 10V8a5 5 0 0 1 10 0v2h.500A2.500 2.500 0 0 1 20 12.500v6A2.500 2.500 0 0 1 17.500 21h-11A2.500 2.500 0 0 1 4 18.500v-6A2.500 2.500 0 0 1 6.500 10Zm2 0h6V8a3 3 0 0 0-6 0Z" />
-    </svg>
-  );
-}
 function Caret() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
       <path d="M5 9h14l-7 8Z" />
-    </svg>
-  );
-}
-function PlusSmall() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" {...stroke} strokeWidth={2.600}>
-      <path d="M12 5v14M5 12h14" />
-    </svg>
-  );
-}
-function InstagramIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" {...stroke} strokeWidth={2}>
-      <rect x={3.500} y={3.500} width={17} height={17} rx={5} />
-      <circle cx={12} cy={12} r={4} />
-      <circle cx={17} cy={7} r={0.600} fill="currentColor" />
-    </svg>
-  );
-}
-function AtIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" {...stroke} strokeWidth={2.200}>
-      <circle cx={12} cy={12} r={3.600} />
-      <path d="M15.600 8.500V13a2.600 2.600 0 0 0 5.200 0v-1a8.800 8.800 0 1 0-3.400 6.900" />
     </svg>
   );
 }
@@ -157,9 +126,9 @@ function BellIcon() {
     </svg>
   );
 }
-function GlobeIcon() {
+function GlobeIcon({ size = 16 }: { size?: number }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" {...stroke} strokeWidth={1.800}>
+    <svg width={size} height={size} viewBox="0 0 24 24" {...stroke} strokeWidth={1.800}>
       <circle cx={12} cy={12} r={9} />
       <path d="M3 12h18M12 3c2.500 2.700 3.700 5.700 3.700 9S14.500 18.300 12 21c-2.500-2.700-3.700-5.700-3.700-9S9.500 5.700 12 3Z" />
     </svg>
@@ -578,30 +547,8 @@ export default function SocialPostApp() {
               <div className={styles.profileName}>{texts.name}</div>
               <div className={styles.chips}>
                 <span className={styles.chip}>
-                  <LockIcon />
-                  เฉพาะฉัน
-                  <Caret />
-                </span>
-                <span className={styles.chip}>
-                  <PlusSmall />
-                  อัลบั้ม
-                  <Caret />
-                </span>
-                <span className={styles.chip}>
-                  <InstagramIcon />
-                  ปิด
-                  <Caret />
-                </span>
-                <span className={styles.chip}>
-                  <AtIcon />
-                  ปิด
-                  <Caret />
-                </span>
-                <span className={styles.chip}>
-                  <PlusSmall />
-                  <span>
-                    ป้ายกำกับ <u>AI</u> ปิด
-                  </span>
+                  <GlobeIcon size={18} />
+                  สาธารณะ
                   <Caret />
                 </span>
               </div>
