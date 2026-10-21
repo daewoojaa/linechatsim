@@ -12,6 +12,8 @@ type Media = { src: string; video: boolean };
 const POSTER = "ปูเป้ ซาลอน";
 const DEFAULT_MEDIA: Media = { src: "/room10-photo.jpg", video: false };
 const MEDIA_KEY = "room11:media";
+/** Pu-pe's profile picture until another one is chosen (edit mode, tap it). */
+const DEFAULT_POSTER_AVATAR = "/room11-avatar.png";
 const DEFAULT_TEXT = "ไม่คิดไม่ฝันว่าจะเจอซอจีฮุน รักแรกของชั้น ที่งานเต่างอย #ห่างแค่เพียงเอื้อมมือแต่มันคือแสนไกล";
 const POST_TIME = "21.00 น.";
 const FALLBACK_KEYBOARD_RESERVE = "43.8dvh";
@@ -465,7 +467,7 @@ export default function SocialPostApp() {
   }, [posted, texts.reactions, texts.commentsCount, texts.shares, editing, screen]);
 
   const posterAvatar = (size: number) => (
-    <Avatar size={size} src={avatars.poster} editable={editMode} onPick={() => pickAvatar("poster")} />
+    <Avatar size={size} src={avatars.poster ?? DEFAULT_POSTER_AVATAR} editable={editMode} onPick={() => pickAvatar("poster")} />
   );
 
   // The picture / clip chosen last time.
