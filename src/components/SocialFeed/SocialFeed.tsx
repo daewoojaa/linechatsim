@@ -9,6 +9,8 @@ import PostVideo from "./PostVideo";
 import styles from "./SocialFeed.module.css";
 
 const CREATE_MEDIA_KEY = "room9:create-media";
+/** The main (first) post's own picture / clip, once swapped through its ⋯. */
+const MAIN_MEDIA_KEY = "room9:main-media";
 /** Account name shown on the create screen and on the post it shares. */
 const NEW_POST_USER = "real_jihoon";
 
@@ -234,6 +236,25 @@ export default function SocialFeed() {
   const [speedLevel, setSpeedLevel] = useState(0);
   const [restart, setRestart] = useState(0);
   const postCountRef = useRef(0);
+  const [mainMedia, setMainMedia] = useState<PostMedia | null>(null);
+  const mainFileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    idbGetImage(MAIN_MEDIA_KEY)
+      .then((blob) => {
+        if (blob && !cancelled) setMainMedia({ src: URL.createObjectURL(blob), video: blob.type.startsWith("video/") });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const pickMainMedia = (file: File) => {
+    setMainMedia({ src: URL.createObjectURL(file), video: file.type.startsWith("video/") });
+    idbSetImage(MAIN_MEDIA_KEY, file).catch(() => {});
+  };
 
   // The picture / clip picked last time is offered again on the new-post screen.
   useEffect(() => {
@@ -341,17 +362,27 @@ export default function SocialFeed() {
         <div className={styles.who}>
           <div>{t(`${id}.user`, styles.username)}</div>
         </div>
-        <span className={styles.dots}>
-          <DotsIcon />
-        </span>
+        {id === "p1" ? (
+          <button type="button" className={styles.dotsButton} onClick={() => mainFileRef.current?.click()} aria-label="เปลี่ยนรูปหรือคลิปของโพสต์">
+            <DotsIcon />
+          </button>
+        ) : (
+          <span className={styles.dots}>
+            <DotsIcon />
+          </span>
+        )}
       </header>
 
       {id === "p1" ? (
-        // The first post always fills the screen: its picture takes whatever
-        // height is left and is cropped (not stretched) to it.
+        // The first post always fills the screen: its picture / vertical clip
+        // takes whatever height is left and is cropped (not stretched) to it.
         <div className={styles.photoFill}>
-          {/* eslint-disable-next-line @next/next/no-img-element -- static public/ asset */}
-          <img src={photo} className={styles.photoCover} alt={photoAlt} />
+          {mainMedia?.video ? (
+            <PostVideo key={mainMedia.src} src={mainMedia.src} fill />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element -- static asset or local blob
+            <img src={mainMedia?.src ?? photo} className={styles.photoCover} alt={photoAlt} />
+          )}
         </div>
       ) : (
         // eslint-disable-next-line @next/next/no-img-element -- static public/ asset
@@ -472,6 +503,18 @@ export default function SocialFeed() {
           <span className={styles.tabLabel}>프로필</span>
         </span>
       </nav>
+
+      <input
+        ref={mainFileRef}
+        type="file"
+        accept="image/*,video/*"
+        hidden
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) pickMainMedia(file);
+          e.target.value = "";
+        }}
+      />
 
       {creating && (
         <CreatePost

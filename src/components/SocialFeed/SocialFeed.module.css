@@ -129,6 +129,16 @@
   display: flex;
 }
 
+.dotsButton {
+  color: #141414;
+  display: flex;
+  background: none;
+  border: 0;
+  padding: 8px;
+  margin: -8px;
+  cursor: pointer;
+}
+
 .photo {
   display: block;
   width: 100%;
