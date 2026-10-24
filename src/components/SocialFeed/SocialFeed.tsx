@@ -356,7 +356,7 @@ export default function SocialFeed() {
   };
 
   const post = (id: "p1" | "p2", photo: string, photoAlt: string, plainAvatar: boolean) => (
-    <article className={id === "p1" ? `${styles.post} ${styles.fillPost}` : styles.post} key={id}>
+    <article className={id === "p1" && !mainMedia ? `${styles.post} ${styles.fillPost}` : styles.post} key={id}>
       <header className={styles.postHeader}>
         <Avatar size={44} plain={plainAvatar} />
         <div className={styles.who}>
@@ -373,16 +373,21 @@ export default function SocialFeed() {
         )}
       </header>
 
-      {id === "p1" ? (
-        // The first post always fills the screen: its picture / vertical clip
-        // takes whatever height is left and is cropped (not stretched) to it.
+      {id === "p1" && mainMedia ? (
+        // A swapped-in picture / clip keeps its own proportions at full width;
+        // a tall one pushes the caption and comments below the fold.
+        mainMedia.video ? (
+          <PostVideo key={mainMedia.src} src={mainMedia.src} />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element -- local blob
+          <img src={mainMedia.src} className={styles.photo} alt={photoAlt} />
+        )
+      ) : id === "p1" ? (
+        // The first post always fills the screen: its picture takes whatever
+        // height is left and is cropped (not stretched) to it.
         <div className={styles.photoFill}>
-          {mainMedia?.video ? (
-            <PostVideo key={mainMedia.src} src={mainMedia.src} fill />
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element -- static asset or local blob
-            <img src={mainMedia?.src ?? photo} className={styles.photoCover} alt={photoAlt} />
-          )}
+          {/* eslint-disable-next-line @next/next/no-img-element -- static public/ asset */}
+          <img src={photo} className={styles.photoCover} alt={photoAlt} />
         </div>
       ) : (
         // eslint-disable-next-line @next/next/no-img-element -- static public/ asset
