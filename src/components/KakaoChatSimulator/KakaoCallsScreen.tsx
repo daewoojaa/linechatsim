@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import styles from "./KakaoCallsScreen.module.css";
 
 const STORAGE_KEY = "linechatsim-room1-calls-v1";
+const ROWS_KEY = "linechatsim-room1-calls-rows-v1";
+const NEW_ROW_TEXT = "이름";
 
 const DEFAULT_TEXT: Record<string, string> = {
   title: "최근 통화",
@@ -20,7 +22,7 @@ const DEFAULT_TEXT: Record<string, string> = {
 
 // The two marked rows (2 and 3): their name and count get the orange-yellow.
 const HIGHLIGHTED = new Set(["r1", "r2"]);
-const ROWS = ["r0", "r1", "r2", "r3", "r4"];
+const DEFAULT_ROWS = ["r0", "r1", "r2", "r3", "r4"];
 
 const stroke = { fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round" } as const;
 
@@ -114,6 +116,7 @@ type Props = {
  */
 export default function KakaoCallsScreen({ onBackToChat, onMore }: Props) {
   const [text, setText] = useState<Record<string, string>>(DEFAULT_TEXT);
+  const [rows, setRows] = useState<string[]>(DEFAULT_ROWS);
   const [unlocked, setUnlocked] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -124,6 +127,8 @@ export default function KakaoCallsScreen({ onBackToChat, onMore }: Props) {
       try {
         const raw = window.localStorage.getItem(STORAGE_KEY);
         if (raw) setText((prev) => ({ ...prev, ...(JSON.parse(raw) as Record<string, string>) }));
+        const savedRows = window.localStorage.getItem(ROWS_KEY);
+        if (savedRows) setRows(JSON.parse(savedRows) as string[]);
       } catch {
         // Persistence is best-effort.
       }
@@ -145,6 +150,27 @@ export default function KakaoCallsScreen({ onBackToChat, onMore }: Props) {
     } catch {
       // Persistence is best-effort.
     }
+  };
+
+  const saveRows = (next: string[]) => {
+    setRows(next);
+    try {
+      window.localStorage.setItem(ROWS_KEY, JSON.stringify(next));
+    } catch {
+      // Persistence is best-effort.
+    }
+  };
+
+  const addRow = () => {
+    const id = `r${Math.max(-1, ...rows.map((r) => parseInt(r.slice(1), 10) || 0)) + 1}`;
+    change(id, NEW_ROW_TEXT);
+    saveRows([...rows, id]);
+    setEditing(id);
+  };
+
+  const removeRow = (id: string) => {
+    setEditing(null);
+    saveRows(rows.filter((r) => r !== id));
   };
 
   /** One piece of editable text: plain while locked, tappable when unlocked. */
@@ -210,8 +236,13 @@ export default function KakaoCallsScreen({ onBackToChat, onMore }: Props) {
       </div>
 
       <div className={styles.list}>
-        {ROWS.map((key) => (
+        {rows.map((key) => (
           <div key={key} className={styles.row} data-highlight={HIGHLIGHTED.has(key)}>
+            {unlocked && (
+              <button type="button" className={styles.removeRow} onClick={() => removeRow(key)} aria-label="ลบแถว">
+                −
+              </button>
+            )}
             {editable(key, styles.name)}
             <div className={styles.actions}>
               <span className={styles.actionButton}>
@@ -223,6 +254,11 @@ export default function KakaoCallsScreen({ onBackToChat, onMore }: Props) {
             </div>
           </div>
         ))}
+        {unlocked && (
+          <button type="button" className={styles.addRow} onClick={addRow}>
+            + เพิ่มแถว
+          </button>
+        )}
       </div>
 
       <div className={styles.tabs}>

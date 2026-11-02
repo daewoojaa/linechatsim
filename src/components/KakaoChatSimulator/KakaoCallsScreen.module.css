@@ -106,6 +106,39 @@
   cursor: pointer;
 }
 
+.removeRow {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  margin-left: -16px;
+  border: 0;
+  border-radius: 50%;
+  background: #ef4444;
+  color: #ffffff;
+  font: 700 20px/1 system-ui, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.removeRow + .name {
+  flex: 1;
+}
+
+.addRow {
+  display: block;
+  width: calc(100% - 56px);
+  margin: 8px 28px 16px;
+  padding: 14px 0;
+  border: 2px dashed rgba(59, 130, 246, 0.6);
+  border-radius: 16px;
+  background: transparent;
+  color: #3b82f6;
+  font: 700 18px system-ui, -apple-system, "Noto Sans KR", sans-serif;
+  cursor: pointer;
+}
+
 .textInput {
   background: #f1f1f3;
   border: 0;
