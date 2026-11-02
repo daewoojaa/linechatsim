@@ -5,6 +5,8 @@ import styles from "./KakaoCallsScreen.module.css";
 
 const STORAGE_KEY = "linechatsim-room1-calls-v1";
 const ROWS_KEY = "linechatsim-room1-calls-rows-v1";
+const COLORS_KEY = "linechatsim-room1-calls-colors-v1";
+const TEXT_COLOR = "#141414";
 const NEW_ROW_TEXT = "이름";
 
 const DEFAULT_TEXT: Record<string, string> = {
@@ -117,6 +119,9 @@ type Props = {
 export default function KakaoCallsScreen({ onBackToChat, onMore }: Props) {
   const [text, setText] = useState<Record<string, string>>(DEFAULT_TEXT);
   const [rows, setRows] = useState<string[]>(DEFAULT_ROWS);
+  // Text colours picked by the user, by the same keys as the texts; a text
+  // without one keeps the stylesheet's colour (the marked rows' orange-yellow).
+  const [colors, setColors] = useState<Record<string, string>>({});
   const [unlocked, setUnlocked] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -129,6 +134,8 @@ export default function KakaoCallsScreen({ onBackToChat, onMore }: Props) {
         if (raw) setText((prev) => ({ ...prev, ...(JSON.parse(raw) as Record<string, string>) }));
         const savedRows = window.localStorage.getItem(ROWS_KEY);
         if (savedRows) setRows(JSON.parse(savedRows) as string[]);
+        const savedColors = window.localStorage.getItem(COLORS_KEY);
+        if (savedColors) setColors(JSON.parse(savedColors) as Record<string, string>);
       } catch {
         // Persistence is best-effort.
       }
@@ -173,13 +180,50 @@ export default function KakaoCallsScreen({ onBackToChat, onMore }: Props) {
     saveRows(rows.filter((r) => r !== id));
   };
 
-  /** One piece of editable text: plain while locked, tappable when unlocked. */
-  const editable = (key: string, className: string) => {
+  const changeColor = (key: string, color: string | null) => {
+    const next = { ...colors };
+    if (color) next[key] = color;
+    else delete next[key];
+    setColors(next);
+    try {
+      window.localStorage.setItem(COLORS_KEY, JSON.stringify(next));
+    } catch {
+      // Persistence is best-effort.
+    }
+  };
+
+  /** One piece of editable text: plain while locked, tappable when unlocked
+   *  (with a colour dot beside it, and a reset once a colour was picked). */
+  const editable = (key: string, className: string) => (
+    <>
+      {textOf(key, className)}
+      {unlocked && (
+        <span className={styles.colorTools} onClick={(e) => e.stopPropagation()}>
+          <input
+            type="color"
+            className={styles.colorDot}
+            value={colors[key] ?? (HIGHLIGHTED.has(key) ? "#dd9100" : TEXT_COLOR)}
+            onChange={(e) => changeColor(key, e.target.value)}
+            aria-label="เปลี่ยนสีตัวหนังสือ"
+          />
+          {colors[key] && (
+            <button type="button" className={styles.colorReset} onClick={() => changeColor(key, null)} aria-label="คืนสีเดิม">
+              ↺
+            </button>
+          )}
+        </span>
+      )}
+    </>
+  );
+
+  const textOf = (key: string, className: string) => {
+    const style = colors[key] ? { color: colors[key] } : undefined;
     if (editing === key) {
       return (
         <input
           ref={inputRef}
           className={`${className} ${styles.textInput}`}
+          style={style}
           value={text[key]}
           onClick={(e) => e.stopPropagation()}
           onChange={(e) => change(key, e.target.value)}
@@ -196,6 +240,7 @@ export default function KakaoCallsScreen({ onBackToChat, onMore }: Props) {
     return (
       <span
         className={className}
+        style={style}
         data-editable={unlocked}
         onClick={
           unlocked
@@ -219,7 +264,7 @@ export default function KakaoCallsScreen({ onBackToChat, onMore }: Props) {
   return (
     <div className={styles.screen}>
       <div className={styles.header}>
-        {editable("title", styles.title)}
+        <div className={styles.titleGroup}>{editable("title", styles.title)}</div>
         <div className={styles.headerIcons}>
           <SearchIcon />
           <PhonePlusIcon />

@@ -74,6 +74,7 @@
 }
 
 .name {
+  flex: 1;
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
@@ -122,10 +123,6 @@
   cursor: pointer;
 }
 
-.removeRow + .name {
-  flex: 1;
-}
-
 .addRow {
   display: block;
   width: calc(100% - 56px);
@@ -136,6 +133,57 @@
   background: transparent;
   color: #3b82f6;
   font: 700 18px system-ui, -apple-system, "Noto Sans KR", sans-serif;
+  cursor: pointer;
+}
+
+.titleGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.colorTools {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* A round colour swatch (the native picker opens when it is tapped). */
+.colorDot {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px #c9c9cf;
+  background: none;
+  cursor: pointer;
+}
+
+.colorDot::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.colorDot::-webkit-color-swatch {
+  border: 0;
+  border-radius: 50%;
+}
+
+.colorDot::-moz-color-swatch {
+  border: 0;
+  border-radius: 50%;
+}
+
+.colorReset {
+  border: 0;
+  background: transparent;
+  color: #77777f;
+  font-size: 16px;
+  padding: 0 2px;
   cursor: pointer;
 }
 
