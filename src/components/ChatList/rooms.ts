@@ -124,8 +124,7 @@ export const INITIAL_ROOMS: ChatRoom[] = BASE_ROOMS.map((room) => ({ ...room, ..
  * in the app; previews and pins as in the base rows. Row 2 opens the second
  * chat-list page instead of a chat, row 9 the social feed, row 10 the
  * Korean reporter's chat (อ.ตวง stays reachable from the second page), and
- * row 11 (this page only) the "create a post" app, row 12 (this page only)
- * the live-stream screen.
+ * row 11 (this page only) the "create a post" app.
  */
 const MAIN_NAMES = [
   "520-522-617-717 Harry",
@@ -157,15 +156,5 @@ export const MAIN_ROOMS: ChatRoom[] = [
     unread: "11",
     color: "#f1948a",
     href: "/room11",
-  },
-  // Row 12 exists on this page only: the live-stream screen (room 12).
-  {
-    id: "12",
-    name: "725 ไลฟ์ ต้า",
-    message: "กำลังไลฟ์อยู่",
-    time: "23:48",
-    unread: "12",
-    color: "#c39bd3",
-    href: "/room12",
   },
 ];
