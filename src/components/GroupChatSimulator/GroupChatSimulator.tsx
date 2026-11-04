@@ -155,11 +155,11 @@ export default function GroupChatSimulator() {
         <div key={m.id} className={extra.leftRow}>
           <div
             className={extra.avatar}
-            // Photos fill the circle; บุษบา's portrait is framed on the face (upper third).
+            // Photos fill the circle; บุษกร's portrait is framed on the face (upper third).
             style={{
               backgroundImage: `url(${m.avatar})`,
               backgroundSize: "cover",
-              backgroundPosition: m.sender === "บุษบา" ? "center 30%" : "center",
+              backgroundPosition: m.sender === "บุษกร" ? "center 30%" : "center",
             }}
           />
           <div className={extra.leftCol}>

@@ -30,8 +30,8 @@ const READ_RUN_MS = 15000;
 const READ_START_MS = 5000;
 const READ_TICK_MS = 100;
 
-// Mirrored view ("☰"): the same two messages arrive from "บุษบา" on the left.
-const SENDER = "บุษบา";
+// Mirrored view ("☰"): the same two messages arrive from "บุษกร" on the left.
+const SENDER = "บุษกร";
 const SENDER_AVATAR = "/busaba-avatar.jpg";
 const MIRROR_FIRST_DELAY_MS = 5000;
 const MIRROR_GAP_MS = 3000;
@@ -101,7 +101,7 @@ function nowLabel() {
  * surges and stalls up to the maximum.
  *
  * The ☰ icon flips to the mirrored view: the chat resets, and after 5
- * seconds the two messages arrive on their own, one at a time, from "บุษบา"
+ * seconds the two messages arrive on their own, one at a time, from "บุษกร"
  * on the left (the picture first, then the text), with no read counts. The
  * picture is the same fixed one the ">" sends. Tap
  * ☰ again to go back to the normal view.

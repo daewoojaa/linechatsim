@@ -75,8 +75,8 @@ const BASE_ROOMS: ChatRoom[] = [
   },
   {
     id: "8",
-    name: "บุษบา",
-    message: "บุษบา ได้ส่งรูปภาพ",
+    name: "บุษกร",
+    message: "บุษกร ได้ส่งรูปภาพ",
     time: "22/3",
     color: "#f5b7b1",
     href: "/room8",
@@ -134,7 +134,7 @@ const MAIN_NAMES = [
   "815-523-524 TikTok",
   "237-301 Voice Record",
   "611 วงไข่มุกบารมี",
-  "338 บุษบา",
+  "338 บุษกร",
   "235 Gan_phin - 809 real_JH",
   "809 miyeon",
 ];

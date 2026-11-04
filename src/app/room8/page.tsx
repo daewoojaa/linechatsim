@@ -3,7 +3,7 @@ import type { LiveMessage } from "@/hooks/useLiveChatSim";
 
 // What is already in the chat on entering: the "วันนี้" date label (the ☰
 // icon still flips it to เมื่อวาน etc.), then two messages received from
-// บุษบา (left side, with her tap-to-change avatar): a line of text and a picture (tap it
+// บุษกร (left side, with her tap-to-change avatar): a line of text and a picture (tap it
 // for full screen). Only the text shows at first; the picture follows 5 seconds
 // later, and the ☰ icon starts that sequence over.
 const SCRIPT: LiveMessage[] = [
@@ -16,7 +16,7 @@ export default function Room8Page() {
   return (
     <LiveChatSimulator
       roomId="room8"
-      defaultRoomName="บุษบา"
+      defaultRoomName="บุษกร"
       script={SCRIPT}
       timeSuffix=" น."
       focusOnEnter
