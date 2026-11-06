@@ -39,7 +39,7 @@ const BASE_ROOMS: ChatRoom[] = [
   {
     id: "3",
     name: "บุษฟอร์แคช ทีม (943)",
-    message: "บุษ ได้ส่งสติกเกอร์",
+    message: "บุษกร ได้ส่งสติกเกอร์",
     time: "20/8",
     unread: 12,
     color: "#a3d9a5",
@@ -101,7 +101,7 @@ const BASE_ROOMS: ChatRoom[] = [
 const SECOND_LIST_DEFAULTS: Record<string, Pick<ChatRoom, "name" | "message" | "time" | "unread">> = {
   "1": { name: "บอสลูกรัก", message: "คุณได้ส่งสติกเกอร์", time: "19:00", unread: "3" },
   "2": { name: "ลูกหนี้ไม่หนีไปไหน (10,975)", message: "พรชัย ได้ส่งรูปภาพ", time: "18:28", unread: "1" },
-  "3": { name: "บุษฟอร์แคช ทีม (943)", message: "บุษ ได้ส่งสติกเกอร์", time: "15:47", unread: "12" },
+  "3": { name: "บุษฟอร์แคช ทีม (943)", message: "บุษกร ได้ส่งสติกเกอร์", time: "15:47", unread: "12" },
   "4": { name: "ช่างเอก", message: "ได้เลยครับ", time: "17:22", unread: "" },
   "5": { name: "งานกฐินปี 70 (236)", message: "ค่ะ", time: "16:47", unread: "5" },
   "6": { name: "ครูอ้อย โรงเรียนดงชน", message: "เด็กได้ชุดครบแล้วค่ะ", time: "16:21", unread: "" },
