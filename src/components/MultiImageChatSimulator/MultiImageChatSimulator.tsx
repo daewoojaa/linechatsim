@@ -124,6 +124,11 @@ export default function MultiImageChatSimulator({
   const [voiceStage, setVoiceStage] = useState<"closed" | "panel" | "recording">("closed");
   const showRecordArea = voiceStage !== "closed";
 
+  // Taps on the chat picture and header buttons must not take the cursor out
+  // of the input: losing it drops the OS keyboard for a moment, and the
+  // screen jumps (and flashes the background colour) as it falls and rises.
+  const keepKeyboard = (e: React.MouseEvent) => e.preventDefault();
+
   const advanceAndClear = () => {
     onChatImageTap();
     setText("");
@@ -193,7 +198,7 @@ export default function MultiImageChatSimulator({
           className={styles.header}
           style={{ backgroundImage: headerBackground ? `url("${headerBackground}")` : undefined }}
         >
-          <button type="button" className={styles.backButton} onClick={showFirst} title="กลับไปรูปแรก">
+          <button type="button" className={styles.backButton} onMouseDown={keepKeyboard} onClick={showFirst} title="กลับไปรูปแรก">
             <BackArrowIcon color={iconColor} />
           </button>
 
@@ -213,15 +218,16 @@ export default function MultiImageChatSimulator({
           )}
 
           <div className={styles.headerIcons}>
-            <button type="button" className={styles.iconButton} tabIndex={-1}>
+            <button type="button" className={styles.iconButton} tabIndex={-1} onMouseDown={keepKeyboard}>
               <SearchIcon color={iconColor} />
             </button>
-            <button type="button" className={styles.iconButton} tabIndex={-1}>
+            <button type="button" className={styles.iconButton} tabIndex={-1} onMouseDown={keepKeyboard}>
               <PhoneIcon color={iconColor} />
             </button>
             <button
               type="button"
               className={styles.iconButton}
+              onMouseDown={menuToggleIndices ? keepKeyboard : undefined}
               onClick={onMenuClick}
               title={menuToggleIndices ? `สลับรูป ${menuToggleIndices[0] + 1} / ${menuToggleIndices[1] + 1}` : "จัดการรูปภาพ"}
             >
@@ -232,7 +238,7 @@ export default function MultiImageChatSimulator({
         </div>
 
         {/* 2. Chat image zone — tapping it reveals the next uploaded image */}
-        <div className={styles.chatZone} onClick={onChatImageTap}>
+        <div className={styles.chatZone} onMouseDown={keepKeyboard} onClick={onChatImageTap}>
           <div
             className={styles.chatImage}
             style={{ backgroundImage: displayedChatSrc ? `url("${displayedChatSrc}")` : "none" }}

@@ -121,16 +121,49 @@ export function useMultiImageChatSim({
     idbSetMeta(`${roomId}:activeIndex`, activeIndex);
   }, [activeIndex, hydrated, roomId]);
 
-  // Warms the browser's image cache for every known slot (bundled defaults
-  // included) so switching to one — whether by tap or auto-advance — paints
-  // instantly instead of flashing blank while it fetches over the network.
+  // Every picture of the room is fetched and decoded as soon as it is known
+  // (bundled defaults and uploads alike), and the decoded copies are held
+  // here for as long as the room is open, so moving to any slot paints at
+  // once. Fetching them also lands them in the service worker's cache, so
+  // after the first visit they load from the phone itself.
+  const decodedRef = useRef(new Map<string, HTMLImageElement>());
+  const decode = useCallback((src: string) => {
+    let img = decodedRef.current.get(src);
+    if (!img) {
+      img = new Image();
+      img.decoding = "async";
+      img.src = src;
+      decodedRef.current.set(src, img);
+    }
+    return img.decode().catch(() => {});
+  }, []);
+
   useEffect(() => {
     images.forEach((src) => {
-      if (!src) return;
-      const img = new Image();
-      img.src = src;
+      if (src) decode(src);
     });
-  }, [images]);
+  }, [images, decode]);
+
+  // The picture on screen only changes once the next one is fully decoded:
+  // until then the previous picture stays, so a switch never shows a blank
+  // (background-coloured) frame in between.
+  const targetSrc = images[activeIndex] ?? null;
+  const [shownSrc, setShownSrc] = useState<string | null>(targetSrc);
+  useEffect(() => {
+    let cancelled = false;
+    if (!targetSrc) {
+      queueMicrotask(() => {
+        if (!cancelled) setShownSrc(null);
+      });
+    } else {
+      decode(targetSrc).then(() => {
+        if (!cancelled) setShownSrc(targetSrc);
+      });
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [targetSrc, decode]);
 
   // ---- auto-advance through configured slot ranges, e.g. images 2-7 ----
   useEffect(() => {
@@ -259,7 +292,7 @@ export function useMultiImageChatSim({
     nameInputRef,
 
     background,
-    displayedChatSrc: images[activeIndex] ?? null,
+    displayedChatSrc: shownSrc,
     activeIndex,
     showFirst,
     jumpTo,
